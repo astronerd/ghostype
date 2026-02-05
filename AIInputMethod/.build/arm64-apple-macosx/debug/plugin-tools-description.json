@@ -1,0 +1,429 @@
+{
+  "builtTestProducts" : [
+
+  ],
+  "copyCommands" : {
+
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.AIInputMethod-arm64-apple-macosx26.0-debug.module" : {
+      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "fileList" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/sources",
+      "importPath" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/AIInputMethodApp.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/CursorManager.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/FocusObserver.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Hotkey/HotkeyManager.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Permissions/PermissionManager.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Speech/DoubaoSpeechService.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Speech/SpeechService.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OnboardingWindow.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OverlayView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/PermissionWindow.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/TestWindow.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/sources"
+        }
+      ],
+      "isLibrary" : false,
+      "moduleName" : "AIInputMethod",
+      "moduleOutputPath" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/Modules/AIInputMethod.swiftmodule",
+      "objects" : [
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionManager.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoSpeechService.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayView.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionWindow.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/TestWindow.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j10",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "AIInputMethod_main",
+        "-swift-version",
+        "5",
+        "-I",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-L",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-plugin-path",
+        "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "aiinputmethod"
+      ],
+      "outputFileMapPath" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionManager.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoSpeechService.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionWindow.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/TestWindow.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/Modules/AIInputMethod.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/AIInputMethodApp.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/CursorManager.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/FocusObserver.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Hotkey/HotkeyManager.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Permissions/PermissionManager.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Speech/DoubaoSpeechService.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Speech/SpeechService.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OnboardingWindow.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OverlayView.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/PermissionWindow.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/TestWindow.swift"
+      ],
+      "tempsPath" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build",
+      "wholeModuleOptimization" : false
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "AIInputMethod" : [
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "-module-name",
+      "AIInputMethod",
+      "-package-name",
+      "aiinputmethod",
+      "-c",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/AIInputMethodApp.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/CursorManager.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/FocusObserver.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Hotkey/HotkeyManager.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Permissions/PermissionManager.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Speech/DoubaoSpeechService.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Speech/SpeechService.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OnboardingWindow.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OverlayView.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/PermissionWindow.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/TestWindow.swift",
+      "-I",
+      "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j10",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "AIInputMethod_main",
+      "-swift-version",
+      "5",
+      "-I",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-L",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-plugin-path",
+      "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "aiinputmethod",
+      "-driver-use-frontend-path",
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "AIInputMethod" : [
+
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+
+  },
+  "traitConfiguration" : {
+    "default" : {
+
+    }
+  },
+  "writeCommands" : {
+    "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod-entitlement.plist" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<entitlement-plist>"
+        },
+        {
+          "kind" : "virtual",
+          "name" : "<com.apple.security.get-task-allow>"
+        }
+      ],
+      "outputFilePath" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod-entitlement.plist"
+    },
+    "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/AIInputMethodApp.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/CursorManager.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/FocusObserver.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Hotkey/HotkeyManager.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Permissions/PermissionManager.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Speech/DoubaoSpeechService.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Speech/SpeechService.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OnboardingWindow.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OverlayView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/PermissionWindow.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/TestWindow.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/sources"
+    },
+    "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoSpeechService.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionManager.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionWindow.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/TestWindow.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.product/Objects.LinkFileList"
+    },
+    "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt"
+    }
+  }
+}
