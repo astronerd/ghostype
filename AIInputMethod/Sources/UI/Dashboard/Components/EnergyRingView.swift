@@ -3,8 +3,10 @@
 //  AIInputMethod
 //
 //  能量环组件 - 显示额度使用百分比
-//  实现圆环进度显示，颜色根据百分比变化 (>90% 警告色)
-//  Validates: Requirements 5.3
+//  实现圆环进度显示，颜色根据百分比变化
+//  - >80% 警告色（黄色）
+//  - >95% 危险色（红色）
+//  Validates: Requirements 10.1, 10.2, 10.3, 10.4, 10.5, 10.6
 //
 
 import SwiftUI
@@ -13,7 +15,12 @@ import SwiftUI
 
 /// 能量环视图组件
 /// 用于显示本月额度使用情况的圆环进度图
-/// - Requirement 5.3: 显示 used/remaining quota percentage
+/// - Requirement 10.1: 显示 "本月能量环" Bento_Card with Energy_Ring component
+/// - Requirement 10.2: 显示 used percentage as filled arc (0% to 100%)
+/// - Requirement 10.3: 显示 remaining percentage as unfilled arc
+/// - Requirement 10.4: >80% 显示警告色（黄色）
+/// - Requirement 10.5: >95% 显示危险色（红色）
+/// - Requirement 10.6: 中心显示数字百分比
 struct EnergyRingView: View {
     
     // MARK: - Properties
@@ -21,8 +28,11 @@ struct EnergyRingView: View {
     /// 已使用百分比 (0.0 - 1.0)
     var usedPercentage: Double
     
-    /// 警告阈值，超过此值显示警告色 (默认 0.9 即 90%)
-    var warningThreshold: Double = 0.9
+    /// 警告阈值 (80%)
+    var warningThreshold: Double = 0.8
+    
+    /// 危险阈值 (95%)
+    var criticalThreshold: Double = 0.95
     
     /// 圆环线宽
     var lineWidth: CGFloat = 12
@@ -59,19 +69,32 @@ struct EnergyRingView: View {
         return "剩余 \(remaining)%"
     }
     
-    /// 是否处于警告状态 (>90% 使用)
+    /// 是否处于警告状态 (>80% 使用且 <=95%)
     private var isWarning: Bool {
-        safePercentage > warningThreshold
+        safePercentage > warningThreshold && safePercentage <= criticalThreshold
+    }
+    
+    /// 是否处于危险状态 (>95% 使用)
+    private var isCritical: Bool {
+        safePercentage > criticalThreshold
     }
     
     /// 进度环颜色
-    /// - 正常状态: 蓝色渐变
-    /// - 警告状态 (>90%): 橙红色渐变
+    /// - 正常状态 (0-80%): 蓝色到青色渐变
+    /// - 警告状态 (80-95%): 黄色到橙色渐变
+    /// - 危险状态 (>95%): 红色渐变
     private var progressColor: LinearGradient {
-        if isWarning {
-            // 警告色: 橙色到红色渐变
+        if isCritical {
+            // 危险色: 红色渐变
             return LinearGradient(
-                colors: [Color.orange, Color.red],
+                colors: [Color.red, Color.red.opacity(0.8)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        } else if isWarning {
+            // 警告色: 黄色到橙色渐变
+            return LinearGradient(
+                colors: [Color.yellow, Color.orange],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -92,7 +115,13 @@ struct EnergyRingView: View {
     
     /// 文字颜色
     private var textColor: Color {
-        isWarning ? .orange : .primary
+        if isCritical {
+            return .red
+        } else if isWarning {
+            return .orange
+        } else {
+            return .primary
+        }
     }
     
     // MARK: - Body
@@ -146,7 +175,12 @@ struct EnergyRingView: View {
                 .foregroundColor(.secondary)
             
             // 警告提示
-            if isWarning {
+            if isCritical {
+                Text("额度已耗尽")
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundColor(.red)
+                    .padding(.top, 2)
+            } else if isWarning {
                 Text("额度即将耗尽")
                     .font(.system(size: 9, weight: .medium))
                     .foregroundColor(.orange)
@@ -180,13 +214,25 @@ struct EnergyRingView_Previews: PreviewProvider {
             EnergyRingView(usedPercentage: 0.5)
                 .frame(width: 120, height: 120)
                 .padding()
-                .previewDisplayName("50% Used")
+                .previewDisplayName("50% Used (Normal)")
             
             // 正常状态 - 75%
             EnergyRingView(usedPercentage: 0.75)
                 .frame(width: 120, height: 120)
                 .padding()
-                .previewDisplayName("75% Used")
+                .previewDisplayName("75% Used (Normal)")
+            
+            // 边界状态 - 80%
+            EnergyRingView(usedPercentage: 0.80)
+                .frame(width: 120, height: 120)
+                .padding()
+                .previewDisplayName("80% Used (Normal Boundary)")
+            
+            // 警告状态 - 85%
+            EnergyRingView(usedPercentage: 0.85)
+                .frame(width: 120, height: 120)
+                .padding()
+                .previewDisplayName("85% Used (Warning)")
             
             // 警告状态 - 92%
             EnergyRingView(usedPercentage: 0.92)
@@ -194,11 +240,23 @@ struct EnergyRingView_Previews: PreviewProvider {
                 .padding()
                 .previewDisplayName("92% Used (Warning)")
             
+            // 边界状态 - 95%
+            EnergyRingView(usedPercentage: 0.95)
+                .frame(width: 120, height: 120)
+                .padding()
+                .previewDisplayName("95% Used (Warning Boundary)")
+            
+            // 危险状态 - 96%
+            EnergyRingView(usedPercentage: 0.96)
+                .frame(width: 120, height: 120)
+                .padding()
+                .previewDisplayName("96% Used (Critical)")
+            
             // 满额状态 - 100%
             EnergyRingView(usedPercentage: 1.0)
                 .frame(width: 120, height: 120)
                 .padding()
-                .previewDisplayName("100% Used")
+                .previewDisplayName("100% Used (Critical)")
             
             // 空状态 - 0%
             EnergyRingView(usedPercentage: 0.0)
@@ -220,7 +278,7 @@ struct EnergyRingView_Previews: PreviewProvider {
                 .frame(width: 120, height: 120)
                 .padding()
                 .preferredColorScheme(.dark)
-                .previewDisplayName("Dark Mode")
+                .previewDisplayName("Dark Mode (Warning)")
             
             // 自定义线宽
             EnergyRingView(usedPercentage: 0.6, lineWidth: 8)

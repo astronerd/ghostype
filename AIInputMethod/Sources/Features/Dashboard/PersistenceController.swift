@@ -280,4 +280,40 @@ final class PersistenceController {
         }
         return nextMonth
     }
+    
+    /// Update the content of a UsageRecord by its ID
+    /// - Parameters:
+    ///   - id: The UUID of the record to update
+    ///   - content: The new content string
+    func updateUsageRecord(id: UUID, content: String) {
+        let request = UsageRecord.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        request.fetchLimit = 1
+        
+        do {
+            if let record = try viewContext.fetch(request).first {
+                record.content = content
+                save()
+            }
+        } catch {
+            print("Update error: \(error)")
+        }
+    }
+    
+    /// Delete a UsageRecord by its ID
+    /// - Parameter id: The UUID of the record to delete
+    func deleteUsageRecord(id: UUID) {
+        let request = UsageRecord.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        request.fetchLimit = 1
+        
+        do {
+            if let record = try viewContext.fetch(request).first {
+                viewContext.delete(record)
+                save()
+            }
+        } catch {
+            print("Delete error: \(error)")
+        }
+    }
 }

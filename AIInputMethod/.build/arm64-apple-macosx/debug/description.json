@@ -17,228 +17,256 @@
 
   ],
   "swiftCommands" : {
-    "C.AIInputMethod-arm64-apple-macosx15.0-debug.module" : {
+    "C.AIInputMethod-arm64-apple-macosx26.0-debug.module" : {
       "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
-      "fileList" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/sources",
-      "importPath" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/Modules",
+      "fileList" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/sources",
+      "importPath" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/Modules",
       "inputs" : [
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/AIInputMethodApp.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/AIInputMethodApp.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/AI/InputMode.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/AI/DoubaoLLMService.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/AI/MiniMaxService.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/AI/InputMode.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Accessibility/CursorManager.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/AI/MiniMaxService.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Accessibility/FocusObserver.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/CursorManager.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/DashboardState.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/FocusObserver.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/DashboardWindowController.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DashboardState.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/DeviceIdManager.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DashboardWindowController.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/LibraryViewModel.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DeviceIdManager.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/NavItem.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/LibraryViewModel.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/PersistenceController.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/NavItem.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/PreferencesViewModel.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/PersistenceController.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/QuotaManager.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/PreferencesViewModel.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/QuotaRecord+CoreDataClass.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/QuotaManager.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/QuotaRecord+CoreDataProperties.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/QuotaRecord+CoreDataClass.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/RecordCategory.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/QuotaRecord+CoreDataProperties.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/StatsCalculator.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/RecordCategory.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/UsageRecord+CoreDataClass.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/StatsCalculator.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/UsageRecord+CoreDataProperties.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/UsageRecord+CoreDataClass.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Hotkey/HotkeyManager.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/UsageRecord+CoreDataProperties.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Permissions/PermissionManager.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Hotkey/HotkeyManager.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Speech/DoubaoSpeechService.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Permissions/PermissionManager.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Speech/SpeechService.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Settings/AppSettings.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/BentoCard.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Settings/Logger.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/EnergyRingView.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Speech/DoubaoSpeechService.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/PieChartView.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Speech/SpeechService.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/RecordDetailPanel.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/BentoCard.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/RecordListItem.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/EnergyRingView.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/DashboardView.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/PieChartView.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/OnboardingContentView.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/RecordDetailPanel.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Pages/LibraryPage.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/RecordListItem.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Pages/OverviewPage.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/DashboardView.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Pages/PreferencesPage.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/OnboardingContentView.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/SidebarView.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/LibraryPage.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/OnboardingWindow.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/MemoPage.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/OverlayView.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/OverviewPage.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/PermissionWindow.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/PreferencesPage.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/TestWindow.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/SidebarView.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OnboardingWindow.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/sources"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OverlayTestWindow.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OverlayView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/PermissionWindow.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/TestWindow.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/sources"
         }
       ],
       "isLibrary" : false,
       "moduleName" : "AIInputMethod",
-      "moduleOutputPath" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/Modules/AIInputMethod.swiftmodule",
+      "moduleOutputPath" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/Modules/AIInputMethod.swiftmodule",
       "objects" : [
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/InputMode.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/MiniMaxService.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardState.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardWindowController.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DeviceIdManager.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryViewModel.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/NavItem.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PersistenceController.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesViewModel.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaManager.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataClass.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataProperties.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordCategory.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/StatsCalculator.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataClass.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataProperties.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionManager.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoSpeechService.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/BentoCard.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/EnergyRingView.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PieChartView.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordDetailPanel.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordListItem.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardView.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingContentView.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryPage.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverviewPage.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesPage.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SidebarView.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayView.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionWindow.swift.o",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/TestWindow.swift.o"
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoLLMService.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/InputMode.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/MiniMaxService.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardState.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardWindowController.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DeviceIdManager.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryViewModel.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/NavItem.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PersistenceController.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesViewModel.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaManager.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataClass.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataProperties.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordCategory.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/StatsCalculator.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataClass.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataProperties.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionManager.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AppSettings.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/Logger.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoSpeechService.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/BentoCard.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/EnergyRingView.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PieChartView.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordDetailPanel.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordListItem.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardView.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingContentView.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryPage.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/MemoPage.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverviewPage.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesPage.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SidebarView.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayTestWindow.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayView.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionWindow.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/TestWindow.swift.o"
       ],
       "otherArguments" : [
         "-target",
         "arm64-apple-macosx14.0",
+        "-incremental",
         "-enable-batch-mode",
+        "-serialize-diagnostics",
         "-index-store-path",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/index/store",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/index/store",
         "-Onone",
         "-enable-testing",
-        "-j8",
+        "-j10",
         "-DSWIFT_PACKAGE",
         "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
         "-module-cache-path",
-        "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/ModuleCache",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/ModuleCache",
         "-parseable-output",
         "-Xfrontend",
         "-entry-point-function-name",
@@ -247,8 +275,12 @@
         "-color-diagnostics",
         "-swift-version",
         "5",
-        "-F",
+        "-I",
         "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-L",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-plugin-path",
+        "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
         "-sdk",
         "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
         "-g",
@@ -263,207 +295,232 @@
         "-package-name",
         "aiinputmethod"
       ],
-      "outputFileMapPath" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/output-file-map.json",
+      "outputFileMapPath" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/output-file-map.json",
       "outputs" : [
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/InputMode.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoLLMService.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/MiniMaxService.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/InputMode.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/MiniMaxService.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardState.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardWindowController.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardState.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DeviceIdManager.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardWindowController.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryViewModel.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DeviceIdManager.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/NavItem.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryViewModel.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PersistenceController.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/NavItem.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesViewModel.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PersistenceController.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaManager.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesViewModel.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataClass.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaManager.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataProperties.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataClass.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordCategory.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataProperties.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/StatsCalculator.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordCategory.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataClass.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/StatsCalculator.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataProperties.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataClass.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataProperties.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionManager.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoSpeechService.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionManager.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AppSettings.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/BentoCard.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/Logger.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/EnergyRingView.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoSpeechService.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PieChartView.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordDetailPanel.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/BentoCard.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordListItem.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/EnergyRingView.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardView.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PieChartView.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingContentView.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordDetailPanel.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryPage.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordListItem.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverviewPage.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardView.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesPage.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingContentView.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SidebarView.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryPage.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/MemoPage.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayView.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverviewPage.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionWindow.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesPage.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/TestWindow.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SidebarView.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/Modules/AIInputMethod.swiftmodule"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayTestWindow.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionWindow.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/TestWindow.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/Modules/AIInputMethod.swiftmodule"
         }
       ],
       "prepareForIndexing" : false,
       "sources" : [
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/AIInputMethodApp.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/AI/InputMode.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/AI/MiniMaxService.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Accessibility/CursorManager.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Accessibility/FocusObserver.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/DashboardState.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/DashboardWindowController.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/DeviceIdManager.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/LibraryViewModel.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/NavItem.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/PersistenceController.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/PreferencesViewModel.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/QuotaManager.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/QuotaRecord+CoreDataClass.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/QuotaRecord+CoreDataProperties.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/RecordCategory.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/StatsCalculator.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/UsageRecord+CoreDataClass.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/UsageRecord+CoreDataProperties.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Hotkey/HotkeyManager.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Permissions/PermissionManager.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Speech/DoubaoSpeechService.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Speech/SpeechService.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/BentoCard.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/EnergyRingView.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/PieChartView.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/RecordDetailPanel.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/RecordListItem.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/DashboardView.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/OnboardingContentView.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Pages/LibraryPage.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Pages/OverviewPage.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Pages/PreferencesPage.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/SidebarView.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/OnboardingWindow.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/OverlayView.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/PermissionWindow.swift",
-        "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/TestWindow.swift"
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/AIInputMethodApp.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/AI/DoubaoLLMService.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/AI/InputMode.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/AI/MiniMaxService.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/CursorManager.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/FocusObserver.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DashboardState.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DashboardWindowController.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DeviceIdManager.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/LibraryViewModel.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/NavItem.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/PersistenceController.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/PreferencesViewModel.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/QuotaManager.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/QuotaRecord+CoreDataClass.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/QuotaRecord+CoreDataProperties.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/RecordCategory.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/StatsCalculator.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/UsageRecord+CoreDataClass.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/UsageRecord+CoreDataProperties.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Hotkey/HotkeyManager.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Permissions/PermissionManager.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Settings/AppSettings.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Settings/Logger.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Speech/DoubaoSpeechService.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Speech/SpeechService.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/BentoCard.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/EnergyRingView.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/PieChartView.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/RecordDetailPanel.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/RecordListItem.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/DashboardView.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/OnboardingContentView.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/LibraryPage.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/MemoPage.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/OverviewPage.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/PreferencesPage.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/SidebarView.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OnboardingWindow.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OverlayTestWindow.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OverlayView.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/PermissionWindow.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/TestWindow.swift"
       ],
-      "tempsPath" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build",
+      "tempsPath" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build",
       "wholeModuleOptimization" : false
     }
   },
@@ -477,60 +534,67 @@
       "AIInputMethod",
       "-package-name",
       "aiinputmethod",
-      "-incremental",
       "-c",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/AIInputMethodApp.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/AI/InputMode.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/AI/MiniMaxService.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Accessibility/CursorManager.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Accessibility/FocusObserver.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/DashboardState.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/DashboardWindowController.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/DeviceIdManager.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/LibraryViewModel.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/NavItem.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/PersistenceController.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/PreferencesViewModel.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/QuotaManager.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/QuotaRecord+CoreDataClass.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/QuotaRecord+CoreDataProperties.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/RecordCategory.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/StatsCalculator.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/UsageRecord+CoreDataClass.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/UsageRecord+CoreDataProperties.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Hotkey/HotkeyManager.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Permissions/PermissionManager.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Speech/DoubaoSpeechService.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Speech/SpeechService.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/BentoCard.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/EnergyRingView.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/PieChartView.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/RecordDetailPanel.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/RecordListItem.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/DashboardView.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/OnboardingContentView.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Pages/LibraryPage.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Pages/OverviewPage.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Pages/PreferencesPage.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/SidebarView.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/OnboardingWindow.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/OverlayView.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/PermissionWindow.swift",
-      "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/TestWindow.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/AIInputMethodApp.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/AI/DoubaoLLMService.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/AI/InputMode.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/AI/MiniMaxService.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/CursorManager.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/FocusObserver.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DashboardState.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DashboardWindowController.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DeviceIdManager.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/LibraryViewModel.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/NavItem.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/PersistenceController.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/PreferencesViewModel.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/QuotaManager.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/QuotaRecord+CoreDataClass.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/QuotaRecord+CoreDataProperties.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/RecordCategory.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/StatsCalculator.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/UsageRecord+CoreDataClass.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/UsageRecord+CoreDataProperties.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Hotkey/HotkeyManager.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Permissions/PermissionManager.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Settings/AppSettings.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Settings/Logger.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Speech/DoubaoSpeechService.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Speech/SpeechService.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/BentoCard.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/EnergyRingView.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/PieChartView.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/RecordDetailPanel.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/RecordListItem.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/DashboardView.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/OnboardingContentView.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/LibraryPage.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/MemoPage.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/OverviewPage.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/PreferencesPage.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/SidebarView.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OnboardingWindow.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OverlayTestWindow.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OverlayView.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/PermissionWindow.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/TestWindow.swift",
       "-I",
-      "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/Modules",
+      "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/Modules",
       "-target",
       "arm64-apple-macosx14.0",
+      "-incremental",
       "-enable-batch-mode",
+      "-serialize-diagnostics",
       "-index-store-path",
-      "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/index/store",
+      "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/index/store",
       "-Onone",
       "-enable-testing",
-      "-j8",
+      "-j10",
       "-DSWIFT_PACKAGE",
       "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
       "-module-cache-path",
-      "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/ModuleCache",
+      "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/ModuleCache",
       "-parseable-output",
       "-Xfrontend",
       "-entry-point-function-name",
@@ -539,8 +603,12 @@
       "-color-diagnostics",
       "-swift-version",
       "5",
-      "-F",
+      "-I",
       "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-L",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-plugin-path",
+      "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
       "-sdk",
       "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
       "-g",
@@ -570,10 +638,12 @@
 
   },
   "traitConfiguration" : {
-    "enableAllTraits" : false
+    "default" : {
+
+    }
   },
   "writeCommands" : {
-    "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod-entitlement.plist" : {
+    "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod-entitlement.plist" : {
       "alwaysOutOfDate" : false,
       "inputs" : [
         {
@@ -585,9 +655,9 @@
           "name" : "<com.apple.security.get-task-allow>"
         }
       ],
-      "outputFilePath" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod-entitlement.plist"
+      "outputFilePath" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod-entitlement.plist"
     },
-    "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/sources" : {
+    "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/sources" : {
       "alwaysOutOfDate" : false,
       "inputs" : [
         {
@@ -596,160 +666,180 @@
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/AIInputMethodApp.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/AIInputMethodApp.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/AI/InputMode.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/AI/DoubaoLLMService.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/AI/MiniMaxService.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/AI/InputMode.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Accessibility/CursorManager.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/AI/MiniMaxService.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Accessibility/FocusObserver.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/CursorManager.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/DashboardState.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/FocusObserver.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/DashboardWindowController.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DashboardState.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/DeviceIdManager.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DashboardWindowController.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/LibraryViewModel.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DeviceIdManager.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/NavItem.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/LibraryViewModel.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/PersistenceController.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/NavItem.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/PreferencesViewModel.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/PersistenceController.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/QuotaManager.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/PreferencesViewModel.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/QuotaRecord+CoreDataClass.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/QuotaManager.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/QuotaRecord+CoreDataProperties.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/QuotaRecord+CoreDataClass.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/RecordCategory.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/QuotaRecord+CoreDataProperties.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/StatsCalculator.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/RecordCategory.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/UsageRecord+CoreDataClass.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/StatsCalculator.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/UsageRecord+CoreDataProperties.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/UsageRecord+CoreDataClass.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Hotkey/HotkeyManager.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/UsageRecord+CoreDataProperties.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Permissions/PermissionManager.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Hotkey/HotkeyManager.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Speech/DoubaoSpeechService.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Permissions/PermissionManager.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Speech/SpeechService.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Settings/AppSettings.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/BentoCard.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Settings/Logger.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/EnergyRingView.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Speech/DoubaoSpeechService.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/PieChartView.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Speech/SpeechService.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/RecordDetailPanel.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/BentoCard.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/RecordListItem.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/EnergyRingView.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/DashboardView.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/PieChartView.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/OnboardingContentView.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/RecordDetailPanel.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Pages/LibraryPage.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/RecordListItem.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Pages/OverviewPage.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/DashboardView.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Pages/PreferencesPage.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/OnboardingContentView.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/SidebarView.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/LibraryPage.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/OnboardingWindow.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/MemoPage.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/OverlayView.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/OverviewPage.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/PermissionWindow.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/PreferencesPage.swift"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/TestWindow.swift"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/SidebarView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OnboardingWindow.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OverlayTestWindow.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OverlayView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/PermissionWindow.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/TestWindow.swift"
         }
       ],
-      "outputFilePath" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/sources"
+      "outputFilePath" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/sources"
     },
-    "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.product/Objects.LinkFileList" : {
+    "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.product/Objects.LinkFileList" : {
       "alwaysOutOfDate" : false,
       "inputs" : [
         {
@@ -758,160 +848,180 @@
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/BentoCard.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AppSettings.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/BentoCard.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardState.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardView.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardState.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardWindowController.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardView.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DeviceIdManager.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardWindowController.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoSpeechService.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DeviceIdManager.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/EnergyRingView.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoLLMService.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoSpeechService.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/EnergyRingView.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/InputMode.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryPage.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryViewModel.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/InputMode.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/MiniMaxService.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryPage.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/NavItem.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryViewModel.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingContentView.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/Logger.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/MemoPage.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayView.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/MiniMaxService.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverviewPage.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/NavItem.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionManager.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingContentView.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionWindow.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PersistenceController.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayTestWindow.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PieChartView.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayView.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesPage.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverviewPage.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesViewModel.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionManager.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaManager.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionWindow.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataClass.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PersistenceController.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataProperties.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PieChartView.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordCategory.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesPage.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordDetailPanel.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesViewModel.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordListItem.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaManager.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SidebarView.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataClass.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataProperties.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/StatsCalculator.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordCategory.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/TestWindow.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordDetailPanel.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataClass.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordListItem.swift.o"
         },
         {
           "kind" : "file",
-          "name" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataProperties.swift.o"
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SidebarView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/StatsCalculator.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/TestWindow.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataClass.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataProperties.swift.o"
         }
       ],
-      "outputFilePath" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.product/Objects.LinkFileList"
+      "outputFilePath" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.product/Objects.LinkFileList"
     },
-    "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt" : {
+    "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt" : {
       "alwaysOutOfDate" : true,
       "inputs" : [
         {
@@ -923,7 +1033,7 @@
           "name" : "/Library/Developer/CommandLineTools/usr/bin/swiftc"
         }
       ],
-      "outputFilePath" : "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt"
+      "outputFilePath" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt"
     }
   }
 }

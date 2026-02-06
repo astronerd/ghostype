@@ -4,7 +4,7 @@ APP_NAME="AIInputMethod"
 DISPLAY_NAME="GhosTYPE"
 APP_BUNDLE="$DISPLAY_NAME.app"
 
-echo "�� Bundling $DISPLAY_NAME..."
+echo "📦 Bundling $DISPLAY_NAME..."
 
 mkdir -p "$APP_BUNDLE/Contents/MacOS"
 mkdir -p "$APP_BUNDLE/Contents/Resources"
@@ -45,6 +45,12 @@ if [ -f "Sources/Resources/MenuBarIcon.pdf" ]; then
 elif [ -f "Sources/Resources/MenuBarIcon.png" ]; then
     cp Sources/Resources/MenuBarIcon.png "$APP_BUNDLE/Contents/Resources/"
     echo "✅ MenuBar icon (PNG) copied."
+fi
+
+# Ghost Icon for overlay
+if [ -f "Sources/Resources/GhostIcon.png" ]; then
+    cp Sources/Resources/GhostIcon.png "$APP_BUNDLE/Contents/Resources/"
+    echo "✅ Ghost icon copied."
 fi
 
 # Info.plist

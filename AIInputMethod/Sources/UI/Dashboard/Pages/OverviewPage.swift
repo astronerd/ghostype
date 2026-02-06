@@ -121,17 +121,18 @@ struct OverviewPage: View {
     // MARK: - Today Stats Card
     
     /// 今日战报卡片
-    /// Requirement 5.2: THE "今日战报" Bento_Card SHALL display today's input character count and estimated time saved
+    /// Requirement 9.1, 9.2, 9.3, 9.5: THE "今日战报" Bento_Card SHALL display today's input character count and estimated time saved
     private var todayStatsCard: some View {
         BentoCard(title: "今日战报", icon: "chart.bar.fill") {
             VStack(alignment: .leading, spacing: 16) {
                 // 字符数统计
+                // Requirement 9.2, 9.5: 显示今日输入字符数，无记录时显示 "0 字"
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("\(todayStats.characterCount)")
+                    Text("\(todayStats.characterCount) 字")
                         .font(.system(size: 36, weight: .bold, design: .rounded))
                         .foregroundColor(.primary)
                     
-                    Text("字符输入")
+                    Text("今日输入")
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
                 }
@@ -139,6 +140,7 @@ struct OverviewPage: View {
                 Divider()
                 
                 // 节省时间统计
+                // Requirement 9.3, 9.5: 显示节省时间，无记录时显示 "节省 0 分钟"
                 HStack(spacing: 8) {
                     Image(systemName: "clock.fill")
                         .font(.system(size: 14))

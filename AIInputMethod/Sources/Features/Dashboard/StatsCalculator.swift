@@ -18,7 +18,7 @@ struct TodayStats {
     var characterCount: Int
     
     /// 估算节省的时间（秒）
-    /// 基于假设打字速度 2字/秒 计算
+    /// Requirement 9.3: 基于假设打字速度 60字符/分钟 (1字符/秒) 计算
     var estimatedTimeSaved: TimeInterval
     
     /// 空统计数据
@@ -57,7 +57,8 @@ class StatsCalculator {
     
     /// 假设的打字速度（字符/秒）
     /// 用于估算节省时间
-    static let typingSpeedPerSecond: Double = 2.0
+    /// Requirement 9.3: calculated as characters / 60 characters per minute = 1 char/second
+    static let typingSpeedPerSecond: Double = 1.0
     
     // MARK: - Properties
     
@@ -154,9 +155,10 @@ class StatsCalculator {
         return calculateAppDistribution(from: records)
     }
     
-    /// 从 UsageRecord 数组计算应用分布
+    /// 从 UsageRecord 数组计算应用分布（Top 5 + 其他）
     /// - Parameter records: UsageRecord 数组
-    /// - Returns: 按使用次数降序排列的 AppUsage 数组，所有 percentage 之和等于 1.0
+    /// - Returns: 按使用次数降序排列的 AppUsage 数组，最多 6 项（Top 5 + 其他），所有 percentage 之和等于 1.0
+    /// - Requirement 11.4: THE pie chart SHALL display top 5 apps, grouping remaining as "其他"
     func calculateAppDistribution(from records: [UsageRecord]) -> [AppUsage] {
         // 空记录返回空数组
         guard !records.isEmpty else {
@@ -193,6 +195,24 @@ class StatsCalculator {
         
         // 按使用次数降序排列
         appUsages.sort { $0.usageCount > $1.usageCount }
+        
+        // Requirement 11.4: 如果超过 5 个应用，将剩余的合并为"其他"
+        if appUsages.count > 5 {
+            let top5 = Array(appUsages.prefix(5))
+            let others = appUsages.dropFirst(5)
+            
+            let otherCount = others.reduce(0) { $0 + $1.usageCount }
+            let otherPercentage = totalCount > 0 ? Double(otherCount) / Double(totalCount) : 0
+            
+            let otherUsage = AppUsage(
+                bundleId: "com.ghostype.other",
+                appName: "其他",
+                usageCount: otherCount,
+                percentage: otherPercentage
+            )
+            
+            return top5 + [otherUsage]
+        }
         
         return appUsages
     }
@@ -281,8 +301,17 @@ class StatsCalculator {
     /// 格式化节省时间为可读字符串
     /// - Parameter seconds: 秒数
     /// - Returns: 格式化后的字符串（如 "5分30秒"）
+    /// 格式化节省时间为可读字符串
+    /// - Parameter seconds: 秒数
+    /// - Returns: 格式化后的字符串（如 "5分30秒"）
+    /// Requirement 9.5: 当无记录时显示 "0 分钟"
     static func formatTimeSaved(_ seconds: TimeInterval) -> String {
         let totalSeconds = Int(seconds)
+        
+        // Requirement 9.5: 当无记录时显示 "0 分钟"
+        if totalSeconds == 0 {
+            return "0 分钟"
+        }
         
         if totalSeconds < 60 {
             return "\(totalSeconds)秒"

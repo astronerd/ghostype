@@ -154,6 +154,7 @@ class DoubaoSpeechService: ObservableObject {
     private func sendFullClientRequest() {
         logToFile("[Doubao] Building full client request...")
         
+        // 优化参数：开启二遍识别模式提升准确率
         let payload: [String: Any] = [
             "user": ["uid": "ai_input_method"],
             "audio": [
@@ -164,10 +165,11 @@ class DoubaoSpeechService: ObservableObject {
             ],
             "request": [
                 "model_name": "bigmodel",
-                "enable_itn": true,
-                "enable_punc": true,
-                "enable_ddc": true,
-                "show_utterances": true
+                "enable_itn": true,      // 文本规范化
+                "enable_punc": true,     // 标点
+                "enable_ddc": true,      // 语义顺滑
+                "show_utterances": true,
+                "enable_nonstream": true // 🔥 开启二遍识别：流式+非流式，提升准确率
             ]
         ]
         
@@ -330,15 +332,15 @@ class DoubaoSpeechService: ObservableObject {
             try audioEngine.start()
             logToFile("[Doubao] ✅ Audio engine started!")
             
-            // 使用 DispatchSourceTimer 每 100ms 发送一次音频数据
+            // 🔥 优化：使用 200ms 发送间隔（文档推荐，双向流式模式性能最优）
             let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.main)
-            timer.schedule(deadline: .now() + 0.1, repeating: 0.1)
+            timer.schedule(deadline: .now() + 0.2, repeating: 0.2)
             timer.setEventHandler { [weak self] in
                 self?.sendAudioChunk()
             }
             timer.resume()
             sendTimer = timer
-            logToFile("[Doubao] ✅ Send timer started (100ms interval)")
+            logToFile("[Doubao] ✅ Send timer started (200ms interval - optimized)")
         } catch {
             logToFile("[Doubao] ❌ Audio engine start error: \(error)")
         }

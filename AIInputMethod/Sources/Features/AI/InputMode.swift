@@ -9,10 +9,10 @@ enum InputMode: String, CaseIterable {
     /// 默认模式：AI 润色后上屏
     case polish = "polish"
     
-    /// 翻译模式：中英互译后上屏 (Shift + 主键)
+    /// 翻译模式：中英互译后上屏 (默认 Shift + 主键)
     case translate = "translate"
     
-    /// 随心记模式：记录到笔记本，不上屏 (Cmd + 主键)
+    /// 随心记模式：记录到笔记本，不上屏 (默认 Cmd + 主键)
     case memo = "memo"
     
     // MARK: - Properties
@@ -44,19 +44,23 @@ enum InputMode: String, CaseIterable {
         }
     }
     
+    /// SwiftUI 颜色
+    var swiftUIColor: Color {
+        switch self {
+        case .polish: return .green
+        case .translate: return .purple
+        case .memo: return .orange
+        }
+    }
+    
     // MARK: - Mode Detection
     
-    /// 根据当前修饰键状态判断输入模式
+    /// 根据当前修饰键状态判断输入模式（使用用户设置）
     /// - Parameter modifiers: 当前按下的修饰键
     /// - Returns: 对应的输入模式
     static func fromModifiers(_ modifiers: NSEvent.ModifierFlags) -> InputMode {
-        // 优先级: Cmd > Shift > 默认
-        if modifiers.contains(.command) {
-            return .memo
-        } else if modifiers.contains(.shift) {
-            return .translate
-        } else {
-            return .polish
-        }
+        return AppSettings.shared.modeFromModifiers(modifiers)
     }
 }
+
+import SwiftUI

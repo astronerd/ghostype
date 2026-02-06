@@ -147,16 +147,7 @@ class LibraryViewModel {
     /// - Parameter category: The RecordCategory enum value
     /// - Returns: The string value stored in CoreData
     private func categoryToStoredValue(_ category: RecordCategory) -> String {
-        switch category {
-        case .all:
-            return "" // Should not be used for filtering
-        case .polish:
-            return "polish"
-        case .translate:
-            return "translate"
-        case .memo:
-            return "memo"
-        }
+        return category.rawValue
     }
 }
 

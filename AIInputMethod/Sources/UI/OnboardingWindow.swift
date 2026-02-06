@@ -2,16 +2,6 @@ import SwiftUI
 import Carbon
 import AppKit
 
-// 用户设置
-class AppSettings: ObservableObject {
-    @Published var hotkeyModifiers: NSEvent.ModifierFlags = .option
-    @Published var hotkeyKeyCode: UInt16 = 49 // Space
-    @Published var hotkeyDisplay: String = "⌥ Space"
-    @Published var autoStartOnFocus: Bool = false
-    
-    static let shared = AppSettings()
-}
-
 struct OnboardingWindow: View {
     @ObservedObject var permissionManager: PermissionManager
     @ObservedObject var settings = AppSettings.shared

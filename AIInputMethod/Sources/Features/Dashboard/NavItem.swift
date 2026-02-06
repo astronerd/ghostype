@@ -5,10 +5,12 @@ import Foundation
 /// 导航项枚举
 /// 定义 Dashboard Sidebar 中的导航选项
 /// - overview: 概览页，显示今日统计和数据可视化
+/// - memo: 随心记，Flomo 风格便签展示
 /// - library: 历史库，管理语音输入记录
 /// - preferences: 偏好设置，配置应用选项
 enum NavItem: String, CaseIterable, Identifiable {
     case overview = "概览"
+    case memo = "随心记"      // NEW - 随心记页面
     case library = "历史库"
     case preferences = "偏好设置"
     
@@ -25,6 +27,8 @@ enum NavItem: String, CaseIterable, Identifiable {
         switch self {
         case .overview:
             return "chart.bar.fill"
+        case .memo:
+            return "note.text"           // NEW - 随心记图标
         case .library:
             return "clock.arrow.circlepath"
         case .preferences:

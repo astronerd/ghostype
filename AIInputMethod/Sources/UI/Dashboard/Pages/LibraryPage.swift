@@ -320,7 +320,7 @@ struct CategoryTabButton: View {
                     .font(.system(size: 12, weight: .medium))
                 
                 // 分类名称
-                Text(category.rawValue)
+                Text(category.displayName)
                     .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
             }
             .foregroundColor(isSelected ? .white : .primary)

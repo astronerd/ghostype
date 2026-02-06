@@ -118,6 +118,8 @@ struct DashboardView: View {
         switch dashboardState.selectedNavItem {
         case .overview:
             OverviewPageWithData()
+        case .memo:
+            MemoPage()
         case .library:
             LibraryPageWithData()
         case .preferences:
@@ -475,6 +477,29 @@ struct LibraryPagePlaceholderView: View {
                 .font(.system(size: 20, weight: .semibold))
             
             Text("语音输入历史记录将在这里显示")
+                .font(.system(size: 14))
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            VisualEffectView(material: .contentBackground, blendingMode: .behindWindow)
+        )
+    }
+}
+
+/// 随心记页占位视图
+/// 后续会替换为实际的 MemoPage (Task 9.1)
+struct MemoPagePlaceholderView: View {
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "note.text")
+                .font(.system(size: 48, weight: .light))
+                .foregroundStyle(.secondary)
+            
+            Text("随心记")
+                .font(.system(size: 20, weight: .semibold))
+            
+            Text("语音便签将在这里显示")
                 .font(.system(size: 14))
                 .foregroundColor(.secondary)
         }

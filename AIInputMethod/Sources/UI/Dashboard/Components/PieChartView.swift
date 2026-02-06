@@ -51,7 +51,20 @@ struct PieChartView: View {
         !data.isEmpty
     }
     
-    /// 获取指定索引的颜色
+    /// 获取指定项的颜色
+    /// - Parameters:
+    ///   - item: AppUsage 项
+    ///   - index: 索引位置
+    /// - Returns: 对应的颜色，"其他"项使用灰色
+    private func color(for item: AppUsage, at index: Int) -> Color {
+        // "其他" 项使用灰色
+        if item.bundleId == "com.ghostype.other" {
+            return .gray
+        }
+        return chartColors[index % chartColors.count]
+    }
+    
+    /// 获取指定索引的颜色（兼容旧调用）
     private func color(for index: Int) -> Color {
         chartColors[index % chartColors.count]
     }
@@ -97,7 +110,7 @@ struct PieChartView: View {
                 innerRadius: .ratio(0.5),
                 angularInset: 1.5
             )
-            .foregroundStyle(color(for: index))
+            .foregroundStyle(color(for: item, at: index))
             .cornerRadius(4)
             .opacity(selectedItem == nil || selectedItem?.id == item.id ? 1.0 : 0.5)
         }
@@ -143,34 +156,11 @@ struct PieChartView: View {
     // MARK: - Legend View
     
     /// 图例视图
+    /// 由于数据已经在 StatsCalculator 中分组为 Top 5 + "其他"，直接显示所有项
     private var legendView: some View {
         VStack(alignment: .leading, spacing: 6) {
-            ForEach(Array(data.prefix(5).enumerated()), id: \.element.id) { index, item in
-                legendItem(item: item, color: color(for: index))
-            }
-            
-            // 如果超过 5 个应用，显示"其他"
-            if data.count > 5 {
-                let otherCount = data.dropFirst(5).reduce(0) { $0 + $1.usageCount }
-                let totalCount = data.reduce(0) { $0 + $1.usageCount }
-                let otherPercentage = totalCount > 0 ? Double(otherCount) / Double(totalCount) : 0
-                
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(Color.gray)
-                        .frame(width: 8, height: 8)
-                    
-                    Text("其他 (\(data.count - 5)个)")
-                        .font(.system(size: 10))
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                    
-                    Spacer()
-                    
-                    Text(formatPercentage(otherPercentage))
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(.secondary)
-                }
+            ForEach(Array(data.enumerated()), id: \.element.id) { index, item in
+                legendItem(item: item, color: color(for: item, at: index))
             }
         }
         .padding(.horizontal, 4)

@@ -5,9 +5,6 @@ import ServiceManagement
 // MARK: - PreferencesViewModel
 
 /// 偏好设置视图模型
-/// 绑定 launchAtLogin, soundFeedback, hotkey 到 UserDefaults
-/// 实现 AI 引擎状态检测
-/// Requirements: 7.1, 7.2, 7.3, 7.4, 7.5
 @Observable
 class PreferencesViewModel {
     
@@ -23,7 +20,6 @@ class PreferencesViewModel {
     // MARK: - Properties
     
     /// 开机自启动
-    /// Requirement 7.1: THE Preferences page SHALL provide a toggle for "Launch at Login"
     var launchAtLogin: Bool {
         didSet {
             setLaunchAtLogin(launchAtLogin)
@@ -32,7 +28,6 @@ class PreferencesViewModel {
     }
     
     /// 声音反馈
-    /// Requirement 7.2: THE Preferences page SHALL provide a toggle for "Sound Feedback"
     var soundFeedback: Bool {
         didSet {
             UserDefaults.standard.set(soundFeedback, forKey: Keys.soundFeedback)
@@ -40,7 +35,6 @@ class PreferencesViewModel {
     }
     
     /// 快捷键显示文本
-    /// Requirement 7.3: THE Preferences page SHALL display current hotkey configuration
     var hotkeyDisplay: String {
         get { AppSettings.shared.hotkeyDisplay }
         set { AppSettings.shared.hotkeyDisplay = newValue }
@@ -59,7 +53,6 @@ class PreferencesViewModel {
     }
     
     /// AI 引擎状态
-    /// Requirement 7.4: THE Preferences page SHALL display AI engine connection status
     var aiEngineStatus: AIEngineStatus = .checking
     
     /// 自动模式
@@ -68,15 +61,56 @@ class PreferencesViewModel {
         set { AppSettings.shared.autoStartOnFocus = newValue }
     }
     
+    /// 翻译模式修饰键
+    var translateModifier: NSEvent.ModifierFlags {
+        get { AppSettings.shared.translateModifier }
+        set { AppSettings.shared.translateModifier = newValue }
+    }
+    
+    /// 随心记模式修饰键
+    var memoModifier: NSEvent.ModifierFlags {
+        get { AppSettings.shared.memoModifier }
+        set { AppSettings.shared.memoModifier = newValue }
+    }
+    
+    /// AI 润色开关 - 使用存储属性以支持 @Observable 追踪
+    var enableAIPolish: Bool {
+        didSet {
+            AppSettings.shared.enableAIPolish = enableAIPolish
+        }
+    }
+    
+    /// 自动润色阈值 - 使用存储属性以支持 @Observable 追踪
+    var polishThreshold: Int {
+        didSet {
+            AppSettings.shared.polishThreshold = polishThreshold
+        }
+    }
+    
+    /// 润色 Prompt
+    var polishPrompt: String {
+        get { AppSettings.shared.polishPrompt }
+        set { 
+            if !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                AppSettings.shared.polishPrompt = newValue 
+            }
+        }
+    }
+    
+    /// 翻译语言选项
+    var translateLanguage: DoubaoLLMService.TranslateLanguage {
+        get { AppSettings.shared.translateLanguage }
+        set { AppSettings.shared.translateLanguage = newValue }
+    }
+    
     // MARK: - Initialization
     
     init() {
-        // 从 UserDefaults 读取设置
-        // Requirement 7.5: WHEN a setting is changed, THE system SHALL persist it to UserDefaults
         self.launchAtLogin = UserDefaults.standard.bool(forKey: Keys.launchAtLogin)
         self.soundFeedback = UserDefaults.standard.bool(forKey: Keys.soundFeedback)
-        
-        // 检查 AI 引擎状态
+        // 从 AppSettings 加载初始值
+        self.enableAIPolish = AppSettings.shared.enableAIPolish
+        self.polishThreshold = AppSettings.shared.polishThreshold
         checkAIEngineStatus()
     }
     
@@ -86,9 +120,7 @@ class PreferencesViewModel {
     func checkAIEngineStatus() {
         aiEngineStatus = .checking
         
-        // 模拟网络检查（实际应该调用 API）
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            // 假设引擎在线
             self?.aiEngineStatus = .online
         }
     }
@@ -99,7 +131,6 @@ class PreferencesViewModel {
         hotkeyKeyCode = keyCode
         hotkeyDisplay = display
         
-        // 持久化到 UserDefaults
         UserDefaults.standard.set(modifiers.rawValue, forKey: Keys.hotkeyModifiers)
         UserDefaults.standard.set(keyCode, forKey: Keys.hotkeyKeyCode)
     }
@@ -124,21 +155,27 @@ class PreferencesViewModel {
         launchAtLogin = false
         soundFeedback = true
         hotkeyModifiers = .option
-        hotkeyKeyCode = 49 // Space
+        hotkeyKeyCode = 49
         hotkeyDisplay = "⌥ Space"
         autoStartOnFocus = false
+        translateModifier = .shift
+        memoModifier = .command
+        translateLanguage = .chineseEnglish
+        enableAIPolish = false
+        polishThreshold = 20
         
-        // 更新 AppSettings
         AppSettings.shared.hotkeyModifiers = hotkeyModifiers
         AppSettings.shared.hotkeyKeyCode = hotkeyKeyCode
         AppSettings.shared.hotkeyDisplay = hotkeyDisplay
         AppSettings.shared.autoStartOnFocus = autoStartOnFocus
+        AppSettings.shared.translateModifier = translateModifier
+        AppSettings.shared.memoModifier = memoModifier
+        AppSettings.shared.translateLanguage = translateLanguage
     }
 }
 
 // MARK: - AI Engine Status
 
-/// AI 引擎状态枚举
 enum AIEngineStatus {
     case online
     case offline
