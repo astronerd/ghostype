@@ -48,6 +48,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Contacts/ContactsManager.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DashboardState.swift"
         },
         {
@@ -152,6 +156,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/DesignSystem.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/OnboardingContentView.swift"
         },
         {
@@ -213,6 +221,7 @@
         "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/MiniMaxService.swift.o",
         "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.swift.o",
         "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/ContactsManager.swift.o",
         "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardState.swift.o",
         "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardWindowController.swift.o",
         "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DeviceIdManager.swift.o",
@@ -239,6 +248,7 @@
         "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordDetailPanel.swift.o",
         "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordListItem.swift.o",
         "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardView.swift.o",
+        "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DesignSystem.swift.o",
         "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingContentView.swift.o",
         "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryPage.swift.o",
         "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/MemoPage.swift.o",
@@ -320,6 +330,10 @@
         {
           "kind" : "file",
           "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/ContactsManager.swift.o"
         },
         {
           "kind" : "file",
@@ -427,6 +441,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DesignSystem.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingContentView.swift.o"
         },
         {
@@ -482,6 +500,7 @@
         "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/AI/MiniMaxService.swift",
         "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/CursorManager.swift",
         "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/FocusObserver.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Contacts/ContactsManager.swift",
         "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DashboardState.swift",
         "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DashboardWindowController.swift",
         "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DeviceIdManager.swift",
@@ -508,6 +527,7 @@
         "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/RecordDetailPanel.swift",
         "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/RecordListItem.swift",
         "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/DashboardView.swift",
+        "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/DesignSystem.swift",
         "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/OnboardingContentView.swift",
         "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/LibraryPage.swift",
         "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/MemoPage.swift",
@@ -541,6 +561,7 @@
       "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/AI/MiniMaxService.swift",
       "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/CursorManager.swift",
       "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/FocusObserver.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Contacts/ContactsManager.swift",
       "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DashboardState.swift",
       "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DashboardWindowController.swift",
       "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DeviceIdManager.swift",
@@ -567,6 +588,7 @@
       "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/RecordDetailPanel.swift",
       "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Components/RecordListItem.swift",
       "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/DashboardView.swift",
+      "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/DesignSystem.swift",
       "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/OnboardingContentView.swift",
       "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/LibraryPage.swift",
       "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/Pages/MemoPage.swift",
@@ -690,6 +712,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Contacts/ContactsManager.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DashboardState.swift"
         },
         {
@@ -794,6 +820,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/DesignSystem.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/OnboardingContentView.swift"
         },
         {
@@ -860,6 +890,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/ContactsManager.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.swift.o"
         },
         {
@@ -873,6 +907,10 @@
         {
           "kind" : "file",
           "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardWindowController.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DesignSystem.swift.o"
         },
         {
           "kind" : "file",

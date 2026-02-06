@@ -276,6 +276,12 @@ struct OverlayView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(TransparentWindowBackground())
         .onChange(of: stateManager.phase) { oldValue, newValue in
+            // 如果从 committing 切换到 recording，立即重置动画状态
+            if case .recording = newValue {
+                commitOffset = 0
+                commitOpacity = 1
+                showGlow = true
+            }
             switch newValue {
             case .committing(.textInput), .committing(.memoSaved):
                 animateCommit()
@@ -330,7 +336,7 @@ struct OverlayView: View {
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.white.opacity(0.95))
                     .lineLimit(1)
-                    .fixedSize(horizontal: true, vertical: false)
+                    .truncationMode(.head)
                 if speechService.isRecording { CursorView() }
             }
         }

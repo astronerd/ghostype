@@ -44,6 +44,9 @@ class DashboardWindowController {
         // 显示窗口并激活应用
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+        
+        // 显示 Dock 图标
+        NSApp.setActivationPolicy(.regular)
     }
     
     /// 隐藏 Dashboard 窗口
@@ -55,6 +58,16 @@ class DashboardWindowController {
         
         // 关闭窗口
         window.orderOut(nil)
+        
+        // 检查是否还有其他可见窗口（不包括 overlay panel）
+        let hasVisibleWindows = NSApp.windows.contains { w in
+            w.isVisible && w != window && !(w is NSPanel)
+        }
+        
+        // 如果没有其他可见窗口，隐藏 Dock 图标
+        if !hasVisibleWindows {
+            NSApp.setActivationPolicy(.accessory)
+        }
     }
     
     /// 切换 Dashboard 窗口显示状态

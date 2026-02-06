@@ -65,6 +65,8 @@ cat > "${CONTENTS_DIR}/Info.plist" << EOF
     <false/>
     <key>NSMicrophoneUsageDescription</key>
     <string>GhosTYPE 需要使用麦克风进行语音输入</string>
+    <key>NSContactsUsageDescription</key>
+    <string>GhosTYPE 使用通讯录联系人姓名作为语音识别热词，提高人名识别准确率</string>
     <key>NSHighResolutionCapable</key>
     <true/>
 </dict>

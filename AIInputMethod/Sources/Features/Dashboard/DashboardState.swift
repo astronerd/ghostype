@@ -115,9 +115,17 @@ class DashboardState {
         self.userDefaults = userDefaults
         
         // 从 UserDefaults 恢复状态
-        if userDefaults.bool(forKey: DashboardUserDefaultsKey.isOnboardingComplete.rawValue) {
+        // 检查两个 key：dashboard.isOnboardingComplete 和 hasCompletedOnboarding（AIInputMethodApp 用的）
+        let dashboardOnboardingComplete = userDefaults.bool(forKey: DashboardUserDefaultsKey.isOnboardingComplete.rawValue)
+        let appOnboardingComplete = userDefaults.bool(forKey: "hasCompletedOnboarding")
+        
+        if dashboardOnboardingComplete || appOnboardingComplete {
             // 已完成 Onboarding，进入 Normal 状态
             self.phase = .normal
+            // 同步两个标记
+            if !dashboardOnboardingComplete {
+                userDefaults.set(true, forKey: DashboardUserDefaultsKey.isOnboardingComplete.rawValue)
+            }
         } else {
             // 未完成 Onboarding，恢复到上次的步骤或从头开始
             let savedStep = userDefaults.integer(forKey: DashboardUserDefaultsKey.currentOnboardingStep.rawValue)

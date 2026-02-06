@@ -3,6 +3,14 @@ import Carbon
 
 /// 全局快捷键管理器 - 按住说话，松开插入文字
 /// 支持动态修饰键检测 + 500ms 粘连延迟
+/// 
+/// 单独修饰键触发逻辑（类似 Karabiner-Elements 的 to_if_alone）：
+/// - 按下修饰键时不立即触发，等待 debounce 时间
+/// - 如果在 debounce 时间内：
+///   - 松开了修饰键 → 不触发（太快，可能是误触）
+///   - 按了其他普通键 → 不触发，让事件正常传递（是组合键）
+///   - 按了其他修饰键 → 继续等待
+/// - 如果 debounce 时间到且修饰键仍按着 → 触发录音
 class HotkeyManager {
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
@@ -22,6 +30,13 @@ class HotkeyManager {
     private var lastNonDefaultModeTime: Date?
     /// 粘连延迟时间（毫秒）
     private let stickyDelayMs: Double = 500
+    
+    /// 防止误触发：延迟确认单独修饰键按下
+    private var pendingModifierDown: DispatchWorkItem?
+    /// 延迟时间（毫秒）- 用于区分单独按修饰键和组合键
+    private let modifierDebounceMs: Double = 300
+    /// 记录修饰键按下时的状态，用于 debounce 后检查
+    private var pendingModifiers: NSEvent.ModifierFlags = []
     
     // 从 AppSettings 读取配置
     private var targetModifiers: NSEvent.ModifierFlags {
@@ -43,7 +58,7 @@ class HotkeyManager {
     func start() {
         FileLogger.log("[Hotkey] Starting event tap...")
         FileLogger.log("[Hotkey] Target: modifiers=\(targetModifiers), keyCode=\(targetKeyCode), isModifierKey=\(isTargetAModifierKey)")
-        FileLogger.log("[Hotkey] Sticky delay: \(stickyDelayMs)ms")
+        FileLogger.log("[Hotkey] Sticky delay: \(stickyDelayMs)ms, Debounce: \(modifierDebounceMs)ms")
         
         guard AXIsProcessTrusted() else {
             FileLogger.log("[Hotkey] ❌ No accessibility permission")
@@ -87,6 +102,13 @@ class HotkeyManager {
         }
         eventTap = nil
         runLoopSource = nil
+        cancelPendingModifier()
+    }
+    
+    private func cancelPendingModifier() {
+        pendingModifierDown?.cancel()
+        pendingModifierDown = nil
+        pendingModifiers = []
     }
     
     // MARK: - Event Handling
@@ -104,19 +126,54 @@ class HotkeyManager {
         
         // ========== 情况1: 快捷键是单独的修饰键（如只按 Option）==========
         if isTargetAModifierKey {
-            if type == .flagsChanged {
-                let isPressed = isModifierKeyPressed(keyCode: targetKeyCode, modifiers: modifiers)
+            return handleModifierOnlyHotkey(type: type, keyCode: keyCode, modifiers: modifiers, event: event)
+        }
+        
+        // ========== 情况2: 快捷键是 修饰键+普通键（如 Option+Space）==========
+        return handleModifierPlusKeyHotkey(type: type, keyCode: keyCode, modifiers: modifiers, event: event)
+    }
+    
+    /// 处理单独修饰键作为快捷键的情况
+    private func handleModifierOnlyHotkey(type: CGEventType, keyCode: UInt16, modifiers: NSEvent.ModifierFlags, event: CGEvent) -> Unmanaged<CGEvent>? {
+        
+        // 处理 flagsChanged 事件（修饰键按下/松开）
+        if type == .flagsChanged {
+            let isTargetPressed = isModifierKeyPressed(keyCode: targetKeyCode, modifiers: modifiers)
+            
+            // 目标修饰键刚按下
+            if isTargetPressed && !isHotkeyPressed && pendingModifierDown == nil {
+                pendingModifiers = modifiers
+                let workItem = DispatchWorkItem { [weak self] in
+                    guard let self = self else { return }
+                    self.pendingModifierDown = nil
+                    
+                    // debounce 时间到，确认触发录音
+                    guard !self.isHotkeyPressed else { return }
+                    
+                    self.isHotkeyPressed = true
+                    self.currentMode = self.getModeFromModifiers(self.pendingModifiers)
+                    self.lastNonDefaultModeTime = nil
+                    self.pendingModifiers = []
+                    FileLogger.log("[Hotkey] ✅ DOWN (after \(self.modifierDebounceMs)ms debounce), mode: \(self.currentMode.displayName)")
+                    self.onHotkeyDown?()
+                }
+                pendingModifierDown = workItem
+                DispatchQueue.main.asyncAfter(deadline: .now() + modifierDebounceMs / 1000, execute: workItem)
+                FileLogger.log("[Hotkey] ⏳ Modifier down, waiting \(modifierDebounceMs)ms...")
+                return Unmanaged.passRetained(event)
+            }
+            
+            // 目标修饰键松开
+            if !isTargetPressed {
+                // 情况A: 在 debounce 期间松开 → 取消，不触发
+                if pendingModifierDown != nil {
+                    cancelPendingModifier()
+                    FileLogger.log("[Hotkey] ⏭️ Modifier released within debounce, cancelled")
+                    return Unmanaged.passRetained(event)
+                }
                 
-                if isPressed && !isHotkeyPressed {
-                    // 按下
-                    isHotkeyPressed = true
-                    currentMode = getModeFromModifiers(modifiers)
-                    lastNonDefaultModeTime = nil
-                    FileLogger.log("[Hotkey] ✅ DOWN, mode: \(currentMode.displayName)")
-                    DispatchQueue.main.async { self.onHotkeyDown?() }
-                    return nil
-                } else if !isPressed && isHotkeyPressed {
-                    // 松开 - 使用粘连模式
+                // 情况B: 已经在录音中 → 正常结束
+                if isHotkeyPressed {
                     isHotkeyPressed = false
                     let finalMode = getStickyMode()
                     FileLogger.log("[Hotkey] ✅ UP, final mode: \(finalMode.displayName)")
@@ -124,26 +181,46 @@ class HotkeyManager {
                     currentMode = .polish
                     lastNonDefaultModeTime = nil
                     return nil
-                } else if isHotkeyPressed {
-                    // 录音中，检测模式变化
-                    let newMode = getModeFromModifiers(modifiers)
-                    
-                    // 如果切换到非默认模式，记录时间
-                    if newMode != .polish {
-                        lastNonDefaultModeTime = Date()
-                    }
-                    
-                    if newMode != currentMode {
-                        currentMode = newMode
-                        FileLogger.log("[Hotkey] 🔄 Mode: \(newMode.displayName)")
-                        DispatchQueue.main.async { self.onModeChanged?(newMode) }
-                    }
                 }
             }
+            
+            // 录音中，其他修饰键变化 → 检测模式切换
+            if isHotkeyPressed {
+                let newMode = getModeFromModifiers(modifiers)
+                if newMode != .polish {
+                    lastNonDefaultModeTime = Date()
+                }
+                if newMode != currentMode {
+                    currentMode = newMode
+                    FileLogger.log("[Hotkey] 🔄 Mode: \(newMode.displayName)")
+                    DispatchQueue.main.async { self.onModeChanged?(newMode) }
+                }
+            }
+            
+            // debounce 期间，其他修饰键变化 → 更新记录的修饰键状态
+            if pendingModifierDown != nil {
+                pendingModifiers = modifiers
+            }
+            
             return Unmanaged.passRetained(event)
         }
         
-        // ========== 情况2: 快捷键是 修饰键+普通键（如 Option+Space）==========
+        // 处理 keyDown 事件（普通键按下）
+        if type == .keyDown {
+            // 在 debounce 期间按了其他普通键 → 取消触发，让事件正常传递
+            if pendingModifierDown != nil {
+                cancelPendingModifier()
+                FileLogger.log("[Hotkey] ⏭️ Other key pressed (keyCode=\(keyCode)) during debounce, cancelled - passing through")
+                // 不拦截事件，让它正常传递给其他应用
+                return Unmanaged.passRetained(event)
+            }
+        }
+        
+        return Unmanaged.passRetained(event)
+    }
+    
+    /// 处理修饰键+普通键组合的快捷键
+    private func handleModifierPlusKeyHotkey(type: CGEventType, keyCode: UInt16, modifiers: NSEvent.ModifierFlags, event: CGEvent) -> Unmanaged<CGEvent>? {
         let targetMods = targetModifiers.intersection([.command, .option, .control, .shift, .function])
         let currentMods = modifiers.intersection([.command, .option, .control, .shift, .function])
         let hasRequiredModifiers = targetMods.isEmpty || currentMods.contains(targetMods)
@@ -193,21 +270,16 @@ class HotkeyManager {
     
     /// 获取粘连模式：如果在延迟时间内曾经是非默认模式，则保持该模式
     private func getStickyMode() -> InputMode {
-        // 如果当前已经是非默认模式，直接返回
         if currentMode != .polish {
             FileLogger.log("[Hotkey] Sticky: current mode is \(currentMode.displayName)")
             return currentMode
         }
         
-        // 检查是否在粘连时间内
         if let lastTime = lastNonDefaultModeTime {
-            let elapsed = Date().timeIntervalSince(lastTime) * 1000 // 转换为毫秒
+            let elapsed = Date().timeIntervalSince(lastTime) * 1000
             FileLogger.log("[Hotkey] Sticky: elapsed=\(elapsed)ms, delay=\(stickyDelayMs)ms")
             if elapsed < stickyDelayMs {
-                // 在粘连时间内，返回上一个非默认模式
-                // 需要重新计算上一个模式
                 FileLogger.log("[Hotkey] Sticky: within delay, keeping non-default mode")
-                // 这里我们需要记录上一个非默认模式
             }
         }
         

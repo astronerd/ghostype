@@ -406,6 +406,9 @@ struct Step3PermissionsView: View {
     var onComplete: () -> Void
     var onBack: () -> Void
     
+    // 定时器，每秒刷新权限状态
+    let timer = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()
+    
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
@@ -454,18 +457,6 @@ struct Step3PermissionsView: View {
             .padding(.horizontal, 36)
             .padding(.top, 28)
             
-            // 刷新按钮
-            Button(action: {
-                permissionManager.checkAccessibilityStatus()
-                permissionManager.checkMicrophoneStatus()
-            }) {
-                Label("刷新状态", systemImage: "arrow.clockwise")
-                    .font(.system(size: 13))
-            }
-            .buttonStyle(.plain)
-            .foregroundColor(.secondary)
-            .padding(.top, 16)
-            
             Spacer()
             
             // 底部按钮
@@ -479,16 +470,23 @@ struct Step3PermissionsView: View {
                 .buttonStyle(.bordered)
                 
                 Button(action: onComplete) {
-                    Text(allGranted ? "开始使用" : "稍后设置")
+                    Text("开始使用")
                         .font(.system(size: 15, weight: .medium))
                         .frame(maxWidth: .infinity)
                         .frame(height: 44)
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(allGranted ? .green : .blue)
+                .tint(.green)
+                .disabled(!allGranted)
+                .opacity(allGranted ? 1.0 : 0.5)
             }
             .padding(.horizontal, 48)
             .padding(.bottom, 32)
+        }
+        .onReceive(timer) { _ in
+            // 每秒自动刷新权限状态
+            permissionManager.checkAccessibilityStatus()
+            permissionManager.checkMicrophoneStatus()
         }
     }
     

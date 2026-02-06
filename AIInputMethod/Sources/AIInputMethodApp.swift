@@ -36,7 +36,7 @@ class OnboardingWindowController {
         window.standardWindowButton(.zoomButton)?.isHidden = true
         window.contentView = NSHostingView(rootView: contentView)
         window.center()
-        window.level = .floating
+        window.level = .normal
         window.makeKeyAndOrderFront(nil)
         
         NSApp.setActivationPolicy(.regular)
@@ -75,20 +75,28 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         print("[App] Accessibility: \(permissionManager.isAccessibilityTrusted)")
         print("[App] Microphone: \(permissionManager.isMicrophoneGranted)")
         
-        if !permissionManager.isAccessibilityTrusted {
-            print("[App] Requesting accessibility permission...")
-            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-            _ = AXIsProcessTrustedWithOptions(options)
-        }
+        // 检查是否首次启动
+        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
         
-        print("[App] Showing permission window...")
-        showPermissionWindow()
-        print("[App] Permission window shown")
+        if hasCompletedOnboarding {
+            print("[App] Onboarding already completed, starting app directly...")
+            startApp()
+        } else {
+            print("[App] First launch, showing onboarding...")
+            showPermissionWindow()
+        }
     }
     
     func showPermissionWindow() {
         onboardingController.show(permissionManager: permissionManager) { [weak self] in
+            // 标记 onboarding 已完成
+            UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
             self?.startApp()
+            
+            // Onboarding 完成后自动打开 Dashboard
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                DashboardWindowController.shared.show()
+            }
         }
     }
     
@@ -222,7 +230,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                     insertTextAtCursor(text)
                     saveUsageRecord(content: text, category: .polish)
                     OverlayStateManager.shared.setCommitting(type: .textInput)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                         self.hideOverlay()
                     }
                 }
@@ -231,7 +239,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 insertTextAtCursor(text)
                 saveUsageRecord(content: text, category: .polish)
                 OverlayStateManager.shared.setCommitting(type: .textInput)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                     self.hideOverlay()
                 }
             }
@@ -262,7 +270,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             }
             
             OverlayStateManager.shared.setCommitting(type: .textInput)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 self.hideOverlay()
             }
         }
@@ -288,7 +296,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             }
             
             OverlayStateManager.shared.setCommitting(type: .textInput)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 self.hideOverlay()
             }
         }
@@ -343,26 +351,60 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             return
         }
         
+        // 获取当前前台应用的 bundleId，用于判断是否需要自动回车
+        let frontAppBundleId = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+        let shouldAutoEnter = AppSettings.shared.shouldAutoEnter(for: frontAppBundleId)
+        FileLogger.log("[Insert] Front app: \(frontAppBundleId ?? "unknown"), Auto-enter: \(shouldAutoEnter)")
+        
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         let success = pasteboard.setString(text, forType: .string)
         print("[Insert] Clipboard set: \(success)")
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             print("[Insert] Sending Cmd+V...")
             let source = CGEventSource(stateID: .hidSystemState)
             
             if let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 9, keyDown: true) {
                 keyDown.flags = .maskCommand
+                
                 keyDown.post(tap: .cghidEventTap)
             }
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 if let keyUp = CGEvent(keyboardEventSource: source, virtualKey: 9, keyDown: false) {
                     keyUp.flags = .maskCommand
+                    
                     keyUp.post(tap: .cghidEventTap)
                 }
+                print("[Insert] Paste done")
+                
+                // 自动回车功能
+                if shouldAutoEnter {
+                    self?.sendEnterKey()
+                }
+                
                 print("[Insert] ========== DONE ==========")
+            }
+        }
+    }
+    
+    /// 发送 Cmd+Enter（微信、飞书等应用用 Cmd+Enter 发送消息）
+    private func sendEnterKey() {
+        print("[Insert] Sending Enter via osascript...")
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            // Use osascript command to simulate Enter key - more reliable for Electron apps
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+            process.arguments = ["-e", "tell application \"System Events\" to key code 36"]
+            
+            do {
+                try process.run()
+                process.waitUntilExit()
+                print("[Insert] Enter sent via osascript, exit code: \(process.terminationStatus)")
+            } catch {
+                print("[Insert] osascript error: \(error)")
             }
         }
     }

@@ -4,6 +4,10 @@ APP_NAME="AIInputMethod"
 DISPLAY_NAME="GhosTYPE"
 APP_BUNDLE="$DISPLAY_NAME.app"
 
+# 清除应用数据（用于测试首次启动）
+echo "🧹 Clearing app data for fresh start..."
+defaults delete com.gengdawei.ghostype 2>/dev/null || true
+
 echo "📦 Bundling $DISPLAY_NAME..."
 
 mkdir -p "$APP_BUNDLE/Contents/MacOS"
@@ -81,6 +85,8 @@ cat <<EOF > "$APP_BUNDLE/Contents/Info.plist"
     <string>GhosTYPE needs microphone access for speech recognition.</string>
     <key>NSAccessibilityUsageDescription</key>
     <string>GhosTYPE needs accessibility access to detect text fields.</string>
+    <key>NSContactsUsageDescription</key>
+    <string>GhosTYPE uses contact names as hotwords to improve speech recognition accuracy.</string>
 </dict>
 </plist>
 EOF

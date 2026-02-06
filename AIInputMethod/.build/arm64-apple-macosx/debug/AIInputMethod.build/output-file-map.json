@@ -44,6 +44,13 @@
     "swift-dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.swiftdeps",
     "diagnostics": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.dia"
   },
+  "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Contacts/ContactsManager.swift": {
+    "dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/ContactsManager.d",
+    "object": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/ContactsManager.swift.o",
+    "swiftmodule": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/ContactsManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/ContactsManager.swiftdeps",
+    "diagnostics": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/ContactsManager.dia"
+  },
   "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Dashboard/DashboardState.swift": {
     "dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardState.d",
     "object": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardState.swift.o",
@@ -225,6 +232,13 @@
     "swiftmodule": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardView~partial.swiftmodule",
     "swift-dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardView.swiftdeps",
     "diagnostics": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardView.dia"
+  },
+  "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/DesignSystem.swift": {
+    "dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DesignSystem.d",
+    "object": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DesignSystem.swift.o",
+    "swiftmodule": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DesignSystem~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DesignSystem.swiftdeps",
+    "diagnostics": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DesignSystem.dia"
   },
   "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/Dashboard/OnboardingContentView.swift": {
     "dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingContentView.d",

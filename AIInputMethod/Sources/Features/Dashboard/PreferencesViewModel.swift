@@ -8,6 +8,9 @@ import ServiceManagement
 @Observable
 class PreferencesViewModel {
     
+    // MARK: - Permission Manager
+    var permissionManager = PermissionManager()
+    
     // MARK: - UserDefaults Keys
     
     private enum Keys {
@@ -103,6 +106,60 @@ class PreferencesViewModel {
         set { AppSettings.shared.translateLanguage = newValue }
     }
     
+    // MARK: - 通讯录热词
+    
+    /// 是否启用通讯录热词
+    var enableContactsHotwords: Bool {
+        didSet {
+            AppSettings.shared.enableContactsHotwords = enableContactsHotwords
+            if enableContactsHotwords {
+                requestContactsAccessIfNeeded()
+            }
+        }
+    }
+    
+    /// 通讯录授权状态
+    var contactsAuthStatus: ContactsAuthStatus = .unknown
+    
+    /// 热词数量
+    var hotwordsCount: Int = 0
+    
+    // MARK: - 自动回车
+    
+    /// 是否启用自动回车
+    var enableAutoEnter: Bool {
+        didSet {
+            AppSettings.shared.enableAutoEnter = enableAutoEnter
+            // 当用户打开此功能时，触发权限请求
+            if enableAutoEnter {
+                requestAppleScriptPermission()
+            }
+        }
+    }
+    
+    /// AppleScript 自动化权限状态
+    var isAppleScriptAuthorized: Bool = false
+    
+    /// 请求 AppleScript 自动化权限（用户点击授权按钮时调用）
+    func requestAppleScriptPermission() {
+        // 执行一个 osascript 命令来触发系统权限弹窗
+        DispatchQueue.global(qos: .userInitiated).async {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+            process.arguments = ["-e", "tell application \"System Events\" to key code 36"]
+            try? process.run()
+            process.waitUntilExit()
+            
+            // 授权后标记为已授权
+            DispatchQueue.main.async {
+                self.isAppleScriptAuthorized = true
+            }
+        }
+    }
+    
+    /// 自动回车应用列表
+    var autoEnterApps: [AutoEnterApp] = []
+    
     // MARK: - Initialization
     
     init() {
@@ -111,7 +168,12 @@ class PreferencesViewModel {
         // 从 AppSettings 加载初始值
         self.enableAIPolish = AppSettings.shared.enableAIPolish
         self.polishThreshold = AppSettings.shared.polishThreshold
+        self.enableContactsHotwords = AppSettings.shared.enableContactsHotwords
+        self.enableAutoEnter = AppSettings.shared.enableAutoEnter
+        
         checkAIEngineStatus()
+        loadContactsStatus()
+        loadAutoEnterApps()
     }
     
     // MARK: - Methods
@@ -163,6 +225,8 @@ class PreferencesViewModel {
         translateLanguage = .chineseEnglish
         enableAIPolish = false
         polishThreshold = 20
+        enableContactsHotwords = false
+        enableAutoEnter = false
         
         AppSettings.shared.hotkeyModifiers = hotkeyModifiers
         AppSettings.shared.hotkeyKeyCode = hotkeyKeyCode
@@ -171,6 +235,79 @@ class PreferencesViewModel {
         AppSettings.shared.translateModifier = translateModifier
         AppSettings.shared.memoModifier = memoModifier
         AppSettings.shared.translateLanguage = translateLanguage
+        AppSettings.shared.autoEnterApps = []
+        
+        loadAutoEnterApps()
+    }
+    
+    // MARK: - Contacts Hotwords
+    
+    func loadContactsStatus() {
+        let status = ContactsManager.shared.authorizationStatus
+        switch status {
+        case .authorized:
+            contactsAuthStatus = .authorized
+            refreshHotwords()
+        case .denied:
+            contactsAuthStatus = .denied
+        case .restricted:
+            contactsAuthStatus = .restricted
+        case .notDetermined:
+            contactsAuthStatus = .notDetermined
+        @unknown default:
+            contactsAuthStatus = .unknown
+        }
+    }
+    
+    func requestContactsAccessIfNeeded() {
+        guard contactsAuthStatus == .notDetermined else { return }
+        
+        ContactsManager.shared.requestAccess { [weak self] granted, _ in
+            self?.contactsAuthStatus = granted ? .authorized : .denied
+            if granted {
+                self?.refreshHotwords()
+            }
+        }
+    }
+    
+    func refreshHotwords() {
+        ContactsManager.shared.fetchContactNames { [weak self] names in
+            self?.hotwordsCount = names.count
+        }
+    }
+    
+    // MARK: - Auto Enter Apps
+    
+    func loadAutoEnterApps() {
+        let bundleIds = AppSettings.shared.autoEnterApps
+        autoEnterApps = bundleIds.compactMap { bundleId in
+            if let appPath = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleId) {
+                let appName = FileManager.default.displayName(atPath: appPath.path)
+                let icon = NSWorkspace.shared.icon(forFile: appPath.path)
+                return AutoEnterApp(bundleId: bundleId, name: appName, icon: icon)
+            }
+            return AutoEnterApp(bundleId: bundleId, name: bundleId, icon: nil)
+        }
+    }
+    
+    func addAutoEnterApp(bundleId: String) {
+        AppSettings.shared.addAutoEnterApp(bundleId)
+        loadAutoEnterApps()
+    }
+    
+    func removeAutoEnterApp(bundleId: String) {
+        AppSettings.shared.removeAutoEnterApp(bundleId)
+        loadAutoEnterApps()
+    }
+    
+    func addCurrentFrontmostApp() {
+        guard let frontApp = NSWorkspace.shared.frontmostApplication,
+              let bundleId = frontApp.bundleIdentifier else { return }
+        
+        // 不添加自己
+        if bundleId == Bundle.main.bundleIdentifier { return }
+        
+        addAutoEnterApp(bundleId: bundleId)
     }
 }
 
@@ -204,4 +341,41 @@ enum AIEngineStatus {
         case .checking: return "arrow.clockwise"
         }
     }
+}
+
+// MARK: - Contacts Auth Status
+
+enum ContactsAuthStatus {
+    case unknown
+    case notDetermined
+    case authorized
+    case denied
+    case restricted
+    
+    var displayText: String {
+        switch self {
+        case .unknown: return "未知"
+        case .notDetermined: return "未请求"
+        case .authorized: return "已授权"
+        case .denied: return "已拒绝"
+        case .restricted: return "受限"
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .authorized: return .green
+        case .denied, .restricted: return .red
+        default: return .orange
+        }
+    }
+}
+
+// MARK: - Auto Enter App
+
+struct AutoEnterApp: Identifiable {
+    let id = UUID()
+    let bundleId: String
+    let name: String
+    let icon: NSImage?
 }

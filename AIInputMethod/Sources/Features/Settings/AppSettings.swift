@@ -83,6 +83,25 @@ class AppSettings: ObservableObject {
         didSet { saveToUserDefaults() }
     }
     
+    // MARK: - 通讯录热词设置
+    
+    /// 是否启用通讯录热词
+    @Published var enableContactsHotwords: Bool {
+        didSet { saveToUserDefaults() }
+    }
+    
+    // MARK: - 自动回车设置
+    
+    /// 是否启用自动回车
+    @Published var enableAutoEnter: Bool {
+        didSet { saveToUserDefaults() }
+    }
+    
+    /// 自动回车的应用 Bundle ID 列表
+    @Published var autoEnterApps: [String] {
+        didSet { saveToUserDefaults() }
+    }
+    
     // MARK: - 默认 Prompts
     
     static let defaultPolishPrompt = """
@@ -114,6 +133,9 @@ class AppSettings: ObservableObject {
         static let launchAtLogin = "launchAtLogin"
         static let playStartSound = "playStartSound"
         static let hapticFeedback = "hapticFeedback"
+        static let enableContactsHotwords = "enableContactsHotwords"
+        static let enableAutoEnter = "enableAutoEnter"
+        static let autoEnterApps = "autoEnterApps"
     }
     
     // MARK: - Initialization
@@ -131,7 +153,7 @@ class AppSettings: ObservableObject {
         let savedKeyCode = UInt16(defaults.integer(forKey: Keys.hotkeyKeyCode))
         hotkeyKeyCode = savedKeyCode == 0 ? 58 : savedKeyCode
         
-        hotkeyDisplay = defaults.string(forKey: Keys.hotkeyDisplay) ?? "⌥ Option"
+        hotkeyDisplay = defaults.string(forKey: Keys.hotkeyDisplay) ?? "Option"
         
         // 加载模式修饰键
         if let rawValue = defaults.object(forKey: Keys.translateModifier) as? UInt {
@@ -173,6 +195,13 @@ class AppSettings: ObservableObject {
         launchAtLogin = defaults.bool(forKey: Keys.launchAtLogin)
         playStartSound = defaults.bool(forKey: Keys.playStartSound)
         hapticFeedback = defaults.bool(forKey: Keys.hapticFeedback)
+        
+        // 加载通讯录热词设置（默认关闭）
+        enableContactsHotwords = defaults.bool(forKey: Keys.enableContactsHotwords)
+        
+        // 加载自动回车设置（默认关闭）
+        enableAutoEnter = defaults.bool(forKey: Keys.enableAutoEnter)
+        autoEnterApps = defaults.stringArray(forKey: Keys.autoEnterApps) ?? []
     }
     
     // MARK: - Persistence
@@ -193,6 +222,9 @@ class AppSettings: ObservableObject {
         defaults.set(launchAtLogin, forKey: Keys.launchAtLogin)
         defaults.set(playStartSound, forKey: Keys.playStartSound)
         defaults.set(hapticFeedback, forKey: Keys.hapticFeedback)
+        defaults.set(enableContactsHotwords, forKey: Keys.enableContactsHotwords)
+        defaults.set(enableAutoEnter, forKey: Keys.enableAutoEnter)
+        defaults.set(autoEnterApps, forKey: Keys.autoEnterApps)
     }
     
     // MARK: - Reset
@@ -206,7 +238,7 @@ class AppSettings: ObservableObject {
     func resetHotkeys() {
         hotkeyModifiers = .option
         hotkeyKeyCode = 58
-        hotkeyDisplay = "⌥ Option"
+        hotkeyDisplay = "Option"
         translateModifier = .shift
         memoModifier = .command
     }
@@ -233,5 +265,25 @@ class AppSettings: ObservableObject {
         if modifier.contains(.command) { parts.append("⌘") }
         if modifier.contains(.function) { parts.append("fn") }
         return parts.joined()
+    }
+    
+    // MARK: - Auto Enter Helpers
+    
+    /// 检查当前应用是否需要自动回车
+    func shouldAutoEnter(for bundleId: String?) -> Bool {
+        guard enableAutoEnter, let bundleId = bundleId else { return false }
+        return autoEnterApps.contains(bundleId)
+    }
+    
+    /// 添加自动回车应用
+    func addAutoEnterApp(_ bundleId: String) {
+        if !autoEnterApps.contains(bundleId) {
+            autoEnterApps.append(bundleId)
+        }
+    }
+    
+    /// 移除自动回车应用
+    func removeAutoEnterApp(_ bundleId: String) {
+        autoEnterApps.removeAll { $0 == bundleId }
     }
 }
