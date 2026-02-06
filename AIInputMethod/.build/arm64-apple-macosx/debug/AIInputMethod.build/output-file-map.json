@@ -1,82 +1,71 @@
 {
   "": {
-    "swift-dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/master.swiftdeps"
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/master.swiftdeps"
   },
-  "/Users/gengdawei/输入法/AIInputMethod/Sources/AIInputMethodApp.swift": {
-    "dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp.d",
-    "object": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp.swift.o",
-    "swiftmodule": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp~partial.swiftmodule",
-    "swift-dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp.swiftdeps",
-    "diagnostics": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp.dia"
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/AIInputMethodApp.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp.swiftdeps"
   },
-  "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/CursorManager.swift": {
-    "dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.d",
-    "object": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.swift.o",
-    "swiftmodule": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager~partial.swiftmodule",
-    "swift-dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.swiftdeps",
-    "diagnostics": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.dia"
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Accessibility/CursorManager.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.swiftdeps"
   },
-  "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Accessibility/FocusObserver.swift": {
-    "dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.d",
-    "object": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.swift.o",
-    "swiftmodule": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver~partial.swiftmodule",
-    "swift-dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.swiftdeps",
-    "diagnostics": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.dia"
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Accessibility/FocusObserver.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.swiftdeps"
   },
-  "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Hotkey/HotkeyManager.swift": {
-    "dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager.d",
-    "object": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager.swift.o",
-    "swiftmodule": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager~partial.swiftmodule",
-    "swift-dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager.swiftdeps",
-    "diagnostics": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager.dia"
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Hotkey/HotkeyManager.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager.swiftdeps"
   },
-  "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Permissions/PermissionManager.swift": {
-    "dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionManager.d",
-    "object": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionManager.swift.o",
-    "swiftmodule": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionManager~partial.swiftmodule",
-    "swift-dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionManager.swiftdeps",
-    "diagnostics": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionManager.dia"
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Permissions/PermissionManager.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionManager.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionManager.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionManager.swiftdeps"
   },
-  "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Speech/DoubaoSpeechService.swift": {
-    "dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoSpeechService.d",
-    "object": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoSpeechService.swift.o",
-    "swiftmodule": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoSpeechService~partial.swiftmodule",
-    "swift-dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoSpeechService.swiftdeps",
-    "diagnostics": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoSpeechService.dia"
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Speech/DoubaoSpeechService.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoSpeechService.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoSpeechService.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoSpeechService~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DoubaoSpeechService.swiftdeps"
   },
-  "/Users/gengdawei/输入法/AIInputMethod/Sources/Features/Speech/SpeechService.swift": {
-    "dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService.d",
-    "object": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService.swift.o",
-    "swiftmodule": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService~partial.swiftmodule",
-    "swift-dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService.swiftdeps",
-    "diagnostics": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService.dia"
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Speech/SpeechService.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService.swiftdeps"
   },
-  "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OnboardingWindow.swift": {
-    "dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow.d",
-    "object": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow.swift.o",
-    "swiftmodule": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow~partial.swiftmodule",
-    "swift-dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow.swiftdeps",
-    "diagnostics": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow.dia"
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/OnboardingWindow.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow.swiftdeps"
   },
-  "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/OverlayView.swift": {
-    "dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayView.d",
-    "object": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayView.swift.o",
-    "swiftmodule": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayView~partial.swiftmodule",
-    "swift-dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayView.swiftdeps",
-    "diagnostics": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayView.dia"
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/OverlayView.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayView.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayView.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayView~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverlayView.swiftdeps"
   },
-  "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/PermissionWindow.swift": {
-    "dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionWindow.d",
-    "object": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionWindow.swift.o",
-    "swiftmodule": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionWindow~partial.swiftmodule",
-    "swift-dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionWindow.swiftdeps",
-    "diagnostics": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionWindow.dia"
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/PermissionWindow.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionWindow.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionWindow.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionWindow~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PermissionWindow.swiftdeps"
   },
-  "/Users/gengdawei/输入法/AIInputMethod/Sources/UI/TestWindow.swift": {
-    "dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/TestWindow.d",
-    "object": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/TestWindow.swift.o",
-    "swiftmodule": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/TestWindow~partial.swiftmodule",
-    "swift-dependencies": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/TestWindow.swiftdeps",
-    "diagnostics": "/Users/gengdawei/输入法/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/TestWindow.dia"
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/TestWindow.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/TestWindow.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/TestWindow.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/TestWindow~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/TestWindow.swiftdeps"
   }
 }

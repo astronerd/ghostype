@@ -188,23 +188,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     }
     
     func showOverlayNearCursor() {
-        print("[Overlay] Showing overlay near cursor...")
-        
-        // 使用改进的 CursorManager 获取光标位置（多重回退）
-        if let bounds = cursorManager.getCursorBounds(for: focusObserver.currentFocusedElement) {
-            moveOverlay(to: bounds)
-        } else {
-            moveOverlayToMouse()
-        }
+        print("[Overlay] Showing overlay at bottom center...")
+        positionOverlayAtBottom()
         showOverlay()
     }
     
     func moveOverlayToMouse() {
-        let mouseLocation = NSEvent.mouseLocation
-        let x = mouseLocation.x - 100  // 居中 (200/2)
-        let y = mouseLocation.y + 15
-        overlayWindow.setFrameOrigin(NSPoint(x: x, y: y))
-        print("[Overlay] Moved to mouse: (\(x), \(y))")
+        // 不再使用，保留兼容
+        positionOverlayAtBottom()
     }
     
     // MARK: - Permissions
@@ -284,8 +275,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     
     // MARK: - Overlay Window
     func setupOverlayWindow() {
+        guard let screen = NSScreen.main else { return }
+        
+        // 窗口大小：足够容纳最大30%宽度的胶囊
+        let windowWidth = screen.frame.width * 0.35
+        let windowHeight: CGFloat = 60
+        
         overlayWindow = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 200, height: 28),
+            contentRect: NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight),
             styleMask: [.nonactivatingPanel, .borderless, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -295,22 +292,33 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         overlayWindow.backgroundColor = .clear
         overlayWindow.isOpaque = false
         overlayWindow.hasShadow = false
-        overlayWindow.titlebarAppearsTransparent = true
         overlayWindow.isMovableByWindowBackground = false
+        overlayWindow.ignoresMouseEvents = true
         
-        // 关键：让 SwiftUI 的 material 能正确渲染
         let hostingView = NSHostingView(rootView: OverlayView(speechService: speechService))
         hostingView.wantsLayer = true
-        hostingView.layer?.backgroundColor = .clear
+        hostingView.layer?.backgroundColor = CGColor.clear
         overlayWindow.contentView = hostingView
+        
+        // 定位到屏幕底部居中
+        positionOverlayAtBottom()
     }
     
-    func centerOverlay() {
-        if let screen = NSScreen.main {
-            let x = (screen.frame.width - 320) / 2
-            let y = (screen.frame.height - 44) / 2
-            overlayWindow.setFrameOrigin(NSPoint(x: x, y: y))
-        }
+    func positionOverlayAtBottom() {
+        guard let screen = NSScreen.main else { return }
+        
+        let windowWidth = overlayWindow.frame.width
+        let windowHeight = overlayWindow.frame.height
+        
+        // 水平居中
+        let x = screen.frame.origin.x + (screen.frame.width - windowWidth) / 2
+        
+        // 垂直：Dock上方20px，或屏幕底部上方20px
+        // visibleFrame.origin.y 就是 Dock 的高度（如果 Dock 在底部）
+        let dockHeight = screen.visibleFrame.origin.y - screen.frame.origin.y
+        let y = screen.frame.origin.y + dockHeight + 20
+        
+        overlayWindow.setFrameOrigin(NSPoint(x: x, y: y))
     }
     
     func moveOverlay(to bounds: CGRect) {

@@ -19,29 +19,42 @@ struct OnboardingWindow: View {
     var onComplete: () -> Void
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Progress indicator
-            HStack(spacing: 8) {
-                ForEach(0..<3) { index in
-                    Circle()
-                        .fill(index <= currentStep ? Color.blue : Color.gray.opacity(0.3))
-                        .frame(width: 8, height: 8)
-                }
-            }
-            .padding(.top, 20)
+        ZStack {
+            // 渐变背景
+            LinearGradient(
+                colors: [Color(nsColor: .windowBackgroundColor), Color(nsColor: .windowBackgroundColor).opacity(0.95)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
             
-            // Content
-            TabView(selection: $currentStep) {
-                Step1HotkeyView(settings: settings, onNext: { currentStep = 1 })
-                    .tag(0)
+            VStack(spacing: 0) {
+                // 顶部应用名称
+                HStack {
+                    Text("GhosTYPE")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("\(currentStep + 1) / 3")
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundColor(.secondary.opacity(0.6))
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 16)
                 
-                Step2AutoModeView(settings: settings, onNext: { currentStep = 2 }, onBack: { currentStep = 0 })
-                    .tag(1)
-                
-                Step3PermissionsView(permissionManager: permissionManager, onComplete: onComplete, onBack: { currentStep = 1 })
-                    .tag(2)
+                // 内容区域
+                Group {
+                    switch currentStep {
+                    case 0:
+                        Step1HotkeyView(settings: settings, onNext: { withAnimation(.easeInOut(duration: 0.3)) { currentStep = 1 } })
+                    case 1:
+                        Step2AutoModeView(settings: settings, onNext: { withAnimation(.easeInOut(duration: 0.3)) { currentStep = 2 } }, onBack: { withAnimation(.easeInOut(duration: 0.3)) { currentStep = 0 } })
+                    default:
+                        Step3PermissionsView(permissionManager: permissionManager, onComplete: onComplete, onBack: { withAnimation(.easeInOut(duration: 0.3)) { currentStep = 1 } })
+                    }
+                }
+                .transition(.opacity.combined(with: .move(edge: .trailing)))
             }
-            .tabViewStyle(.automatic)
         }
         .frame(width: 420, height: 480)
     }
@@ -53,53 +66,75 @@ struct Step1HotkeyView: View {
     var onNext: () -> Void
     
     @State private var isRecording = false
+    @State private var iconScale: CGFloat = 1.0
     
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 0) {
             Spacer()
             
-            Image(systemName: "keyboard")
-                .font(.system(size: 56))
-                .foregroundColor(.blue)
+            // 图标区域
+            ZStack {
+                Circle()
+                    .fill(LinearGradient(colors: [.blue.opacity(0.15), .blue.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: 100, height: 100)
+                
+                Image(systemName: "keyboard")
+                    .font(.system(size: 42, weight: .light))
+                    .foregroundStyle(.blue)
+                    .scaleEffect(iconScale)
+            }
+            .onAppear {
+                withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+                    iconScale = 1.05
+                }
+            }
             
             Text("设置快捷键")
-                .font(.title.bold())
+                .font(.system(size: 24, weight: .semibold))
+                .padding(.top, 24)
             
             Text("按住快捷键说话，松开完成输入")
-                .font(.subheadline)
+                .font(.system(size: 14))
                 .foregroundColor(.secondary)
+                .padding(.top, 8)
             
-            // 快捷键录入按钮
-            HotkeyRecorderView(
-                isRecording: $isRecording,
-                hotkeyDisplay: $settings.hotkeyDisplay,
-                onRecorded: { modifiers, keyCode, display in
-                    settings.hotkeyModifiers = modifiers
-                    settings.hotkeyKeyCode = keyCode
-                    settings.hotkeyDisplay = display
-                }
-            )
-            .frame(width: 200, height: 50)
-            
-            Text("点击上方按钮，然后按下想要的快捷键组合")
-                .font(.caption)
-                .foregroundColor(.secondary)
+            // 快捷键录入
+            VStack(spacing: 8) {
+                HotkeyRecorderView(
+                    isRecording: $isRecording,
+                    hotkeyDisplay: $settings.hotkeyDisplay,
+                    onRecorded: { modifiers, keyCode, display in
+                        settings.hotkeyModifiers = modifiers
+                        settings.hotkeyKeyCode = keyCode
+                        settings.hotkeyDisplay = display
+                    }
+                )
+                .frame(width: 180, height: 44)
+                
+                Text(isRecording ? "按下快捷键组合..." : "点击修改")
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary.opacity(0.7))
+            }
+            .padding(.top, 32)
             
             Spacer()
             
+            // 底部按钮
             Button(action: onNext) {
                 Text("下一步")
+                    .font(.system(size: 15, weight: .medium))
                     .frame(maxWidth: .infinity)
+                    .frame(height: 44)
             }
             .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .padding(.horizontal, 40)
-            .padding(.bottom, 30)
+            .tint(.blue)
+            .padding(.horizontal, 48)
+            .padding(.bottom, 32)
         }
     }
 }
 
-// 快捷键录入视图 - 使用 NSTextField 来捕获按键
+// 快捷键录入视图
 struct HotkeyRecorderView: NSViewRepresentable {
     @Binding var isRecording: Bool
     @Binding var hotkeyDisplay: String
@@ -124,26 +159,20 @@ struct HotkeyRecorderView: NSViewRepresentable {
     }
     
     func updateNSView(_ nsView: HotkeyTextField, context: Context) {
-        nsView.stringValue = isRecording ? "请按下快捷键..." : hotkeyDisplay
+        nsView.stringValue = isRecording ? "..." : hotkeyDisplay
     }
     
-    func makeCoordinator() -> Coordinator {
-        Coordinator()
-    }
-    
+    func makeCoordinator() -> Coordinator { Coordinator() }
     class Coordinator: NSObject {}
     
     private func formatHotkey(modifiers: NSEvent.ModifierFlags, keyCode: UInt16) -> String {
         var parts: [String] = []
-        
         if modifiers.contains(.control) { parts.append("⌃") }
         if modifiers.contains(.option) { parts.append("⌥") }
         if modifiers.contains(.shift) { parts.append("⇧") }
         if modifiers.contains(.command) { parts.append("⌘") }
         if modifiers.contains(.function) { parts.append("fn") }
-        
         parts.append(keyCodeToString(keyCode))
-        
         return parts.joined(separator: " ")
     }
     
@@ -158,18 +187,14 @@ struct HotkeyRecorderView: NSViewRepresentable {
             122: "F1", 120: "F2", 99: "F3", 118: "F4", 96: "F5",
             97: "F6", 98: "F7", 100: "F8", 101: "F9", 109: "F10",
             103: "F11", 111: "F12",
-            // 修饰键本身
-            59: "Control", 62: "Control(R)",
-            58: "Option", 61: "Option(R)",
-            56: "Shift", 60: "Shift(R)",
-            55: "Command", 54: "Command(R)",
-            63: "Fn"
+            59: "Control", 62: "Control(R)", 58: "Option", 61: "Option(R)",
+            56: "Shift", 60: "Shift(R)", 55: "Command", 54: "Command(R)", 63: "Fn"
         ]
         return keyMap[keyCode] ?? "Key\(keyCode)"
     }
 }
 
-// 自定义 NSTextField 用于捕获按键
+// 自定义 NSTextField
 class HotkeyTextField: NSTextField {
     var hotkeyCallback: ((NSEvent.ModifierFlags, UInt16) -> Void)?
     var onFocusChange: ((Bool) -> Void)?
@@ -187,44 +212,46 @@ class HotkeyTextField: NSTextField {
     private func setup() {
         isEditable = false
         isSelectable = false
-        isBezeled = true
-        bezelStyle = .roundedBezel
+        isBezeled = false
+        drawsBackground = true
+        backgroundColor = NSColor.controlBackgroundColor
         alignment = .center
-        font = .systemFont(ofSize: 16, weight: .medium)
-        focusRingType = .exterior
+        font = .monospacedSystemFont(ofSize: 18, weight: .medium)
+        focusRingType = .none
+        wantsLayer = true
+        layer?.cornerRadius = 10
+        layer?.borderWidth = 1
+        layer?.borderColor = NSColor.separatorColor.cgColor
     }
     
     override var acceptsFirstResponder: Bool { true }
     
     override func becomeFirstResponder() -> Bool {
+        layer?.borderColor = NSColor.controlAccentColor.cgColor
+        layer?.borderWidth = 2
         onFocusChange?(true)
         return super.becomeFirstResponder()
     }
     
     override func resignFirstResponder() -> Bool {
+        layer?.borderColor = NSColor.separatorColor.cgColor
+        layer?.borderWidth = 1
         onFocusChange?(false)
         return super.resignFirstResponder()
     }
     
     override func keyDown(with event: NSEvent) {
-        // 捕获所有按键，包括单键
         let modifiers = event.modifierFlags.intersection([.command, .option, .control, .shift, .function])
-        let keyCode = event.keyCode
-        
-        hotkeyCallback?(modifiers, keyCode)
-        window?.makeFirstResponder(nil) // 取消焦点
+        hotkeyCallback?(modifiers, event.keyCode)
+        window?.makeFirstResponder(nil)
     }
     
     override func flagsChanged(with event: NSEvent) {
-        // 捕获修饰键本身作为快捷键（如单独的 Control、Option）
         let keyCode = event.keyCode
         let modifiers = event.modifierFlags.intersection([.command, .option, .control, .shift, .function])
-        
-        // 修饰键的 keyCode
         let modifierKeyCodes: Set<UInt16> = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
         
         if modifierKeyCodes.contains(keyCode) {
-            // 检查是按下还是松开（通过检查对应的 modifier flag）
             let isPressed: Bool
             switch keyCode {
             case 55, 54: isPressed = modifiers.contains(.command)
@@ -234,9 +261,7 @@ class HotkeyTextField: NSTextField {
             case 63: isPressed = modifiers.contains(.function)
             default: isPressed = false
             }
-            
             if isPressed {
-                // 修饰键按下，记录为快捷键
                 hotkeyCallback?([], keyCode)
                 window?.makeFirstResponder(nil)
             }
@@ -248,103 +273,138 @@ class HotkeyTextField: NSTextField {
     }
 }
 
-// MARK: - Step 2: 自动模式
+// MARK: - Step 2: 输入模式
 struct Step2AutoModeView: View {
     @ObservedObject var settings: AppSettings
     var onNext: () -> Void
     var onBack: () -> Void
     
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 0) {
             Spacer()
             
-            Image(systemName: settings.autoStartOnFocus ? "text.cursor" : "hand.tap")
-                .font(.system(size: 56))
-                .foregroundColor(.purple)
+            // 图标
+            ZStack {
+                Circle()
+                    .fill(LinearGradient(colors: [.purple.opacity(0.15), .purple.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: 100, height: 100)
+                
+                Image(systemName: settings.autoStartOnFocus ? "text.cursor" : "hand.tap")
+                    .font(.system(size: 42, weight: .light))
+                    .foregroundStyle(.purple)
+            }
             
             Text("输入模式")
-                .font(.title.bold())
+                .font(.system(size: 24, weight: .semibold))
+                .padding(.top, 24)
             
             Text("选择如何触发语音输入")
-                .font(.subheadline)
+                .font(.system(size: 14))
                 .foregroundColor(.secondary)
+                .padding(.top, 8)
             
-            VStack(spacing: 12) {
-                ModeOptionCard(
-                    title: "手动模式",
-                    description: "按住快捷键时录音",
+            // 选项卡片
+            VStack(spacing: 10) {
+                ModeCard(
                     icon: "hand.tap",
+                    title: "手动模式",
+                    subtitle: "按住快捷键时录音",
                     isSelected: !settings.autoStartOnFocus,
-                    action: { settings.autoStartOnFocus = false }
-                )
+                    color: .blue
+                ) { settings.autoStartOnFocus = false }
                 
-                ModeOptionCard(
-                    title: "自动模式",
-                    description: "聚焦输入框时自动开始录音",
+                ModeCard(
                     icon: "text.cursor",
+                    title: "自动模式",
+                    subtitle: "聚焦输入框时自动录音",
                     isSelected: settings.autoStartOnFocus,
-                    action: { settings.autoStartOnFocus = true }
-                )
+                    color: .purple
+                ) { settings.autoStartOnFocus = true }
             }
-            .padding(.horizontal, 30)
+            .padding(.horizontal, 36)
+            .padding(.top, 28)
             
             Spacer()
             
+            // 底部按钮
             HStack(spacing: 12) {
                 Button(action: onBack) {
                     Text("上一步")
+                        .font(.system(size: 15, weight: .medium))
                         .frame(maxWidth: .infinity)
+                        .frame(height: 44)
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.large)
                 
                 Button(action: onNext) {
                     Text("下一步")
+                        .font(.system(size: 15, weight: .medium))
                         .frame(maxWidth: .infinity)
+                        .frame(height: 44)
                 }
                 .buttonStyle(.borderedProminent)
-                .controlSize(.large)
+                .tint(.blue)
             }
-            .padding(.horizontal, 40)
-            .padding(.bottom, 30)
+            .padding(.horizontal, 48)
+            .padding(.bottom, 32)
         }
     }
 }
 
-struct ModeOptionCard: View {
-    let title: String
-    let description: String
+struct ModeCard: View {
     let icon: String
+    let title: String
+    let subtitle: String
     let isSelected: Bool
+    let color: Color
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 12) {
-                Image(systemName: icon)
-                    .font(.title2)
-                    .foregroundColor(isSelected ? .white : .blue)
-                    .frame(width: 40)
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isSelected ? color.opacity(0.15) : Color.gray.opacity(0.08))
+                        .frame(width: 40, height: 40)
+                    
+                    Image(systemName: icon)
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(isSelected ? color : .secondary)
+                }
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.headline)
-                        .foregroundColor(isSelected ? .white : .primary)
-                    Text(description)
-                        .font(.caption)
-                        .foregroundColor(isSelected ? .white.opacity(0.8) : .secondary)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.primary)
+                    Text(subtitle)
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
                 }
                 
                 Spacer()
                 
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.white)
+                ZStack {
+                    Circle()
+                        .stroke(isSelected ? color : Color.gray.opacity(0.3), lineWidth: 1.5)
+                        .frame(width: 20, height: 20)
+                    
+                    if isSelected {
+                        Circle()
+                            .fill(color)
+                            .frame(width: 12, height: 12)
+                    }
                 }
             }
-            .padding(12)
-            .background(isSelected ? Color.blue : Color(nsColor: .controlBackgroundColor))
-            .cornerRadius(10)
+            .padding(14)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(nsColor: .controlBackgroundColor))
+                    .shadow(color: isSelected ? color.opacity(0.1) : .clear, radius: 8, y: 2)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isSelected ? color.opacity(0.3) : Color.gray.opacity(0.1), lineWidth: 1)
+            )
         }
         .buttonStyle(.plain)
     }
@@ -357,76 +417,151 @@ struct Step3PermissionsView: View {
     var onBack: () -> Void
     
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 0) {
             Spacer()
             
-            Image(systemName: "lock.shield")
-                .font(.system(size: 56))
-                .foregroundColor(.green)
+            // 图标
+            ZStack {
+                Circle()
+                    .fill(LinearGradient(colors: [.green.opacity(0.15), .green.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: 100, height: 100)
+                
+                Image(systemName: allGranted ? "checkmark.shield.fill" : "lock.shield")
+                    .font(.system(size: 42, weight: .light))
+                    .foregroundStyle(.green)
+            }
             
             Text("授权权限")
-                .font(.title.bold())
+                .font(.system(size: 24, weight: .semibold))
+                .padding(.top, 24)
             
             Text("需要以下权限才能正常工作")
-                .font(.subheadline)
+                .font(.system(size: 14))
                 .foregroundColor(.secondary)
+                .padding(.top, 8)
             
-            VStack(spacing: 12) {
-                PermissionRow(
+            // 权限列表
+            VStack(spacing: 10) {
+                PermissionCard(
                     icon: "hand.raised.fill",
                     title: "辅助功能",
-                    description: "监听快捷键并插入文字",
-                    isGranted: permissionManager.isAccessibilityTrusted,
-                    action: {
-                        // 触发系统弹窗
-                        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-                        _ = AXIsProcessTrustedWithOptions(options)
-                    }
-                )
+                    subtitle: "监听快捷键并插入文字",
+                    isGranted: permissionManager.isAccessibilityTrusted
+                ) {
+                    let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+                    _ = AXIsProcessTrustedWithOptions(options)
+                }
                 
-                PermissionRow(
+                PermissionCard(
                     icon: "mic.fill",
                     title: "麦克风",
-                    description: "录制语音",
-                    isGranted: permissionManager.isMicrophoneGranted,
-                    action: {
-                        permissionManager.requestMicrophoneAccess()
-                    }
-                )
+                    subtitle: "录制语音进行识别",
+                    isGranted: permissionManager.isMicrophoneGranted
+                ) {
+                    permissionManager.requestMicrophoneAccess()
+                }
             }
-            .padding(.horizontal, 30)
+            .padding(.horizontal, 36)
+            .padding(.top, 28)
             
+            // 刷新按钮
             Button(action: {
                 permissionManager.checkAccessibilityStatus()
                 permissionManager.checkMicrophoneStatus()
             }) {
                 Label("刷新状态", systemImage: "arrow.clockwise")
+                    .font(.system(size: 13))
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.plain)
+            .foregroundColor(.secondary)
+            .padding(.top, 16)
             
             Spacer()
             
+            // 底部按钮
             HStack(spacing: 12) {
                 Button(action: onBack) {
                     Text("上一步")
+                        .font(.system(size: 15, weight: .medium))
                         .frame(maxWidth: .infinity)
+                        .frame(height: 44)
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.large)
                 
                 Button(action: onComplete) {
                     Text(allGranted ? "开始使用" : "稍后设置")
+                        .font(.system(size: 15, weight: .medium))
                         .frame(maxWidth: .infinity)
+                        .frame(height: 44)
                 }
                 .buttonStyle(.borderedProminent)
-                .controlSize(.large)
+                .tint(allGranted ? .green : .blue)
             }
-            .padding(.horizontal, 40)
-            .padding(.bottom, 30)
+            .padding(.horizontal, 48)
+            .padding(.bottom, 32)
         }
     }
     
     var allGranted: Bool {
         permissionManager.isAccessibilityTrusted && permissionManager.isMicrophoneGranted
+    }
+}
+
+struct PermissionCard: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    let isGranted: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isGranted ? Color.green.opacity(0.15) : Color.orange.opacity(0.1))
+                        .frame(width: 40, height: 40)
+                    
+                    Image(systemName: icon)
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(isGranted ? .green : .orange)
+                }
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.primary)
+                    Text(subtitle)
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                if isGranted {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(.green)
+                } else {
+                    Text("授权")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.orange)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.orange.opacity(0.1))
+                        .cornerRadius(6)
+                }
+            }
+            .padding(14)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(nsColor: .controlBackgroundColor))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isGranted ? Color.green.opacity(0.2) : Color.orange.opacity(0.2), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
