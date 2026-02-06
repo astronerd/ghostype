@@ -2,207 +2,154 @@
 //  LibraryPage.swift
 //  AIInputMethod
 //
-//  历史库页面 - 管理和搜索语音输入历史记录
-//  实现搜索框 + 分类 Tabs + 列表 + 详情面板布局
-//
-//  Requirements:
-//  - 6.1: THE Library page SHALL display a search field at the top for full-text search
-//  - 6.2: THE Library page SHALL display filter tabs: 全部, 润色, 翻译, 随心记
+//  历史库页面 - Radical Minimalist 极简风格
 //
 
 import SwiftUI
 
 // MARK: - LibraryPage
 
-/// 历史库页面视图
-/// 提供搜索、分类过滤和记录详情查看功能
-/// - Requirement 6.1: 顶部搜索框用于全文搜索
-/// - Requirement 6.2: 分类标签页：全部, 润色, 翻译, 随心记
 struct LibraryPage: View {
     
-    // MARK: - Properties
-    
-    /// LibraryViewModel 用于状态管理
     @State private var viewModel: LibraryViewModel
     
-    // MARK: - Constants
-    
-    /// 内边距
-    private let contentPadding: CGFloat = 24
-    
-    /// 列表和详情面板之间的间距
-    private let panelSpacing: CGFloat = 16
-    
-    /// 列表最小宽度
-    private let listMinWidth: CGFloat = 300
-    
-    /// 详情面板最小宽度
-    private let detailMinWidth: CGFloat = 280
-    
-    // MARK: - Initialization
+    private let contentPadding: CGFloat = DS.Spacing.xl
+    private let panelSpacing: CGFloat = DS.Spacing.lg
     
     init(viewModel: LibraryViewModel = LibraryViewModel()) {
         _viewModel = State(initialValue: viewModel)
     }
     
-    // MARK: - Body
-    
     var body: some View {
         VStack(spacing: 0) {
-            // MARK: 顶部区域：标题 + 搜索框
             headerSection
                 .padding(.horizontal, contentPadding)
-                .padding(.top, contentPadding)
-                .padding(.bottom, 16)
+                .padding(.top, 21)
+                .padding(.bottom, DS.Spacing.lg)
             
-            // MARK: 分类标签页
-            // Requirement 6.2: THE Library page SHALL display filter tabs: 全部, 润色, 翻译, 随心记
             categoryTabsSection
                 .padding(.horizontal, contentPadding)
-                .padding(.bottom, 16)
+                .padding(.bottom, DS.Spacing.lg)
             
-            Divider()
+            MinimalDivider()
                 .padding(.horizontal, contentPadding)
             
-            // MARK: 主内容区域：列表 + 详情面板
             mainContentSection
                 .padding(contentPadding)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(
-            VisualEffectView(material: .contentBackground, blendingMode: .behindWindow)
-        )
+        .background(DS.Colors.bg1)
     }
-    
+
     // MARK: - Header Section
     
-    /// 头部区域：标题和搜索框
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // 页面标题
+        VStack(alignment: .leading, spacing: DS.Spacing.lg) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                     Text("历史库")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.primary)
+                        .font(DS.Typography.largeTitle)
+                        .foregroundColor(DS.Colors.text1)
                     
                     Text("搜索和管理您的语音输入记录")
-                        .font(.system(size: 14))
-                        .foregroundColor(.secondary)
+                        .font(DS.Typography.body)
+                        .foregroundColor(DS.Colors.text2)
                 }
                 
                 Spacer()
                 
-                // 记录数量统计
                 recordCountBadge
             }
             
-            // MARK: 搜索框
-            // Requirement 6.1: THE Library page SHALL display a search field at the top for full-text search
             searchField
         }
     }
     
-    /// 记录数量徽章
     private var recordCountBadge: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: DS.Spacing.xs) {
             Image(systemName: "doc.text")
-                .font(.system(size: 12))
+                .font(.system(size: 11))
             Text("\(viewModel.filteredRecords.count) 条记录")
-                .font(.system(size: 12, weight: .medium))
+                .font(DS.Typography.caption)
         }
-        .foregroundColor(.secondary)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(
+        .foregroundColor(DS.Colors.text2)
+        .padding(.horizontal, DS.Spacing.md)
+        .padding(.vertical, DS.Spacing.sm)
+        .background(DS.Colors.bg2)
+        .overlay(
             Capsule()
-                .fill(Color(nsColor: .controlBackgroundColor))
+                .stroke(DS.Colors.border, lineWidth: DS.Layout.borderWidth)
         )
+        .clipShape(Capsule())
     }
     
-    /// 搜索框
-    /// Requirement 6.1: THE Library page SHALL display a search field at the top for full-text search
     private var searchField: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: DS.Spacing.sm) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 14))
-                .foregroundColor(.secondary)
+                .font(.system(size: 13))
+                .foregroundColor(DS.Colors.icon)
             
             TextField("搜索记录内容...", text: $viewModel.searchText)
                 .textFieldStyle(.plain)
-                .font(.system(size: 14))
+                .font(DS.Typography.body)
             
-            // 清除按钮
             if !viewModel.searchText.isEmpty {
-                Button(action: {
-                    viewModel.clearSearch()
-                }) {
+                Button(action: { viewModel.clearSearch() }) {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 14))
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 13))
+                        .foregroundColor(DS.Colors.icon)
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(nsColor: .controlBackgroundColor))
-        )
+        .padding(.horizontal, DS.Spacing.md)
+        .padding(.vertical, DS.Spacing.sm)
+        .background(DS.Colors.bg2)
         .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color(nsColor: .separatorColor), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
+                .stroke(DS.Colors.border, lineWidth: DS.Layout.borderWidth)
         )
+        .clipShape(RoundedRectangle(cornerRadius: DS.Layout.cornerRadius))
     }
-    
+
     // MARK: - Category Tabs Section
     
-    /// 分类标签页区域
-    /// Requirement 6.2: THE Library page SHALL display filter tabs: 全部, 润色, 翻译, 随心记
     private var categoryTabsSection: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: DS.Spacing.sm) {
             ForEach(RecordCategory.allCases) { category in
                 CategoryTabButton(
                     category: category,
                     isSelected: viewModel.selectedCategory == category,
                     action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
+                        withAnimation(.easeInOut(duration: 0.15)) {
                             viewModel.selectCategory(category)
                         }
                     }
                 )
             }
-            
             Spacer()
         }
     }
     
     // MARK: - Main Content Section
     
-    /// 主内容区域：列表 + 详情面板
     private var mainContentSection: some View {
         HStack(spacing: panelSpacing) {
-            // MARK: 记录列表
             recordListSection
-                .frame(minWidth: listMinWidth)
+                .frame(minWidth: 300)
             
-            // MARK: 详情面板
             detailPanelSection
-                .frame(minWidth: detailMinWidth)
+                .frame(minWidth: 280)
         }
     }
     
-    // MARK: - Record List Section
-    
-    /// 记录列表区域
     private var recordListSection: some View {
         Group {
             if viewModel.filteredRecords.isEmpty {
                 emptyStateView
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 8) {
+                    LazyVStack(spacing: DS.Spacing.sm) {
                         ForEach(viewModel.filteredRecords, id: \.id) { record in
                             RecordListItem(
                                 record: record,
@@ -215,73 +162,51 @@ struct LibraryPage: View {
                             }
                         }
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, DS.Spacing.xs)
                 }
             }
         }
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(nsColor: .controlBackgroundColor).opacity(0.3))
-        )
+        .background(DS.Colors.bg2.opacity(0.3))
+        .clipShape(RoundedRectangle(cornerRadius: DS.Layout.cornerRadius))
     }
     
-    /// 空状态视图
     private var emptyStateView: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: DS.Spacing.md) {
             Image(systemName: emptyStateIcon)
-                .font(.system(size: 48))
-                .foregroundColor(.secondary.opacity(0.5))
+                .font(.system(size: 36))
+                .foregroundColor(DS.Colors.text3)
             
             Text(emptyStateTitle)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.secondary)
+                .font(DS.Typography.body)
+                .foregroundColor(DS.Colors.text2)
             
             Text(emptyStateMessage)
-                .font(.system(size: 13))
-                .foregroundColor(.secondary.opacity(0.8))
+                .font(DS.Typography.caption)
+                .foregroundColor(DS.Colors.text3)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding()
     }
     
-    /// 空状态图标
     private var emptyStateIcon: String {
-        if !viewModel.searchText.isEmpty {
-            return "magnifyingglass"
-        } else if viewModel.selectedCategory != .all {
-            return "folder"
-        } else {
-            return "doc.text"
-        }
+        if !viewModel.searchText.isEmpty { return "magnifyingglass" }
+        else if viewModel.selectedCategory != .all { return "folder" }
+        else { return "doc.text" }
     }
     
-    /// 空状态标题
     private var emptyStateTitle: String {
-        if !viewModel.searchText.isEmpty {
-            return "未找到匹配的记录"
-        } else if viewModel.selectedCategory != .all {
-            return "该分类暂无记录"
-        } else {
-            return "暂无记录"
-        }
+        if !viewModel.searchText.isEmpty { return "未找到匹配的记录" }
+        else if viewModel.selectedCategory != .all { return "该分类暂无记录" }
+        else { return "暂无记录" }
     }
     
-    /// 空状态消息
     private var emptyStateMessage: String {
-        if !viewModel.searchText.isEmpty {
-            return "尝试使用其他关键词搜索"
-        } else if viewModel.selectedCategory != .all {
-            return "使用语音输入后，记录将显示在这里"
-        } else {
-            return "开始使用语音输入，\n您的记录将自动保存在这里"
-        }
+        if !viewModel.searchText.isEmpty { return "尝试使用其他关键词搜索" }
+        else if viewModel.selectedCategory != .all { return "使用语音输入后，记录将显示在这里" }
+        else { return "开始使用语音输入，\n您的记录将自动保存在这里" }
     }
     
-    // MARK: - Detail Panel Section
-    
-    /// 详情面板区域
-    /// Requirement 6.7: WHEN a list item is clicked, THE Library SHALL display full content in a detail panel
     private var detailPanelSection: some View {
         Group {
             if let selectedRecord = viewModel.selectedRecord {
@@ -290,76 +215,53 @@ struct LibraryPage: View {
                 RecordDetailEmptyView()
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: DS.Layout.cornerRadius))
     }
 }
 
 // MARK: - CategoryTabButton
 
-/// 分类标签按钮组件
 struct CategoryTabButton: View {
-    
-    // MARK: - Properties
-    
-    /// 分类
     let category: RecordCategory
-    
-    /// 是否选中
     let isSelected: Bool
-    
-    /// 点击动作
     let action: () -> Void
-    
-    // MARK: - Body
     
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 6) {
-                // 分类图标
+            HStack(spacing: DS.Spacing.sm) {
                 Image(systemName: categoryIcon)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 11))
                 
-                // 分类名称
                 Text(category.displayName)
-                    .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+                    .font(DS.Typography.body)
             }
-            .foregroundColor(isSelected ? .white : .primary)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .background(
+            .foregroundColor(isSelected ? DS.Colors.text1 : DS.Colors.text2)
+            .padding(.horizontal, DS.Spacing.md)
+            .padding(.vertical, DS.Spacing.sm)
+            .background(isSelected ? DS.Colors.highlight : Color.clear)
+            .overlay(
                 Capsule()
-                    .fill(isSelected ? Color.accentColor : Color(nsColor: .controlBackgroundColor))
+                    .stroke(isSelected ? DS.Colors.border : Color.clear, lineWidth: DS.Layout.borderWidth)
             )
+            .clipShape(Capsule())
         }
         .buttonStyle(.plain)
     }
     
-    /// 分类图标
     private var categoryIcon: String {
         switch category {
-        case .all:
-            return "square.grid.2x2"
-        case .polish:
-            return "wand.and.stars"
-        case .translate:
-            return "globe"
-        case .memo:
-            return "note.text"
+        case .all: return "square.grid.2x2"
+        case .polish: return "wand.and.stars"
+        case .translate: return "globe"
+        case .memo: return "note.text"
         }
     }
 }
 
 // MARK: - LibraryPageWithData
 
-/// 带数据加载的历史库页面视图
-/// 自动创建 LibraryViewModel 并加载数据
 struct LibraryPageWithData: View {
-    
-    // MARK: - State
-    
     @State private var viewModel = LibraryViewModel()
-    
-    // MARK: - Body
     
     var body: some View {
         LibraryPage(viewModel: viewModel)
@@ -374,18 +276,8 @@ struct LibraryPageWithData: View {
 #if DEBUG
 struct LibraryPage_Previews: PreviewProvider {
     static var previews: some View {
-        Group {
-            // 默认状态预览
-            LibraryPage()
-                .frame(width: 800, height: 600)
-                .previewDisplayName("Default State")
-            
-            // 深色模式预览
-            LibraryPage()
-                .frame(width: 800, height: 600)
-                .preferredColorScheme(.dark)
-                .previewDisplayName("Dark Mode")
-        }
+        LibraryPage()
+            .frame(width: 800, height: 600)
     }
 }
 #endif

@@ -17,12 +17,15 @@ struct TodayStats {
     /// 今日输入字符数
     var characterCount: Int
     
+    /// 累积输入字符数
+    var totalCharacterCount: Int
+    
     /// 估算节省的时间（秒）
     /// Requirement 9.3: 基于假设打字速度 60字符/分钟 (1字符/秒) 计算
     var estimatedTimeSaved: TimeInterval
     
     /// 空统计数据
-    static let empty = TodayStats(characterCount: 0, estimatedTimeSaved: 0)
+    static let empty = TodayStats(characterCount: 0, totalCharacterCount: 0, estimatedTimeSaved: 0)
 }
 
 // MARK: - AppUsage
@@ -87,27 +90,46 @@ class StatsCalculator {
     /// 计算今日统计数据
     /// - Returns: 今日统计数据，包含字符数和估算节省时间
     func calculateTodayStats() -> TodayStats {
-        let records = fetchTodayRecords()
-        return calculateStats(from: records)
+        let todayRecords = fetchTodayRecords()
+        let allRecords = fetchAllRecords()
+        return calculateStats(todayRecords: todayRecords, allRecords: allRecords)
     }
     
     /// 从 UsageRecord 数组计算统计数据
-    /// - Parameter records: UsageRecord 数组
+    /// - Parameter todayRecords: 今日 UsageRecord 数组
+    /// - Parameter allRecords: 所有 UsageRecord 数组
     /// - Returns: 计算后的 TodayStats
-    func calculateStats(from records: [UsageRecord]) -> TodayStats {
-        // 计算总字符数
-        let characterCount = records.reduce(0) { total, record in
+    func calculateStats(todayRecords: [UsageRecord], allRecords: [UsageRecord]) -> TodayStats {
+        // 计算今日字符数
+        let characterCount = todayRecords.reduce(0) { total, record in
+            total + record.content.count
+        }
+        
+        // 计算累积字符数
+        let totalCharacterCount = allRecords.reduce(0) { total, record in
             total + record.content.count
         }
         
         // 计算估算节省时间（秒）
-        // 假设打字速度为 2 字符/秒
-        let estimatedTimeSaved = Double(characterCount) / Self.typingSpeedPerSecond
+        // 节省时间 = 打字时间 - 说话时间
+        // 打字时间 = 字数 / 打字速度（1字/秒）
+        // 说话时间 = 音频时长总和
+        let typingTime = Double(characterCount) / Self.typingSpeedPerSecond
+        let speakingTime = todayRecords.reduce(0.0) { total, record in
+            total + Double(record.duration)
+        }
+        let estimatedTimeSaved = max(0, typingTime - speakingTime)
         
         return TodayStats(
             characterCount: characterCount,
+            totalCharacterCount: totalCharacterCount,
             estimatedTimeSaved: estimatedTimeSaved
         )
+    }
+    
+    /// 从 UsageRecord 数组计算统计数据（兼容旧接口）
+    func calculateStats(from records: [UsageRecord]) -> TodayStats {
+        return calculateStats(todayRecords: records, allRecords: records)
     }
     
     /// 获取今日的 UsageRecord 记录

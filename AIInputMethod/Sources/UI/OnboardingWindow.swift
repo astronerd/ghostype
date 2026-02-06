@@ -1,6 +1,16 @@
+//
+//  OnboardingWindow.swift
+//  AIInputMethod
+//
+//  Onboarding 引导界面 - Radical Minimalist 极简风格
+//  基于 UI_DESIGN_SPEC.md 规范设计
+//
+
 import SwiftUI
 import Carbon
 import AppKit
+
+// MARK: - OnboardingWindow
 
 struct OnboardingWindow: View {
     @ObservedObject var permissionManager: PermissionManager
@@ -9,87 +19,75 @@ struct OnboardingWindow: View {
     var onComplete: () -> Void
     
     var body: some View {
-        ZStack {
-            // 渐变背景
-            LinearGradient(
-                colors: [Color(nsColor: .windowBackgroundColor), Color(nsColor: .windowBackgroundColor).opacity(0.95)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                // 顶部应用名称
-                HStack {
-                    Text("GhosTYPE")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.secondary)
-                    Spacer()
-                    Text("\(currentStep + 1) / 3")
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundColor(.secondary.opacity(0.6))
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, 16)
-                
-                // 内容区域
-                Group {
-                    switch currentStep {
-                    case 0:
-                        Step1HotkeyView(settings: settings, onNext: { withAnimation(.easeInOut(duration: 0.3)) { currentStep = 1 } })
-                    case 1:
-                        Step2AutoModeView(settings: settings, onNext: { withAnimation(.easeInOut(duration: 0.3)) { currentStep = 2 } }, onBack: { withAnimation(.easeInOut(duration: 0.3)) { currentStep = 0 } })
-                    default:
-                        Step3PermissionsView(permissionManager: permissionManager, onComplete: onComplete, onBack: { withAnimation(.easeInOut(duration: 0.3)) { currentStep = 1 } })
-                    }
-                }
-                .transition(.opacity.combined(with: .move(edge: .trailing)))
+        Group {
+            switch currentStep {
+            case 0:
+                Step1HotkeyView(
+                    settings: settings,
+                    onNext: { withAnimation(.easeInOut(duration: 0.2)) { currentStep = 1 } }
+                )
+            case 1:
+                Step2AutoModeView(
+                    settings: settings,
+                    onNext: { withAnimation(.easeInOut(duration: 0.2)) { currentStep = 2 } },
+                    onBack: { withAnimation(.easeInOut(duration: 0.2)) { currentStep = 0 } }
+                )
+            default:
+                Step3PermissionsView(
+                    permissionManager: permissionManager,
+                    onComplete: onComplete,
+                    onBack: { withAnimation(.easeInOut(duration: 0.2)) { currentStep = 1 } }
+                )
             }
         }
-        .frame(width: 420, height: 480)
+        .transition(.opacity)
+        .frame(width: 480, height: 520)
+        .background(DS.Colors.bg1)
     }
 }
 
 // MARK: - Step 1: 快捷键设置
+
 struct Step1HotkeyView: View {
     @ObservedObject var settings: AppSettings
     var onNext: () -> Void
     
     @State private var isRecording = false
-    @State private var iconScale: CGFloat = 1.0
     
     var body: some View {
         VStack(spacing: 0) {
+            // Logo header
+            VStack(spacing: DS.Spacing.sm) {
+                GhosTYPELogo()
+                    .frame(width: 152, height: 21)
+                
+                Text("Your Type of Spirit.")
+                    .font(DS.Typography.caption.italic())
+                    .foregroundColor(DS.Colors.text2)
+            }
+            .padding(.top, DS.Spacing.xl)
+            
             Spacer()
             
-            // 图标区域
-            ZStack {
-                Circle()
-                    .fill(LinearGradient(colors: [.blue.opacity(0.15), .blue.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .frame(width: 100, height: 100)
-                
-                Image(systemName: "keyboard")
-                    .font(.system(size: 42, weight: .light))
-                    .foregroundStyle(.blue)
-                    .scaleEffect(iconScale)
-            }
-            .onAppear {
-                withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
-                    iconScale = 1.05
-                }
-            }
+            // 图标
+            Image(systemName: "keyboard")
+                .font(.system(size: 48, weight: .thin))
+                .foregroundColor(DS.Colors.text1)
             
+            // 标题
             Text("设置快捷键")
-                .font(.system(size: 24, weight: .semibold))
-                .padding(.top, 24)
+                .font(DS.Typography.largeTitle)
+                .foregroundColor(DS.Colors.text1)
+                .padding(.top, DS.Spacing.xl)
             
+            // 副标题
             Text("按住快捷键说话，松开完成输入")
-                .font(.system(size: 14))
-                .foregroundColor(.secondary)
-                .padding(.top, 8)
+                .font(DS.Typography.body)
+                .foregroundColor(DS.Colors.text2)
+                .padding(.top, DS.Spacing.sm)
             
             // 快捷键录入
-            VStack(spacing: 8) {
+            VStack(spacing: DS.Spacing.sm) {
                 HotkeyRecorderView(
                     isRecording: $isRecording,
                     hotkeyDisplay: $settings.hotkeyDisplay,
@@ -99,32 +97,27 @@ struct Step1HotkeyView: View {
                         settings.hotkeyDisplay = display
                     }
                 )
-                .frame(width: 180, height: 44)
+                .frame(width: 120, height: 48)
                 
                 Text(isRecording ? "按下快捷键组合..." : "点击修改")
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary.opacity(0.7))
+                    .font(DS.Typography.caption)
+                    .foregroundColor(DS.Colors.text3)
             }
-            .padding(.top, 32)
+            .padding(.top, DS.Spacing.xxl)
             
             Spacer()
             
             // 底部按钮
-            Button(action: onNext) {
-                Text("下一步")
-                    .font(.system(size: 15, weight: .medium))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 44)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.blue)
-            .padding(.horizontal, 48)
-            .padding(.bottom, 32)
+            MinimalButton(title: "下一步", style: .primary, action: onNext)
+                .padding(.horizontal, DS.Spacing.xxl)
+                .padding(.bottom, DS.Spacing.xxl)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
-// 快捷键录入视图
+// MARK: - HotkeyRecorderView
+
 struct HotkeyRecorderView: NSViewRepresentable {
     @Binding var isRecording: Bool
     @Binding var hotkeyDisplay: String
@@ -184,7 +177,8 @@ struct HotkeyRecorderView: NSViewRepresentable {
     }
 }
 
-// 自定义 NSTextField
+// MARK: - HotkeyTextField
+
 class HotkeyTextField: NSTextField {
     var hotkeyCallback: ((NSEvent.ModifierFlags, UInt16) -> Void)?
     var onFocusChange: ((Bool) -> Void)?
@@ -204,28 +198,26 @@ class HotkeyTextField: NSTextField {
         isSelectable = false
         isBezeled = false
         drawsBackground = true
-        backgroundColor = NSColor.controlBackgroundColor
+        backgroundColor = NSColor(DS.Colors.bg2)
         alignment = .center
-        font = .monospacedSystemFont(ofSize: 18, weight: .medium)
+        font = .monospacedSystemFont(ofSize: 13, weight: .medium)
         focusRingType = .none
         wantsLayer = true
-        layer?.cornerRadius = 10
+        layer?.cornerRadius = 4
         layer?.borderWidth = 1
-        layer?.borderColor = NSColor.separatorColor.cgColor
+        layer?.borderColor = NSColor(DS.Colors.border).cgColor
     }
     
     override var acceptsFirstResponder: Bool { true }
     
     override func becomeFirstResponder() -> Bool {
-        layer?.borderColor = NSColor.controlAccentColor.cgColor
-        layer?.borderWidth = 2
+        layer?.borderColor = NSColor(DS.Colors.text1).cgColor
         onFocusChange?(true)
         return super.becomeFirstResponder()
     }
     
     override func resignFirstResponder() -> Bool {
-        layer?.borderColor = NSColor.separatorColor.cgColor
-        layer?.borderWidth = 1
+        layer?.borderColor = NSColor(DS.Colors.border).cgColor
         onFocusChange?(false)
         return super.resignFirstResponder()
     }
@@ -264,6 +256,7 @@ class HotkeyTextField: NSTextField {
 }
 
 // MARK: - Step 2: 输入模式
+
 struct Step2AutoModeView: View {
     @ObservedObject var settings: AppSettings
     var onNext: () -> Void
@@ -271,172 +264,171 @@ struct Step2AutoModeView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            // Logo header
+            VStack(spacing: DS.Spacing.sm) {
+                GhosTYPELogo()
+                    .frame(width: 152, height: 21)
+                
+                Text("Your Type of Spirit.")
+                    .font(DS.Typography.caption.italic())
+                    .foregroundColor(DS.Colors.text2)
+            }
+            .padding(.top, DS.Spacing.xl)
+            
             Spacer()
             
             // 图标
-            ZStack {
-                Circle()
-                    .fill(LinearGradient(colors: [.purple.opacity(0.15), .purple.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .frame(width: 100, height: 100)
-                
-                Image(systemName: settings.autoStartOnFocus ? "text.cursor" : "hand.tap")
-                    .font(.system(size: 42, weight: .light))
-                    .foregroundStyle(.purple)
-            }
+            Image(systemName: settings.autoStartOnFocus ? "text.cursor" : "hand.tap")
+                .font(.system(size: 48, weight: .thin))
+                .foregroundColor(DS.Colors.text1)
             
+            // 标题
             Text("输入模式")
-                .font(.system(size: 24, weight: .semibold))
-                .padding(.top, 24)
+                .font(DS.Typography.largeTitle)
+                .foregroundColor(DS.Colors.text1)
+                .padding(.top, DS.Spacing.xl)
             
+            // 副标题
             Text("选择如何触发语音输入")
-                .font(.system(size: 14))
-                .foregroundColor(.secondary)
-                .padding(.top, 8)
+                .font(DS.Typography.body)
+                .foregroundColor(DS.Colors.text2)
+                .padding(.top, DS.Spacing.sm)
             
             // 选项卡片
-            VStack(spacing: 10) {
-                ModeCard(
+            VStack(spacing: DS.Spacing.md) {
+                MinimalModeCard(
                     icon: "hand.tap",
                     title: "手动模式",
                     subtitle: "按住快捷键时录音",
-                    isSelected: !settings.autoStartOnFocus,
-                    color: .blue
+                    isSelected: !settings.autoStartOnFocus
                 ) { settings.autoStartOnFocus = false }
                 
-                ModeCard(
+                MinimalModeCard(
                     icon: "text.cursor",
                     title: "自动模式",
                     subtitle: "聚焦输入框时自动录音",
-                    isSelected: settings.autoStartOnFocus,
-                    color: .purple
+                    isSelected: settings.autoStartOnFocus
                 ) { settings.autoStartOnFocus = true }
             }
-            .padding(.horizontal, 36)
-            .padding(.top, 28)
+            .padding(.horizontal, DS.Spacing.xxl)
+            .padding(.top, DS.Spacing.xxl)
             
             Spacer()
             
             // 底部按钮
-            HStack(spacing: 12) {
-                Button(action: onBack) {
-                    Text("上一步")
-                        .font(.system(size: 15, weight: .medium))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
-                }
-                .buttonStyle(.bordered)
-                
-                Button(action: onNext) {
-                    Text("下一步")
-                        .font(.system(size: 15, weight: .medium))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.blue)
+            HStack(spacing: DS.Spacing.md) {
+                MinimalButton(title: "上一步", style: .secondary, action: onBack)
+                MinimalButton(title: "下一步", style: .primary, action: onNext)
             }
-            .padding(.horizontal, 48)
-            .padding(.bottom, 32)
+            .padding(.horizontal, DS.Spacing.xxl)
+            .padding(.bottom, DS.Spacing.xxl)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
-struct ModeCard: View {
+// MARK: - MinimalModeCard
+
+struct MinimalModeCard: View {
     let icon: String
     let title: String
     let subtitle: String
     let isSelected: Bool
-    let color: Color
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 14) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isSelected ? color.opacity(0.15) : Color.gray.opacity(0.08))
-                        .frame(width: 40, height: 40)
-                    
-                    Image(systemName: icon)
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(isSelected ? color : .secondary)
-                }
+            HStack(spacing: DS.Spacing.md) {
+                // 图标
+                Image(systemName: icon)
+                    .font(.system(size: 16))
+                    .foregroundColor(DS.Colors.icon)
+                    .frame(width: 32, height: 32)
+                    .background(DS.Colors.highlight)
+                    .cornerRadius(DS.Layout.cornerRadius)
                 
+                // 文字
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.primary)
+                        .font(DS.Typography.body)
+                        .foregroundColor(DS.Colors.text1)
                     Text(subtitle)
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text2)
                 }
                 
                 Spacer()
                 
-                ZStack {
-                    Circle()
-                        .stroke(isSelected ? color : Color.gray.opacity(0.3), lineWidth: 1.5)
-                        .frame(width: 20, height: 20)
-                    
-                    if isSelected {
+                // 选中指示
+                Circle()
+                    .fill(isSelected ? DS.Colors.text1 : Color.clear)
+                    .frame(width: 8, height: 8)
+                    .overlay(
                         Circle()
-                            .fill(color)
-                            .frame(width: 12, height: 12)
-                    }
-                }
+                            .stroke(isSelected ? DS.Colors.text1 : DS.Colors.border, lineWidth: 1)
+                    )
             }
-            .padding(14)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(nsColor: .controlBackgroundColor))
-                    .shadow(color: isSelected ? color.opacity(0.1) : .clear, radius: 8, y: 2)
-            )
+            .padding(DS.Spacing.lg)
+            .background(DS.Colors.bg2)
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? color.opacity(0.3) : Color.gray.opacity(0.1), lineWidth: 1)
+                RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
+                    .stroke(isSelected ? DS.Colors.text1 : DS.Colors.border, lineWidth: DS.Layout.borderWidth)
             )
+            .cornerRadius(DS.Layout.cornerRadius)
         }
         .buttonStyle(.plain)
     }
 }
 
 // MARK: - Step 3: 权限
+
 struct Step3PermissionsView: View {
     @ObservedObject var permissionManager: PermissionManager
     var onComplete: () -> Void
     var onBack: () -> Void
     
-    // 定时器，每秒刷新权限状态
     let timer = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()
+    
+    var allGranted: Bool {
+        permissionManager.isAccessibilityTrusted && permissionManager.isMicrophoneGranted
+    }
     
     var body: some View {
         VStack(spacing: 0) {
+            // Logo header
+            VStack(spacing: DS.Spacing.sm) {
+                GhosTYPELogo()
+                    .frame(width: 152, height: 21)
+                
+                Text("Your Type of Spirit.")
+                    .font(DS.Typography.caption.italic())
+                    .foregroundColor(DS.Colors.text2)
+            }
+            .padding(.top, DS.Spacing.xl)
+            
             Spacer()
             
             // 图标
-            ZStack {
-                Circle()
-                    .fill(LinearGradient(colors: [.green.opacity(0.15), .green.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .frame(width: 100, height: 100)
-                
-                Image(systemName: allGranted ? "checkmark.shield.fill" : "lock.shield")
-                    .font(.system(size: 42, weight: .light))
-                    .foregroundStyle(.green)
-            }
+            Image(systemName: allGranted ? "checkmark.shield" : "lock.shield")
+                .font(.system(size: 48, weight: .thin))
+                .foregroundColor(DS.Colors.text1)
             
+            // 标题
             Text("授权权限")
-                .font(.system(size: 24, weight: .semibold))
-                .padding(.top, 24)
+                .font(DS.Typography.largeTitle)
+                .foregroundColor(DS.Colors.text1)
+                .padding(.top, DS.Spacing.xl)
             
+            // 副标题
             Text("需要以下权限才能正常工作")
-                .font(.system(size: 14))
-                .foregroundColor(.secondary)
-                .padding(.top, 8)
+                .font(DS.Typography.body)
+                .foregroundColor(DS.Colors.text2)
+                .padding(.top, DS.Spacing.sm)
             
             // 权限列表
-            VStack(spacing: 10) {
-                PermissionCard(
-                    icon: "hand.raised.fill",
+            VStack(spacing: DS.Spacing.md) {
+                MinimalPermissionCard(
+                    icon: "hand.raised",
                     title: "辅助功能",
                     subtitle: "监听快捷键并插入文字",
                     isGranted: permissionManager.isAccessibilityTrusted
@@ -445,8 +437,8 @@ struct Step3PermissionsView: View {
                     _ = AXIsProcessTrustedWithOptions(options)
                 }
                 
-                PermissionCard(
-                    icon: "mic.fill",
+                MinimalPermissionCard(
+                    icon: "mic",
                     title: "麦克风",
                     subtitle: "录制语音进行识别",
                     isGranted: permissionManager.isMicrophoneGranted
@@ -454,48 +446,35 @@ struct Step3PermissionsView: View {
                     permissionManager.requestMicrophoneAccess()
                 }
             }
-            .padding(.horizontal, 36)
-            .padding(.top, 28)
+            .padding(.horizontal, DS.Spacing.xxl)
+            .padding(.top, DS.Spacing.xxl)
             
             Spacer()
             
             // 底部按钮
-            HStack(spacing: 12) {
-                Button(action: onBack) {
-                    Text("上一步")
-                        .font(.system(size: 15, weight: .medium))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
-                }
-                .buttonStyle(.bordered)
-                
-                Button(action: onComplete) {
-                    Text("开始使用")
-                        .font(.system(size: 15, weight: .medium))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.green)
-                .disabled(!allGranted)
-                .opacity(allGranted ? 1.0 : 0.5)
+            HStack(spacing: DS.Spacing.md) {
+                MinimalButton(title: "上一步", style: .secondary, action: onBack)
+                MinimalButton(
+                    title: "开始使用",
+                    style: .primary,
+                    isDisabled: !allGranted,
+                    action: onComplete
+                )
             }
-            .padding(.horizontal, 48)
-            .padding(.bottom, 32)
+            .padding(.horizontal, DS.Spacing.xxl)
+            .padding(.bottom, DS.Spacing.xxl)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onReceive(timer) { _ in
-            // 每秒自动刷新权限状态
             permissionManager.checkAccessibilityStatus()
             permissionManager.checkMicrophoneStatus()
         }
     }
-    
-    var allGranted: Bool {
-        permissionManager.isAccessibilityTrusted && permissionManager.isMicrophoneGranted
-    }
 }
 
-struct PermissionCard: View {
+// MARK: - MinimalPermissionCard
+
+struct MinimalPermissionCard: View {
     let icon: String
     let title: String
     let subtitle: String
@@ -504,52 +483,82 @@ struct PermissionCard: View {
     
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 14) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isGranted ? Color.green.opacity(0.15) : Color.orange.opacity(0.1))
-                        .frame(width: 40, height: 40)
-                    
-                    Image(systemName: icon)
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(isGranted ? .green : .orange)
-                }
+            HStack(spacing: DS.Spacing.md) {
+                // 图标
+                Image(systemName: icon)
+                    .font(.system(size: 16))
+                    .foregroundColor(DS.Colors.icon)
+                    .frame(width: 32, height: 32)
+                    .background(DS.Colors.highlight)
+                    .cornerRadius(DS.Layout.cornerRadius)
                 
+                // 文字
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.primary)
+                        .font(DS.Typography.body)
+                        .foregroundColor(DS.Colors.text1)
                     Text(subtitle)
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text2)
                 }
                 
                 Spacer()
                 
+                // 状态指示
                 if isGranted {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 20))
-                        .foregroundColor(.green)
+                    StatusDot(status: .success, size: 8)
                 } else {
                     Text("授权")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.orange)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.orange.opacity(0.1))
-                        .cornerRadius(6)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text1)
+                        .padding(.horizontal, DS.Spacing.md)
+                        .padding(.vertical, DS.Spacing.xs)
+                        .background(DS.Colors.highlight)
+                        .cornerRadius(DS.Layout.cornerRadius)
                 }
             }
-            .padding(14)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(nsColor: .controlBackgroundColor))
-            )
+            .padding(DS.Spacing.lg)
+            .background(DS.Colors.bg2)
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(isGranted ? Color.green.opacity(0.2) : Color.orange.opacity(0.2), lineWidth: 1)
+                RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
+                    .stroke(DS.Colors.border, lineWidth: DS.Layout.borderWidth)
             )
+            .cornerRadius(DS.Layout.cornerRadius)
         }
         .buttonStyle(.plain)
+        .disabled(isGranted)
+    }
+}
+
+// MARK: - MinimalButton
+
+struct MinimalButton: View {
+    let title: String
+    let style: ButtonStyle
+    var isDisabled: Bool = false
+    let action: () -> Void
+    
+    enum ButtonStyle {
+        case primary
+        case secondary
+    }
+    
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(DS.Typography.body)
+                .foregroundColor(style == .primary ? DS.Colors.bg1 : DS.Colors.text1)
+                .frame(maxWidth: .infinity)
+                .frame(height: 40)
+                .background(style == .primary ? DS.Colors.text1 : DS.Colors.bg2)
+                .overlay(
+                    RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
+                        .stroke(DS.Colors.border, lineWidth: DS.Layout.borderWidth)
+                )
+                .cornerRadius(DS.Layout.cornerRadius)
+        }
+        .buttonStyle(.plain)
+        .disabled(isDisabled)
+        .opacity(isDisabled ? 0.5 : 1.0)
     }
 }

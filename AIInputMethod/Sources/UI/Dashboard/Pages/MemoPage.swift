@@ -2,7 +2,7 @@
 //  MemoPage.swift
 //  AIInputMethod
 //
-//  随心记页面 - Flomo 风格瀑布流卡片布局
+//  随心记页面 - Radical Minimalist 极简风格
 //
 
 import SwiftUI
@@ -23,12 +23,10 @@ struct MemoPage: View {
     private let deviceIdManager: DeviceIdManager
     
     private let columns = [
-        GridItem(.flexible(), spacing: 16),
-        GridItem(.flexible(), spacing: 16),
-        GridItem(.flexible(), spacing: 16)
+        GridItem(.flexible(), spacing: DS.Spacing.lg),
+        GridItem(.flexible(), spacing: DS.Spacing.lg),
+        GridItem(.flexible(), spacing: DS.Spacing.lg)
     ]
-    
-    private let contentPadding: CGFloat = 24
     
     init(
         persistenceController: PersistenceController = .shared,
@@ -47,24 +45,20 @@ struct MemoPage: View {
     var body: some View {
         VStack(spacing: 0) {
             memoHeader
-            Divider().padding(.horizontal, contentPadding)
+            MinimalDivider()
+                .padding(.horizontal, DS.Spacing.xl)
             
             if filteredMemos.isEmpty {
                 emptyStateView
             } else {
                 ScrollView {
-                    LazyVGrid(columns: columns, spacing: 16) {
+                    LazyVGrid(columns: columns, spacing: DS.Spacing.lg) {
                         ForEach(filteredMemos, id: \.objectID) { memo in
                             MemoCard(
                                 memo: memo,
-                                isSelected: selectedMemo?.objectID == memo.objectID,
+                                isSelected: false,
                                 onDelete: { deleteMemo(memo) }
                             )
-                            .onTapGesture {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    selectedMemo = memo
-                                }
-                            }
                             .onAppear {
                                 if memo.objectID == filteredMemos.last?.objectID && hasMoreData && !isLoading {
                                     loadMemos()
@@ -72,96 +66,93 @@ struct MemoPage: View {
                             }
                         }
                     }
-                    .padding(contentPadding)
-                    
-                    if hasMoreData && !isLoading {
-                        Color.clear.frame(height: 1).onAppear { loadMemos() }
-                    }
+                    .padding(DS.Spacing.xl)
                     
                     if isLoading {
                         HStack {
                             Spacer()
-                            ProgressView().scaleEffect(0.8)
-                            Text("加载中...").font(.system(size: 12)).foregroundColor(.secondary)
+                            ProgressView().scaleEffect(0.7)
+                            Text("加载中...")
+                                .font(DS.Typography.caption)
+                                .foregroundColor(DS.Colors.text2)
                             Spacer()
                         }
-                        .padding(.vertical, 16)
+                        .padding(.vertical, DS.Spacing.lg)
                     }
                 }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(VisualEffectView(material: .contentBackground, blendingMode: .behindWindow))
+        .background(DS.Colors.bg1)
         .onAppear { loadMemos(reset: true) }
-        .sheet(item: $selectedMemo) { memo in
-            MemoDetailSheet(
-                memo: memo,
-                onSave: { updatedContent in
-                    updateMemo(memo, content: updatedContent)
-                    selectedMemo = nil
-                },
-                onCancel: { selectedMemo = nil },
-                onDelete: {
-                    deleteMemo(memo)
-                    selectedMemo = nil
-                }
-            )
-        }
     }
-    
+
     private var memoHeader: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 Text("随心记")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.primary)
-                HStack(spacing: 4) {
-                    Image(systemName: "note.text").font(.system(size: 14))
-                    Text("\(memos.count) 条笔记").font(.system(size: 14))
+                    .font(DS.Typography.largeTitle)
+                    .foregroundColor(DS.Colors.text1)
+                
+                HStack(spacing: DS.Spacing.xs) {
+                    Image(systemName: "note.text")
+                        .font(.system(size: 12))
+                    Text("\(memos.count) 条笔记")
+                        .font(DS.Typography.caption)
                 }
-                .foregroundColor(.secondary)
+                .foregroundColor(DS.Colors.text2)
             }
             
             Spacer()
             
-            HStack(spacing: 8) {
+            // 搜索框
+            HStack(spacing: DS.Spacing.sm) {
                 Image(systemName: "magnifyingglass")
-                    .font(.system(size: 14))
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 13))
+                    .foregroundColor(DS.Colors.icon)
+                
                 TextField("搜索笔记...", text: $searchText)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 14))
+                    .font(DS.Typography.body)
+                
                 if !searchText.isEmpty {
                     Button(action: { searchText = "" }) {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 14))
-                            .foregroundColor(.secondary)
+                            .font(.system(size: 13))
+                            .foregroundColor(DS.Colors.icon)
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .controlBackgroundColor)))
-            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(nsColor: .separatorColor), lineWidth: 0.5))
+            .padding(.horizontal, DS.Spacing.md)
+            .padding(.vertical, DS.Spacing.sm)
+            .background(DS.Colors.bg2)
+            .overlay(
+                RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
+                    .stroke(DS.Colors.border, lineWidth: DS.Layout.borderWidth)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: DS.Layout.cornerRadius))
             .frame(width: 200)
         }
-        .padding(contentPadding)
+        .padding(.top, 21)
+        .padding(.horizontal, DS.Spacing.xl)
+        .padding(.bottom, DS.Spacing.xl)
     }
     
     private var emptyStateView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: DS.Spacing.lg) {
             Image(systemName: searchText.isEmpty ? "note.text" : "magnifyingglass")
-                .font(.system(size: 56, weight: .light))
-                .foregroundColor(.secondary.opacity(0.5))
+                .font(.system(size: 48))
+                .foregroundColor(DS.Colors.text3)
+            
             Text(searchText.isEmpty ? "暂无笔记" : "未找到匹配的笔记")
-                .font(.system(size: 18, weight: .medium))
-                .foregroundColor(.secondary)
+                .font(DS.Typography.body)
+                .foregroundColor(DS.Colors.text2)
+            
             Text(searchText.isEmpty ? "按住快捷键 + Command 键说话\n即可创建语音便签" : "尝试使用其他关键词搜索")
-                .font(.system(size: 14))
-                .foregroundColor(.secondary.opacity(0.8))
+                .font(DS.Typography.caption)
+                .foregroundColor(DS.Colors.text3)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 48)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -206,7 +197,96 @@ struct MemoPage: View {
     }
 }
 
-// MARK: - MemoDetailSheet
+// MARK: - MemoCard (极简风格)
+
+struct MemoCard: View {
+    let memo: UsageRecord
+    let isSelected: Bool
+    let onDelete: () -> Void
+    
+    @State private var isHovered = false
+    @State private var showCopied = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.md) {
+            // 内容
+            Text(memo.content)
+                .font(DS.Typography.body)
+                .foregroundColor(DS.Colors.text1)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+            
+            Spacer(minLength: DS.Spacing.sm)
+            
+            // 底部：时间 + 操作按钮
+            HStack {
+                Text(formatDate(memo.timestamp))
+                    .font(DS.Typography.caption)
+                    .foregroundColor(DS.Colors.text2)
+                
+                Spacer()
+                
+                // 操作按钮组 - 只有图标
+                HStack(spacing: DS.Spacing.xs) {
+                    // 复制按钮
+                    Button(action: {
+                        copyToClipboard(memo.content)
+                        showCopied = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            showCopied = false
+                        }
+                    }) {
+                        Image(systemName: showCopied ? "checkmark" : "doc.on.doc")
+                            .font(.system(size: 11))
+                            .foregroundColor(DS.Colors.text2)
+                            .frame(width: 24, height: 24)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
+                                    .stroke(DS.Colors.border, lineWidth: DS.Layout.borderWidth)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    
+                    // 删除按钮
+                    Button(action: onDelete) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 11))
+                            .foregroundColor(DS.Colors.text2)
+                            .frame(width: 24, height: 24)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
+                                    .stroke(DS.Colors.border, lineWidth: DS.Layout.borderWidth)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+                .opacity(isHovered ? 1 : 0.5)
+            }
+        }
+        .padding(DS.Spacing.lg)
+        .background(DS.Colors.bg2)
+        .overlay(
+            RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
+                .stroke(isSelected ? DS.Colors.text1 : DS.Colors.border, lineWidth: DS.Layout.borderWidth)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: DS.Layout.cornerRadius))
+        .onHover { hovering in isHovered = hovering }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MM/dd HH:mm"
+        return formatter.string(from: date)
+    }
+    
+    private func copyToClipboard(_ text: String) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+    }
+}
+
+// MARK: - MemoDetailSheet (极简风格)
 
 struct MemoDetailSheet: View {
     let memo: UsageRecord
@@ -233,54 +313,71 @@ struct MemoDetailSheet: View {
             HStack {
                 Button("取消") { onCancel() }
                     .buttonStyle(.plain)
-                    .foregroundColor(.accentColor)
+                    .font(DS.Typography.body)
+                    .foregroundColor(DS.Colors.text2)
+                
                 Spacer()
-                Text("编辑便签").font(.system(size: 16, weight: .semibold))
+                
+                Text("编辑便签")
+                    .font(DS.Typography.title)
+                    .foregroundColor(DS.Colors.text1)
+                
                 Spacer()
+                
                 Button("保存") { onSave(editedContent) }
                     .buttonStyle(.plain)
-                    .foregroundColor(isEmpty ? .secondary : .accentColor)
+                    .font(DS.Typography.body)
+                    .foregroundColor(isEmpty ? DS.Colors.text3 : DS.Colors.text1)
                     .disabled(isEmpty)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
+            .padding(.horizontal, DS.Spacing.xl)
+            .padding(.vertical, DS.Spacing.lg)
             
-            Divider()
+            MinimalDivider()
             
             // Content
             TextEditor(text: $editedContent)
-                .font(.system(size: 14))
+                .font(DS.Typography.body)
                 .scrollContentBackground(.hidden)
-                .padding(16)
+                .padding(DS.Spacing.lg)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            Divider()
+            MinimalDivider()
             
             // Footer
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("创建于").font(.system(size: 11)).foregroundColor(.secondary)
-                    Text(formatDate(memo.timestamp)).font(.system(size: 12)).foregroundColor(.secondary)
+                    Text("创建于")
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text3)
+                    Text(formatDate(memo.timestamp))
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text2)
                 }
+                
                 Spacer()
+                
                 Text("\(editedContent.count) 字")
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
-                    .padding(.trailing, 16)
+                    .font(DS.Typography.caption)
+                    .foregroundColor(DS.Colors.text2)
+                    .padding(.trailing, DS.Spacing.lg)
+                
                 Button(role: .destructive) { showDeleteConfirmation = true } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "trash").font(.system(size: 12))
-                        Text("删除").font(.system(size: 13))
+                    HStack(spacing: DS.Spacing.xs) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 11))
+                        Text("删除")
+                            .font(DS.Typography.caption)
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(DS.Colors.statusError)
                 }
                 .buttonStyle(.plain)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
+            .padding(.horizontal, DS.Spacing.xl)
+            .padding(.vertical, DS.Spacing.md)
         }
         .frame(width: 450, height: 350)
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background(DS.Colors.bg1)
         .alert("确认删除", isPresented: $showDeleteConfirmation) {
             Button("取消", role: .cancel) { }
             Button("删除", role: .destructive) { onDelete() }
@@ -293,80 +390,6 @@ struct MemoDetailSheet: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy年MM月dd日 HH:mm"
         return formatter.string(from: date)
-    }
-}
-
-// MARK: - MemoCard
-
-struct MemoCard: View {
-    let memo: UsageRecord
-    let isSelected: Bool
-    let onDelete: () -> Void
-    
-    private static let cardColors: [Color] = [
-        Color(red: 1.0, green: 0.976, blue: 0.769),
-        Color(red: 1.0, green: 0.925, blue: 0.702),
-        Color(red: 1.0, green: 0.878, blue: 0.698),
-        Color(red: 0.973, green: 0.733, blue: 0.851),
-        Color(red: 0.882, green: 0.745, blue: 0.906),
-        Color(red: 0.784, green: 0.902, blue: 0.788),
-        Color(red: 0.702, green: 0.898, blue: 0.988),
-    ]
-    
-    private var cardColor: Color {
-        let index = abs(memo.id.hashValue) % Self.cardColors.count
-        return Self.cardColors[index]
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(memo.content)
-                .font(.system(size: 14))
-                .foregroundColor(.black.opacity(0.85))
-                .lineLimit(nil)
-                .fixedSize(horizontal: false, vertical: true)
-            
-            Spacer(minLength: 8)
-            
-            HStack {
-                Text(formatDate(memo.timestamp))
-                    .font(.system(size: 11))
-                    .foregroundColor(.black.opacity(0.5))
-                Spacer()
-                Menu {
-                    Button(action: { copyToClipboard(memo.content) }) {
-                        Label("复制", systemImage: "doc.on.doc")
-                    }
-                    Divider()
-                    Button(role: .destructive, action: onDelete) {
-                        Label("删除", systemImage: "trash")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 12))
-                        .foregroundColor(.black.opacity(0.4))
-                        .frame(width: 24, height: 24)
-                }
-                .menuStyle(.borderlessButton)
-            }
-        }
-        .padding(16)
-        .background(cardColor)
-        .cornerRadius(8)
-        .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2))
-    }
-    
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MM/dd HH:mm"
-        return formatter.string(from: date)
-    }
-    
-    private func copyToClipboard(_ text: String) {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
     }
 }
 

@@ -1,25 +1,28 @@
+//
+//  PreferencesPage.swift
+//  AIInputMethod
+//
+//  偏好设置页面 - Radical Minimalist 极简风格
+//
+
 import SwiftUI
 import AppKit
 
 // MARK: - PreferencesPage
 
-/// 偏好设置页面
 struct PreferencesPage: View {
-    
-    // MARK: - Properties
     
     @State private var viewModel = PreferencesViewModel()
     @State private var isRecordingHotkey = false
     @State private var showingAppPicker = false
     
-    // MARK: - Body
-    
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: DS.Spacing.xl) {
                 Text("偏好设置")
-                    .font(.system(size: 28, weight: .bold))
-                    .padding(.bottom, 8)
+                    .font(DS.Typography.largeTitle)
+                    .foregroundColor(DS.Colors.text1)
+                    .padding(.bottom, DS.Spacing.sm)
                 
                 generalSettingsSection
                 permissionsSection
@@ -33,22 +36,22 @@ struct PreferencesPage: View {
                 aiEngineSection
                 resetSection
                 
-                Spacer(minLength: 20)
+                Spacer(minLength: DS.Spacing.xl)
             }
-            .padding(32)
+            .padding(.top, 21)
+            .padding(.horizontal, DS.Spacing.xl)
+            .padding(.bottom, DS.Spacing.xl)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(
-            VisualEffectView(material: .contentBackground, blendingMode: .behindWindow)
-        )
+        .background(DS.Colors.bg1)
     }
 
     // MARK: - General Settings Section
     
     private var generalSettingsSection: some View {
-        SettingsSection(title: "通用", icon: "gearshape") {
+        MinimalSettingsSection(title: "通用", icon: "gearshape") {
             VStack(spacing: 0) {
-                SettingsToggleRow(
+                MinimalToggleRow(
                     title: "开机自启动",
                     subtitle: "登录时自动启动 GhosTYPE",
                     icon: "power",
@@ -58,10 +61,10 @@ struct PreferencesPage: View {
                     )
                 )
                 
-                Divider()
-                    .padding(.leading, 52)
+                MinimalDivider()
+                    .padding(.leading, 44)
                 
-                SettingsToggleRow(
+                MinimalToggleRow(
                     title: "声音反馈",
                     subtitle: "录音开始和结束时播放提示音",
                     icon: "speaker.wave.2",
@@ -71,10 +74,10 @@ struct PreferencesPage: View {
                     )
                 )
                 
-                Divider()
-                    .padding(.leading, 52)
+                MinimalDivider()
+                    .padding(.leading, 44)
                 
-                SettingsNavigationRow(
+                MinimalNavigationRow(
                     title: "输入模式",
                     subtitle: viewModel.autoStartOnFocus ? "自动模式" : "手动模式",
                     icon: viewModel.autoStartOnFocus ? "text.cursor" : "hand.tap"
@@ -88,90 +91,35 @@ struct PreferencesPage: View {
     // MARK: - Permissions Section
     
     private var permissionsSection: some View {
-        SettingsSection(title: "权限管理", icon: "lock.shield") {
+        MinimalSettingsSection(title: "权限管理", icon: "lock.shield") {
             VStack(spacing: 0) {
-                // 辅助功能权限
-                HStack {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(viewModel.permissionManager.isAccessibilityTrusted ? Color.green.opacity(0.15) : Color.orange.opacity(0.1))
-                            .frame(width: 36, height: 36)
-                        
-                        Image(systemName: "hand.raised.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(viewModel.permissionManager.isAccessibilityTrusted ? .green : .orange)
+                permissionRow(
+                    title: "辅助功能",
+                    subtitle: "监听快捷键并插入文字",
+                    icon: "hand.raised",
+                    isGranted: viewModel.permissionManager.isAccessibilityTrusted,
+                    onRequest: {
+                        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+                        _ = AXIsProcessTrustedWithOptions(options)
                     }
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("辅助功能")
-                            .font(.system(size: 14, weight: .medium))
-                        Text("监听快捷键并插入文字")
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                    
-                    if viewModel.permissionManager.isAccessibilityTrusted {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 18))
-                            .foregroundColor(.green)
-                    } else {
-                        Button("授权") {
-                            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-                            _ = AXIsProcessTrustedWithOptions(options)
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                )
                 
-                Divider()
-                    .padding(.leading, 52)
+                MinimalDivider()
+                    .padding(.leading, 44)
                 
-                // 麦克风权限
-                HStack {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(viewModel.permissionManager.isMicrophoneGranted ? Color.green.opacity(0.15) : Color.orange.opacity(0.1))
-                            .frame(width: 36, height: 36)
-                        
-                        Image(systemName: "mic.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(viewModel.permissionManager.isMicrophoneGranted ? .green : .orange)
+                permissionRow(
+                    title: "麦克风",
+                    subtitle: "录制语音进行识别",
+                    icon: "mic",
+                    isGranted: viewModel.permissionManager.isMicrophoneGranted,
+                    onRequest: {
+                        viewModel.permissionManager.requestMicrophoneAccess()
                     }
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("麦克风")
-                            .font(.system(size: 14, weight: .medium))
-                        Text("录制语音进行识别")
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                    
-                    if viewModel.permissionManager.isMicrophoneGranted {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 18))
-                            .foregroundColor(.green)
-                    } else {
-                        Button("授权") {
-                            viewModel.permissionManager.requestMicrophoneAccess()
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                )
                 
-                Divider()
-                    .padding(.leading, 52)
+                MinimalDivider()
+                    .padding(.leading, 44)
                 
-                // 刷新按钮
                 HStack {
                     Spacer()
                     Button(action: {
@@ -179,30 +127,68 @@ struct PreferencesPage: View {
                         viewModel.permissionManager.checkMicrophoneStatus()
                     }) {
                         Label("刷新状态", systemImage: "arrow.clockwise")
-                            .font(.system(size: 13))
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text2)
                     }
                     .buttonStyle(.plain)
-                    .foregroundColor(.secondary)
                     Spacer()
                 }
-                .padding(.vertical, 10)
+                .padding(.vertical, DS.Spacing.md)
             }
         }
     }
     
+    private func permissionRow(title: String, subtitle: String, icon: String, isGranted: Bool, onRequest: @escaping () -> Void) -> some View {
+        HStack(spacing: DS.Spacing.md) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(DS.Colors.icon)
+                .frame(width: 28, height: 28)
+                .background(DS.Colors.highlight)
+                .cornerRadius(DS.Layout.cornerRadius)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(DS.Typography.body)
+                    .foregroundColor(DS.Colors.text1)
+                Text(subtitle)
+                    .font(DS.Typography.caption)
+                    .foregroundColor(DS.Colors.text2)
+            }
+            
+            Spacer()
+            
+            if isGranted {
+                StatusDot(status: .success, size: 8)
+            } else {
+                Button("授权") { onRequest() }
+                    .font(DS.Typography.caption)
+                    .foregroundColor(DS.Colors.text1)
+                    .padding(.horizontal, DS.Spacing.md)
+                    .padding(.vertical, DS.Spacing.xs)
+                    .background(DS.Colors.highlight)
+                    .cornerRadius(DS.Layout.cornerRadius)
+                    .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, DS.Spacing.lg)
+        .padding(.vertical, DS.Spacing.md)
+    }
+
     // MARK: - Hotkey Settings Section
     
     private var hotkeySettingsSection: some View {
-        SettingsSection(title: "快捷键", icon: "keyboard") {
-            VStack(spacing: 16) {
+        MinimalSettingsSection(title: "快捷键", icon: "keyboard") {
+            VStack(spacing: DS.Spacing.md) {
                 HStack {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                         Text("触发快捷键")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(DS.Typography.body)
+                            .foregroundColor(DS.Colors.text1)
                         
                         Text("按住快捷键说话，松开完成输入")
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text2)
                     }
                     
                     Spacer()
@@ -217,24 +203,24 @@ struct PreferencesPage: View {
                             viewModel.updateHotkey(modifiers: modifiers, keyCode: keyCode, display: display)
                         }
                     )
-                    .frame(width: 140, height: 36)
+                    .frame(width: 80, height: 40)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .padding(.horizontal, DS.Spacing.lg)
+                .padding(.vertical, DS.Spacing.md)
                 
                 HStack {
                     Image(systemName: "info.circle")
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 11))
+                        .foregroundColor(DS.Colors.text3)
                     
                     Text(isRecordingHotkey ? "按下新的快捷键组合..." : "点击上方按钮修改快捷键")
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text3)
                     
                     Spacer()
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 12)
+                .padding(.horizontal, DS.Spacing.lg)
+                .padding(.bottom, DS.Spacing.md)
             }
         }
     }
@@ -242,15 +228,16 @@ struct PreferencesPage: View {
     // MARK: - Mode Modifiers Section
     
     private var modeModifiersSection: some View {
-        SettingsSection(title: "模式修饰键", icon: "keyboard.badge.ellipsis") {
+        MinimalSettingsSection(title: "模式修饰键", icon: "keyboard.badge.ellipsis") {
             VStack(spacing: 0) {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("翻译模式")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(DS.Typography.body)
+                            .foregroundColor(DS.Colors.text1)
                         Text("按住主触发键 + 此修饰键进入翻译模式")
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text2)
                     }
                     Spacer()
                     ModifierKeyPicker(
@@ -261,19 +248,21 @@ struct PreferencesPage: View {
                         ),
                         excludedModifier: viewModel.memoModifier
                     )
+                    .frame(width: 100)
                 }
-                .padding(16)
+                .padding(DS.Spacing.lg)
                 
-                Divider()
-                    .padding(.leading, 16)
+                MinimalDivider()
+                    .padding(.horizontal, DS.Spacing.lg)
                 
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("随心记模式")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(DS.Typography.body)
+                            .foregroundColor(DS.Colors.text1)
                         Text("按住主触发键 + 此修饰键进入随心记模式")
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text2)
                     }
                     Spacer()
                     ModifierKeyPicker(
@@ -284,8 +273,9 @@ struct PreferencesPage: View {
                         ),
                         excludedModifier: viewModel.translateModifier
                     )
+                    .frame(width: 100)
                 }
-                .padding(16)
+                .padding(DS.Spacing.lg)
             }
         }
     }
@@ -293,9 +283,9 @@ struct PreferencesPage: View {
     // MARK: - AI Polish Section
     
     private var aiPolishSection: some View {
-        SettingsSection(title: "AI 润色", icon: "wand.and.stars") {
+        MinimalSettingsSection(title: "AI 润色", icon: "wand.and.stars") {
             VStack(spacing: 0) {
-                SettingsToggleRow(
+                MinimalToggleRow(
                     title: "启用 AI 润色",
                     subtitle: "关闭后直接输出原始转录文本",
                     icon: "wand.and.stars",
@@ -305,29 +295,27 @@ struct PreferencesPage: View {
                     )
                 )
                 
-                Divider()
-                    .padding(.leading, 52)
+                MinimalDivider()
+                    .padding(.leading, 44)
                 
-                HStack(spacing: 12) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.orange.opacity(0.1))
-                            .frame(width: 32, height: 32)
-                        
-                        Image(systemName: "textformat.size")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.orange)
-                    }
+                HStack(spacing: DS.Spacing.md) {
+                    Image(systemName: "textformat.size")
+                        .font(.system(size: 14))
+                        .foregroundColor(DS.Colors.icon)
+                        .frame(width: 28, height: 28)
+                        .background(DS.Colors.highlight)
+                        .cornerRadius(DS.Layout.cornerRadius)
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text("自动润色阈值")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(DS.Typography.body)
+                            .foregroundColor(DS.Colors.text1)
                         Text("低于此字数的文本不进行 AI 润色")
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text2)
                     }
                     Spacer()
-                    HStack(spacing: 12) {
+                    HStack(spacing: DS.Spacing.md) {
                         Slider(
                             value: Binding(
                                 get: { Double(viewModel.polishThreshold) },
@@ -336,42 +324,41 @@ struct PreferencesPage: View {
                             in: 0...200,
                             step: 1
                         )
-                        .frame(width: 120)
+                        .frame(width: 100)
                         Text("\(viewModel.polishThreshold) 字")
-                            .font(.system(size: 13, weight: .medium))
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text2)
                             .monospacedDigit()
-                            .frame(width: 50, alignment: .trailing)
+                            .frame(width: 45, alignment: .trailing)
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .padding(.horizontal, DS.Spacing.lg)
+                .padding(.vertical, DS.Spacing.md)
                 .opacity(viewModel.enableAIPolish ? 1.0 : 0.5)
                 .disabled(!viewModel.enableAIPolish)
             }
         }
     }
-    
+
     // MARK: - Translate Language Section
     
     private var translateLanguageSection: some View {
-        SettingsSection(title: "翻译设置", icon: "globe") {
-            HStack(spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.blue.opacity(0.1))
-                        .frame(width: 32, height: 32)
-                    
-                    Image(systemName: "globe")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.blue)
-                }
+        MinimalSettingsSection(title: "翻译设置", icon: "globe") {
+            HStack(spacing: DS.Spacing.md) {
+                Image(systemName: "globe")
+                    .font(.system(size: 14))
+                    .foregroundColor(DS.Colors.icon)
+                    .frame(width: 28, height: 28)
+                    .background(DS.Colors.highlight)
+                    .cornerRadius(DS.Layout.cornerRadius)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("翻译语言")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(DS.Typography.body)
+                        .foregroundColor(DS.Colors.text1)
                     Text("选择翻译模式的目标语言")
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text2)
                 }
                 
                 Spacer()
@@ -385,68 +372,45 @@ struct PreferencesPage: View {
                     }
                 }
                 .pickerStyle(.menu)
-                .frame(width: 140)
+                .frame(width: 120)
             }
-            .padding(16)
+            .padding(DS.Spacing.lg)
         }
     }
 
     // MARK: - Contacts Hotwords Section
     
     private var contactsHotwordsSection: some View {
-        SettingsSection(title: "通讯录热词", icon: "person.crop.circle") {
+        MinimalSettingsSection(title: "通讯录热词", icon: "person.crop.circle") {
             VStack(spacing: 0) {
-                HStack(spacing: 12) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.cyan.opacity(0.1))
-                            .frame(width: 32, height: 32)
-                        
-                        Image(systemName: "person.crop.circle")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.cyan)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("启用通讯录热词")
-                            .font(.system(size: 14, weight: .medium))
-                        Text("使用通讯录联系人姓名提高识别准确率")
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                    
-                    Toggle("", isOn: Binding(
+                MinimalToggleRow(
+                    title: "启用通讯录热词",
+                    subtitle: "使用通讯录联系人姓名提高识别准确率",
+                    icon: "person.crop.circle",
+                    isOn: Binding(
                         get: { viewModel.enableContactsHotwords },
                         set: { viewModel.enableContactsHotwords = $0 }
-                    ))
-                    .toggleStyle(.switch)
-                    .labelsHidden()
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                    )
+                )
                 
                 if viewModel.enableContactsHotwords {
-                    Divider()
-                        .padding(.leading, 52)
+                    MinimalDivider()
+                        .padding(.leading, 44)
                     
-                    HStack(spacing: 12) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.gray.opacity(0.1))
-                                .frame(width: 32, height: 32)
-                            
-                            Image(systemName: "info.circle")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.gray)
-                        }
+                    HStack(spacing: DS.Spacing.md) {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 14))
+                            .foregroundColor(DS.Colors.icon)
+                            .frame(width: 28, height: 28)
+                            .background(DS.Colors.highlight)
+                            .cornerRadius(DS.Layout.cornerRadius)
                         
                         VStack(alignment: .leading, spacing: 2) {
                             Text("授权状态")
-                                .font(.system(size: 14, weight: .medium))
+                                .font(DS.Typography.body)
+                                .foregroundColor(DS.Colors.text1)
                             Text(viewModel.contactsAuthStatus.displayText)
-                                .font(.system(size: 12))
+                                .font(DS.Typography.caption)
                                 .foregroundColor(viewModel.contactsAuthStatus.color)
                         }
                         
@@ -454,32 +418,39 @@ struct PreferencesPage: View {
                         
                         if viewModel.contactsAuthStatus == .authorized {
                             Text("\(viewModel.hotwordsCount) 个热词")
-                                .font(.system(size: 13))
-                                .foregroundColor(.secondary)
+                                .font(DS.Typography.caption)
+                                .foregroundColor(DS.Colors.text2)
                             
-                            Button(action: {
-                                viewModel.refreshHotwords()
-                            }) {
+                            Button(action: { viewModel.refreshHotwords() }) {
                                 Image(systemName: "arrow.clockwise")
-                                    .font(.system(size: 12))
+                                    .font(.system(size: 11))
+                                    .foregroundColor(DS.Colors.icon)
                             }
                             .buttonStyle(.plain)
                         } else if viewModel.contactsAuthStatus == .notDetermined {
-                            Button("授权访问") {
-                                viewModel.requestContactsAccessIfNeeded()
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .controlSize(.small)
+                            Button("授权访问") { viewModel.requestContactsAccessIfNeeded() }
+                                .font(DS.Typography.caption)
+                                .foregroundColor(DS.Colors.text1)
+                                .padding(.horizontal, DS.Spacing.md)
+                                .padding(.vertical, DS.Spacing.xs)
+                                .background(DS.Colors.highlight)
+                                .cornerRadius(DS.Layout.cornerRadius)
+                                .buttonStyle(.plain)
                         } else if viewModel.contactsAuthStatus == .denied {
                             Button("打开设置") {
                                 NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Contacts")!)
                             }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text1)
+                            .padding(.horizontal, DS.Spacing.md)
+                            .padding(.vertical, DS.Spacing.xs)
+                            .background(DS.Colors.highlight)
+                            .cornerRadius(DS.Layout.cornerRadius)
+                            .buttonStyle(.plain)
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
+                    .padding(.horizontal, DS.Spacing.lg)
+                    .padding(.vertical, DS.Spacing.md)
                 }
             }
         }
@@ -488,146 +459,121 @@ struct PreferencesPage: View {
     // MARK: - Auto Enter Section
     
     private var autoEnterSection: some View {
-        SettingsSection(title: "自动发送", icon: "return") {
+        MinimalSettingsSection(title: "自动发送", icon: "return") {
             VStack(spacing: 0) {
-                HStack(spacing: 12) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.green.opacity(0.1))
-                            .frame(width: 32, height: 32)
-                        
-                        Image(systemName: "return")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.green)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("启用自动发送")
-                            .font(.system(size: 14, weight: .medium))
-                        Text("上字后自动按回车发送消息")
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                    
-                    Toggle("", isOn: Binding(
+                MinimalToggleRow(
+                    title: "启用自动发送",
+                    subtitle: "上字后自动按回车发送消息",
+                    icon: "return",
+                    isOn: Binding(
                         get: { viewModel.enableAutoEnter },
                         set: { viewModel.enableAutoEnter = $0 }
-                    ))
-                    .toggleStyle(.switch)
-                    .labelsHidden()
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                    )
+                )
                 
                 if viewModel.enableAutoEnter {
-                    Divider()
-                        .padding(.leading, 52)
+                    MinimalDivider()
+                        .padding(.leading, 44)
                     
-                    // AppleScript 自动化权限检测
                     HStack {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(viewModel.isAppleScriptAuthorized ? Color.green.opacity(0.15) : Color.orange.opacity(0.1))
-                                .frame(width: 32, height: 32)
-                            
-                            Image(systemName: "applescript")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(viewModel.isAppleScriptAuthorized ? .green : .orange)
-                        }
+                        Image(systemName: "applescript")
+                            .font(.system(size: 14))
+                            .foregroundColor(DS.Colors.icon)
+                            .frame(width: 28, height: 28)
+                            .background(DS.Colors.highlight)
+                            .cornerRadius(DS.Layout.cornerRadius)
                         
                         VStack(alignment: .leading, spacing: 2) {
                             Text("自动化权限")
-                                .font(.system(size: 14, weight: .medium))
+                                .font(DS.Typography.body)
+                                .foregroundColor(DS.Colors.text1)
                             Text("允许控制 System Events")
-                                .font(.system(size: 12))
-                                .foregroundColor(.secondary)
+                                .font(DS.Typography.caption)
+                                .foregroundColor(DS.Colors.text2)
                         }
                         
                         Spacer()
                         
                         if viewModel.isAppleScriptAuthorized {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.system(size: 18))
-                                .foregroundColor(.green)
+                            StatusDot(status: .success, size: 8)
                         } else {
-                            Button("授权") {
-                                viewModel.requestAppleScriptPermission()
-                            }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
+                            Button("授权") { viewModel.requestAppleScriptPermission() }
+                                .font(DS.Typography.caption)
+                                .foregroundColor(DS.Colors.text1)
+                                .padding(.horizontal, DS.Spacing.md)
+                                .padding(.vertical, DS.Spacing.xs)
+                                .background(DS.Colors.highlight)
+                                .cornerRadius(DS.Layout.cornerRadius)
+                                .buttonStyle(.plain)
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
+                    .padding(.horizontal, DS.Spacing.lg)
+                    .padding(.vertical, DS.Spacing.md)
                     
-                    Divider()
-                        .padding(.leading, 52)
+                    MinimalDivider()
+                        .padding(.leading, 44)
                     
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: DS.Spacing.md) {
                         HStack {
                             Text("启用的应用")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.secondary)
+                                .font(DS.Typography.caption)
+                                .foregroundColor(DS.Colors.text2)
                             
                             Spacer()
                             
-                            Button(action: {
-                                showingAppPicker = true
-                            }) {
-                                HStack(spacing: 4) {
+                            Button(action: { showingAppPicker = true }) {
+                                HStack(spacing: DS.Spacing.xs) {
                                     Image(systemName: "plus")
-                                        .font(.system(size: 11))
+                                        .font(.system(size: 10))
                                     Text("添加应用")
-                                        .font(.system(size: 12))
+                                        .font(DS.Typography.caption)
                                 }
+                                .foregroundColor(DS.Colors.text1)
+                                .padding(.horizontal, DS.Spacing.md)
+                                .padding(.vertical, DS.Spacing.xs)
+                                .background(DS.Colors.highlight)
+                                .cornerRadius(DS.Layout.cornerRadius)
                             }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
+                            .buttonStyle(.plain)
                         }
                         
                         if viewModel.autoEnterApps.isEmpty {
-                            HStack {
-                                Spacer()
-                                Text("暂无应用，点击上方按钮添加")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                            }
-                            .padding(.vertical, 8)
+                            Text("暂无应用，点击上方按钮添加")
+                                .font(DS.Typography.caption)
+                                .foregroundColor(DS.Colors.text3)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, DS.Spacing.sm)
                         } else {
                             ForEach(viewModel.autoEnterApps) { app in
-                                HStack(spacing: 10) {
+                                HStack(spacing: DS.Spacing.sm) {
                                     if let icon = app.icon {
                                         Image(nsImage: icon)
                                             .resizable()
-                                            .frame(width: 24, height: 24)
+                                            .frame(width: 20, height: 20)
                                     } else {
                                         Image(systemName: "app")
-                                            .frame(width: 24, height: 24)
+                                            .frame(width: 20, height: 20)
                                     }
                                     
                                     Text(app.name)
-                                        .font(.system(size: 13))
+                                        .font(DS.Typography.body)
+                                        .foregroundColor(DS.Colors.text1)
                                     
                                     Spacer()
                                     
-                                    Button(action: {
-                                        viewModel.removeAutoEnterApp(bundleId: app.bundleId)
-                                    }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .font(.system(size: 14))
-                                            .foregroundColor(.secondary)
+                                    Button(action: { viewModel.removeAutoEnterApp(bundleId: app.bundleId) }) {
+                                        Image(systemName: "xmark")
+                                            .font(.system(size: 10))
+                                            .foregroundColor(DS.Colors.text3)
                                     }
                                     .buttonStyle(.plain)
                                 }
-                                .padding(.vertical, 4)
+                                .padding(.vertical, DS.Spacing.xs)
                             }
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
+                    .padding(.horizontal, DS.Spacing.lg)
+                    .padding(.vertical, DS.Spacing.md)
                 }
             }
         }
@@ -639,63 +585,58 @@ struct PreferencesPage: View {
     // MARK: - Prompt Editor Section
     
     private var promptEditorSection: some View {
-        SettingsSection(title: "自定义 Prompt", icon: "text.quote") {
-            VStack(spacing: 0) {
-                PromptEditorView(
-                    title: "润色 Prompt",
-                    prompt: Binding(
-                        get: { viewModel.polishPrompt },
-                        set: { viewModel.polishPrompt = $0 }
-                    ),
-                    defaultPrompt: AppSettings.defaultPolishPrompt
-                )
-                .padding(16)
-            }
+        MinimalSettingsSection(title: "自定义 Prompt", icon: "text.quote") {
+            PromptEditorView(
+                title: "润色 Prompt",
+                prompt: Binding(
+                    get: { viewModel.polishPrompt },
+                    set: { viewModel.polishPrompt = $0 }
+                ),
+                defaultPrompt: AppSettings.defaultPolishPrompt
+            )
+            .padding(DS.Spacing.lg)
         }
     }
     
     // MARK: - AI Engine Section
     
     private var aiEngineSection: some View {
-        SettingsSection(title: "AI 引擎", icon: "cpu") {
+        MinimalSettingsSection(title: "AI 引擎", icon: "cpu") {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                     Text("豆包语音识别")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(DS.Typography.body)
+                        .foregroundColor(DS.Colors.text1)
                     
                     Text("Doubao Speech-to-Text API")
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text2)
                 }
                 
                 Spacer()
                 
-                HStack(spacing: 6) {
+                HStack(spacing: DS.Spacing.sm) {
                     if viewModel.aiEngineStatus == .checking {
                         ProgressView()
-                            .scaleEffect(0.7)
+                            .scaleEffect(0.6)
                     } else {
-                        Image(systemName: viewModel.aiEngineStatus.icon)
-                            .font(.system(size: 14))
-                            .foregroundColor(viewModel.aiEngineStatus.color)
+                        StatusDot(status: viewModel.aiEngineStatus == .online ? .success : .error, size: 8)
                     }
                     
                     Text(viewModel.aiEngineStatus.displayText)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(viewModel.aiEngineStatus.color)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text2)
                 }
                 
-                Button(action: {
-                    viewModel.checkAIEngineStatus()
-                }) {
+                Button(action: { viewModel.checkAIEngineStatus() }) {
                     Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 11))
+                        .foregroundColor(DS.Colors.icon)
                 }
                 .buttonStyle(.plain)
-                .padding(.leading, 8)
+                .padding(.leading, DS.Spacing.sm)
             }
-            .padding(16)
+            .padding(DS.Spacing.lg)
         }
     }
     
@@ -705,26 +646,141 @@ struct PreferencesPage: View {
         HStack {
             Spacer()
             
-            Button(action: {
-                viewModel.resetToDefaults()
-            }) {
-                HStack(spacing: 6) {
+            Button(action: { viewModel.resetToDefaults() }) {
+                HStack(spacing: DS.Spacing.sm) {
                     Image(systemName: "arrow.counterclockwise")
-                        .font(.system(size: 12))
+                        .font(.system(size: 11))
                     
                     Text("恢复默认设置")
-                        .font(.system(size: 13))
+                        .font(DS.Typography.caption)
                 }
-                .foregroundColor(.secondary)
+                .foregroundColor(DS.Colors.text2)
             }
             .buttonStyle(.plain)
             
             Spacer()
         }
-        .padding(.top, 8)
+        .padding(.top, DS.Spacing.sm)
     }
 }
 
+// MARK: - MinimalSettingsSection
+
+struct MinimalSettingsSection<Content: View>: View {
+    let title: String
+    let icon: String
+    let content: () -> Content
+    
+    init(title: String, icon: String, @ViewBuilder content: @escaping () -> Content) {
+        self.title = title
+        self.icon = icon
+        self.content = content
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.md) {
+            HStack(spacing: DS.Spacing.sm) {
+                Image(systemName: icon)
+                    .font(.system(size: 12))
+                    .foregroundColor(DS.Colors.icon)
+                
+                Text(title)
+                    .font(DS.Typography.caption)
+                    .foregroundColor(DS.Colors.text2)
+            }
+            
+            VStack(spacing: 0) {
+                content()
+            }
+            .background(DS.Colors.bg2)
+            .overlay(
+                RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
+                    .stroke(DS.Colors.border, lineWidth: DS.Layout.borderWidth)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: DS.Layout.cornerRadius))
+        }
+    }
+}
+
+// MARK: - MinimalToggleRow
+
+struct MinimalToggleRow: View {
+    let title: String
+    let subtitle: String
+    let icon: String
+    @Binding var isOn: Bool
+    
+    var body: some View {
+        HStack(spacing: DS.Spacing.md) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(DS.Colors.icon)
+                .frame(width: 28, height: 28)
+                .background(DS.Colors.highlight)
+                .cornerRadius(DS.Layout.cornerRadius)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(DS.Typography.body)
+                    .foregroundColor(DS.Colors.text1)
+                
+                Text(subtitle)
+                    .font(DS.Typography.caption)
+                    .foregroundColor(DS.Colors.text2)
+            }
+            
+            Spacer()
+            
+            Toggle("", isOn: $isOn)
+                .toggleStyle(.switch)
+                .labelsHidden()
+        }
+        .padding(.horizontal, DS.Spacing.lg)
+        .padding(.vertical, DS.Spacing.md)
+    }
+}
+
+// MARK: - MinimalNavigationRow
+
+struct MinimalNavigationRow: View {
+    let title: String
+    let subtitle: String
+    let icon: String
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: DS.Spacing.md) {
+                Image(systemName: icon)
+                    .font(.system(size: 14))
+                    .foregroundColor(DS.Colors.icon)
+                    .frame(width: 28, height: 28)
+                    .background(DS.Colors.highlight)
+                    .cornerRadius(DS.Layout.cornerRadius)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(DS.Typography.body)
+                        .foregroundColor(DS.Colors.text1)
+                    
+                    Text(subtitle)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text2)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 10))
+                    .foregroundColor(DS.Colors.text3)
+            }
+            .padding(.horizontal, DS.Spacing.lg)
+            .padding(.vertical, DS.Spacing.md)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
 
 // MARK: - App Picker Sheet
 
@@ -737,61 +793,67 @@ struct AppPickerSheet: View {
         VStack(spacing: 0) {
             HStack {
                 Text("选择应用")
-                    .font(.headline)
+                    .font(DS.Typography.title)
+                    .foregroundColor(DS.Colors.text1)
                 Spacer()
-                Button("完成") {
-                    isPresented = false
-                }
+                Button("完成") { isPresented = false }
+                    .font(DS.Typography.body)
+                    .foregroundColor(DS.Colors.text1)
+                    .buttonStyle(.plain)
             }
-            .padding()
+            .padding(DS.Spacing.lg)
             
-            Divider()
+            MinimalDivider()
             
             if runningApps.isEmpty {
-                VStack(spacing: 12) {
+                VStack(spacing: DS.Spacing.md) {
                     Image(systemName: "app.badge.checkmark")
-                        .font(.system(size: 40))
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 36))
+                        .foregroundColor(DS.Colors.text3)
                     Text("没有可添加的应用")
-                        .foregroundColor(.secondary)
+                        .font(DS.Typography.body)
+                        .foregroundColor(DS.Colors.text2)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List(runningApps) { app in
-                    HStack(spacing: 12) {
+                    HStack(spacing: DS.Spacing.md) {
                         Image(nsImage: app.icon)
                             .resizable()
-                            .frame(width: 32, height: 32)
+                            .frame(width: 28, height: 28)
                         
                         VStack(alignment: .leading, spacing: 2) {
                             Text(app.name)
-                                .font(.system(size: 14, weight: .medium))
+                                .font(DS.Typography.body)
+                                .foregroundColor(DS.Colors.text1)
                             Text(app.bundleId)
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
+                                .font(DS.Typography.caption)
+                                .foregroundColor(DS.Colors.text2)
                         }
                         
                         Spacer()
                         
                         if viewModel.autoEnterApps.contains(where: { $0.bundleId == app.bundleId }) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
+                            StatusDot(status: .success, size: 8)
                         } else {
-                            Button("添加") {
-                                viewModel.addAutoEnterApp(bundleId: app.bundleId)
-                            }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
+                            Button("添加") { viewModel.addAutoEnterApp(bundleId: app.bundleId) }
+                                .font(DS.Typography.caption)
+                                .foregroundColor(DS.Colors.text1)
+                                .padding(.horizontal, DS.Spacing.md)
+                                .padding(.vertical, DS.Spacing.xs)
+                                .background(DS.Colors.highlight)
+                                .cornerRadius(DS.Layout.cornerRadius)
+                                .buttonStyle(.plain)
                         }
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, DS.Spacing.xs)
                 }
+                .listStyle(.plain)
             }
         }
         .frame(width: 400, height: 350)
-        .onAppear {
-            loadRunningApps()
-        }
+        .background(DS.Colors.bg1)
+        .onAppear { loadRunningApps() }
     }
     
     private func loadRunningApps() {
@@ -815,133 +877,6 @@ struct RunningAppInfo: Identifiable {
     let name: String
     let icon: NSImage
 }
-
-
-// MARK: - Settings Section
-
-struct SettingsSection<Content: View>: View {
-    let title: String
-    let icon: String
-    let content: () -> Content
-    
-    init(title: String, icon: String, @ViewBuilder content: @escaping () -> Content) {
-        self.title = title
-        self.icon = icon
-        self.content = content
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.secondary)
-                
-                Text(title)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.secondary)
-            }
-            
-            VStack(spacing: 0) {
-                content()
-            }
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(nsColor: .controlBackgroundColor))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.gray.opacity(0.1), lineWidth: 1)
-            )
-        }
-    }
-}
-
-// MARK: - Settings Toggle Row
-
-struct SettingsToggleRow: View {
-    let title: String
-    let subtitle: String
-    let icon: String
-    @Binding var isOn: Bool
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.accentColor.opacity(0.1))
-                    .frame(width: 32, height: 32)
-                
-                Image(systemName: icon)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.accentColor)
-            }
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.system(size: 14, weight: .medium))
-                
-                Text(subtitle)
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-            
-            Toggle("", isOn: $isOn)
-                .toggleStyle(.switch)
-                .labelsHidden()
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-    }
-}
-
-// MARK: - Settings Navigation Row
-
-struct SettingsNavigationRow: View {
-    let title: String
-    let subtitle: String
-    let icon: String
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.purple.opacity(0.1))
-                        .frame(width: 32, height: 32)
-                    
-                    Image(systemName: icon)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.purple)
-                }
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.primary)
-                    
-                    Text(subtitle)
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.secondary.opacity(0.5))
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-}
-
 
 // MARK: - ModifierKeyPicker
 
@@ -975,32 +910,24 @@ struct ModifierKeyPicker: View {
                 .disabled(modifier == excludedModifier)
             }
         } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: DS.Spacing.xs) {
                 Text(displayText(for: selectedModifier))
-                    .font(.system(size: 13, weight: .medium))
+                    .font(DS.Typography.caption)
                 Image(systemName: "chevron.up.chevron.down")
-                    .font(.system(size: 10))
+                    .font(.system(size: 8))
             }
-            .foregroundColor(.primary)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(Color(nsColor: .controlBackgroundColor))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-            )
+            .foregroundColor(DS.Colors.text1)
+            .padding(.horizontal, DS.Spacing.sm)
+            .padding(.vertical, DS.Spacing.xs)
+            .background(DS.Colors.highlight)
+            .cornerRadius(DS.Layout.cornerRadius)
         }
         .menuStyle(.borderlessButton)
     }
     
     private func displayText(for modifier: NSEvent.ModifierFlags) -> String {
         for (mod, label) in availableModifiers {
-            if mod == modifier {
-                return label
-            }
+            if mod == modifier { return label }
         }
         return "未知"
     }
@@ -1022,26 +949,26 @@ struct PromptEditorView: View {
     
     var body: some View {
         DisclosureGroup(isExpanded: $isExpanded) {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: DS.Spacing.md) {
                 TextEditor(text: $prompt)
-                    .font(.system(size: 12, design: .monospaced))
-                    .frame(minHeight: 120)
-                    .padding(8)
-                    .background(Color(nsColor: .textBackgroundColor))
-                    .cornerRadius(8)
+                    .font(DS.Typography.mono(11, weight: .regular))
+                    .frame(minHeight: 100)
+                    .padding(DS.Spacing.sm)
+                    .background(DS.Colors.bg1)
+                    .cornerRadius(DS.Layout.cornerRadius)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(isEmpty && showEmptyError ? Color.red : Color.gray.opacity(0.3), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
+                            .stroke(isEmpty && showEmptyError ? DS.Colors.statusError : DS.Colors.border, lineWidth: DS.Layout.borderWidth)
                     )
                 
                 if isEmpty && showEmptyError {
-                    HStack(spacing: 4) {
-                        Image(systemName: "exclamationmark.circle.fill")
-                            .font(.system(size: 11))
+                    HStack(spacing: DS.Spacing.xs) {
+                        Image(systemName: "exclamationmark.circle")
+                            .font(.system(size: 10))
                         Text("Prompt 不能为空")
-                            .font(.system(size: 11))
+                            .font(DS.Typography.caption)
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(DS.Colors.statusError)
                 }
                 
                 HStack {
@@ -1049,38 +976,32 @@ struct PromptEditorView: View {
                         prompt = defaultPrompt
                         showEmptyError = false
                     }) {
-                        HStack(spacing: 4) {
+                        HStack(spacing: DS.Spacing.xs) {
                             Image(systemName: "arrow.counterclockwise")
-                                .font(.system(size: 11))
+                                .font(.system(size: 10))
                             Text("恢复默认")
-                                .font(.system(size: 12))
+                                .font(DS.Typography.caption)
                         }
+                        .foregroundColor(prompt == defaultPrompt ? DS.Colors.text3 : DS.Colors.text1)
                     }
                     .buttonStyle(.plain)
-                    .foregroundColor(prompt == defaultPrompt ? .secondary.opacity(0.5) : .accentColor)
                     .disabled(prompt == defaultPrompt)
                     
                     Spacer()
                     
                     Text("\(prompt.count) 字符")
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text2)
                 }
             }
-            .padding(.top, 8)
+            .padding(.top, DS.Spacing.sm)
         } label: {
-            HStack {
-                Text(title)
-                    .font(.system(size: 14, weight: .medium))
-                Spacer()
-            }
+            Text(title)
+                .font(DS.Typography.body)
+                .foregroundColor(DS.Colors.text1)
         }
         .onChange(of: prompt) { _, newValue in
-            if newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                showEmptyError = true
-            } else {
-                showEmptyError = false
-            }
+            showEmptyError = newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
     }
 }

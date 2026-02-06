@@ -146,8 +146,7 @@ class DashboardWindowController {
         let styleMask: NSWindow.StyleMask = [
             .titled,
             .closable,
-            .miniaturizable,
-            .resizable
+            .miniaturizable
         ]
         
         let window = NSWindow(
@@ -158,7 +157,7 @@ class DashboardWindowController {
         )
         
         // 设置窗口属性
-        window.title = "GhosTYPE Dashboard"
+        window.title = "GHOSTYPE"
         
         // Requirement 3.6: THE Dashboard window SHALL have minimum size of 900x600pt
         window.minSize = Self.minimumSize
