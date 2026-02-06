@@ -6,8 +6,10 @@ import os.log
 
 // 日志（只打印到控制台，不写文件避免权限问题）
 func logToFile(_ message: String) {
+    #if DEBUG
     let timestamp = ISO8601DateFormatter().string(from: Date())
     print("[\(timestamp)] \(message)")
+    #endif
 }
 
 // 豆包语音识别服务 - 使用二进制 WebSocket 协议

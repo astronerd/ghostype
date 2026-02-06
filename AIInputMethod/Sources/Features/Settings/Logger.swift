@@ -11,15 +11,20 @@ class FileLogger {
         let home = FileManager.default.homeDirectoryForCurrentUser
         logFile = home.appendingPathComponent("ghostype_debug.log")
         
+        #if DEBUG
         // 清空旧日志
         try? "".write(to: logFile, atomically: true, encoding: .utf8)
+        #endif
     }
     
     static func log(_ message: String) {
+        #if DEBUG
         shared.write(message)
+        #endif
     }
     
     private func write(_ message: String) {
+        #if DEBUG
         queue.async {
             let timestamp = ISO8601DateFormatter().string(from: Date())
             let line = "[\(timestamp)] \(message)\n"
@@ -34,5 +39,13 @@ class FileLogger {
                 try? line.write(to: self.logFile, atomically: true, encoding: .utf8)
             }
         }
+        #endif
     }
+}
+
+/// Debug print - 只在 DEBUG 模式下输出
+func debugLog(_ message: String) {
+    #if DEBUG
+    print(message)
+    #endif
 }
