@@ -75,22 +75,31 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         print("[App] Accessibility: \(permissionManager.isAccessibilityTrusted)")
         print("[App] Microphone: \(permissionManager.isMicrophoneGranted)")
         
-        // 检查是否首次启动
+        // 检查是否需要显示 onboarding
+        // onboardingRequiredVersion: 需要强制显示 onboarding 的最低版本
+        // 只有当用户的 lastOnboardingVersion 低于这个版本时才显示
+        let onboardingRequiredVersion = "1.1"  // 需要重新 onboarding 的版本，后续更新如不需要可保持不变
+        let lastOnboardingVersion = UserDefaults.standard.string(forKey: "lastOnboardingVersion") ?? "0.0"
         let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
         
-        if hasCompletedOnboarding {
-            print("[App] Onboarding already completed, starting app directly...")
+        // 比较版本号
+        let needsOnboarding = !hasCompletedOnboarding || lastOnboardingVersion.compare(onboardingRequiredVersion, options: .numeric) == .orderedAscending
+        
+        if !needsOnboarding {
+            print("[App] Onboarding not required, starting app directly...")
             startApp()
         } else {
-            print("[App] First launch, showing onboarding...")
+            print("[App] Showing onboarding (required version: \(onboardingRequiredVersion), last: \(lastOnboardingVersion))...")
             showPermissionWindow()
         }
     }
     
     func showPermissionWindow() {
         onboardingController.show(permissionManager: permissionManager) { [weak self] in
-            // 标记 onboarding 已完成
+            // 标记 onboarding 已完成，并记录版本号
+            let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
             UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+            UserDefaults.standard.set(currentVersion, forKey: "lastOnboardingVersion")
             self?.startApp()
             
             // Onboarding 完成后自动打开 Dashboard

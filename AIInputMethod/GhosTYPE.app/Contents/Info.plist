@@ -7,24 +7,26 @@
     <key>CFBundleIdentifier</key>
     <string>com.gengdawei.ghostype</string>
     <key>CFBundleName</key>
-    <string>GhosTYPE</string>
+    <string>GHOSTYPE</string>
     <key>CFBundleDisplayName</key>
-    <string>GhosTYPE</string>
+    <string>GHOSTYPE</string>
+    <key>CFBundleVersion</key>
+    <string>2</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.1</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
-    <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
-    <key>CFBundleVersion</key>
-    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+    <key>LSUIElement</key>
+    <false/>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>GHOSTYPE 需要使用麦克风进行语音输入</string>
+    <key>NSContactsUsageDescription</key>
+    <string>GHOSTYPE 使用通讯录联系人姓名作为语音识别热词，提高人名识别准确率</string>
     <key>NSHighResolutionCapable</key>
     <true/>
-    <key>LSUIElement</key>
-    <true/>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>GhosTYPE needs microphone access for speech recognition.</string>
-    <key>NSAccessibilityUsageDescription</key>
-    <string>GhosTYPE needs accessibility access to detect text fields.</string>
-    <key>NSContactsUsageDescription</key>
-    <string>GhosTYPE uses contact names as hotwords to improve speech recognition accuracy.</string>
 </dict>
 </plist>
