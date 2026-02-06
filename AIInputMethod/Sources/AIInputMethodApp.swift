@@ -55,7 +55,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     var speechService = DoubaoSpeechService()
     var hotkeyManager = HotkeyManager()
     var onboardingController = OnboardingWindowController()
+    var dashboardController: DashboardWindowController { DashboardWindowController.shared }
     var testWindow: NSWindow?
+    
+    /// 当前输入模式
+    @Published var currentMode: InputMode = .polish
+    
+    /// 当前录音的原始文本
+    private var currentRawText: String = ""
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -106,8 +113,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         
         // 4. Setup speech result callback
         speechService.onFinalResult = { [weak self] text in
+            guard let self = self else { return }
             print("[Speech] Final result received: \(text)")
-            self?.insertTextAtCursor(text)
+            self.currentRawText = text
+            // 注意：不再直接插入，等待 onHotkeyUp 时根据模式处理
         }
         
         speechService.onPartialResult = { text in
@@ -119,28 +128,179 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     
     // MARK: - Hotkey
     func setupHotkey() {
+        // 按下快捷键：开始录音
         hotkeyManager.onHotkeyDown = { [weak self] in
             guard let self = self else { return }
             print("[Hotkey] ========== DOWN ==========")
-            print("[Hotkey] Starting recording...")
+            print("[Hotkey] Starting recording, mode: \(self.hotkeyManager.currentMode.displayName)")
+            self.currentMode = self.hotkeyManager.currentMode
+            self.currentRawText = ""
             self.showOverlayNearCursor()
             self.speechService.startRecording()
         }
         
-        hotkeyManager.onHotkeyUp = { [weak self] in
+        // 录音过程中模式变化
+        hotkeyManager.onModeChanged = { [weak self] mode in
+            guard let self = self else { return }
+            print("[Hotkey] Mode changed to: \(mode.displayName)")
+            self.currentMode = mode
+            // TODO: 更新 Overlay UI 颜色
+        }
+        
+        // 松开快捷键：停止录音，根据模式处理
+        hotkeyManager.onHotkeyUp = { [weak self] mode in
             guard let self = self else { return }
             print("[Hotkey] ========== UP ==========")
-            print("[Hotkey] Stopping recording...")
+            print("[Hotkey] Stopping recording, final mode: \(mode.displayName)")
             self.speechService.stopRecording()
-            // 延迟隐藏，让用户看到最终结果
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                self.hideOverlay()
+            
+            // 等待语音识别完成后处理
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.processWithMode(mode)
             }
         }
         
         print("[App] Starting hotkey manager...")
         hotkeyManager.start()
         print("[App] Hotkey manager started")
+        print("[App] Modes: Default=润色, Shift=翻译, Cmd=随心记")
+    }
+    
+    // MARK: - AI Processing
+    
+    /// 根据模式处理文本
+    func processWithMode(_ mode: InputMode) {
+        let text = currentRawText.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        guard !text.isEmpty else {
+            print("[Process] Empty text, skipping")
+            hideOverlay()
+            return
+        }
+        
+        print("[Process] Processing with mode: \(mode.displayName)")
+        print("[Process] Raw text: \(text)")
+        
+        // TODO: 更新 Overlay 显示 "AI 处理中..."
+        
+        switch mode {
+        case .polish:
+            // 润色模式：AI 润色后上屏
+            processPolish(text)
+            
+        case .translate:
+            // 翻译模式：翻译后上屏
+            processTranslate(text)
+            
+        case .memo:
+            // 随心记模式：整理后保存到笔记，不上屏
+            processMemo(text)
+        }
+    }
+    
+    /// 润色处理
+    private func processPolish(_ text: String) {
+        print("[Polish] Starting AI polish...")
+        
+        MiniMaxService.shared.polish(text: text) { [weak self] result in
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let polishedText):
+                print("[Polish] Success: \(polishedText)")
+                self.insertTextAtCursor(polishedText)
+                self.saveUsageRecord(content: polishedText, category: .polish)
+                
+            case .failure(let error):
+                print("[Polish] Error: \(error.localizedDescription)")
+                // 失败时直接使用原文
+                self.insertTextAtCursor(text)
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.hideOverlay()
+            }
+        }
+    }
+    
+    /// 翻译处理
+    private func processTranslate(_ text: String) {
+        print("[Translate] Starting AI translate...")
+        
+        MiniMaxService.shared.translate(text: text) { [weak self] result in
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let translatedText):
+                print("[Translate] Success: \(translatedText)")
+                self.insertTextAtCursor(translatedText)
+                self.saveUsageRecord(content: translatedText, category: .translate)
+                
+            case .failure(let error):
+                print("[Translate] Error: \(error.localizedDescription)")
+                // 失败时直接使用原文
+                self.insertTextAtCursor(text)
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.hideOverlay()
+            }
+        }
+    }
+    
+    /// 随心记处理
+    private func processMemo(_ text: String) {
+        print("[Memo] Starting AI organize...")
+        
+        MiniMaxService.shared.organizeMemo(text: text) { [weak self] result in
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let organizedText):
+                print("[Memo] Success: \(organizedText)")
+                // 保存到笔记，不上屏
+                self.saveUsageRecord(content: organizedText, category: .memo)
+                // TODO: 显示保存成功的动画
+                print("[Memo] Saved to notes (not inserted)")
+                
+            case .failure(let error):
+                print("[Memo] Error: \(error.localizedDescription)")
+                // 失败时保存原文
+                self.saveUsageRecord(content: text, category: .memo)
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.hideOverlay()
+            }
+        }
+    }
+    
+    /// 保存使用记录到 CoreData
+    private func saveUsageRecord(content: String, category: RecordCategory) {
+        let context = PersistenceController.shared.container.viewContext
+        let record = UsageRecord(context: context)
+        record.id = UUID()
+        record.content = content
+        record.category = category.rawValue
+        record.timestamp = Date()
+        record.deviceId = DeviceIdManager.shared.deviceId
+        
+        // 获取当前前台应用信息
+        if let frontApp = NSWorkspace.shared.frontmostApplication {
+            record.sourceApp = frontApp.localizedName ?? "Unknown"
+            record.sourceAppBundleId = frontApp.bundleIdentifier ?? ""
+        } else {
+            record.sourceApp = "Unknown"
+            record.sourceAppBundleId = ""
+        }
+        record.duration = 0 // TODO: 计算实际录音时长
+        
+        do {
+            try context.save()
+            print("[Record] Saved: \(category.rawValue) - \(content.prefix(30))...")
+        } catch {
+            print("[Record] Save error: \(error)")
+        }
     }
     
     // MARK: - Text Insertion (使用剪贴板 + Cmd+V)
@@ -225,11 +385,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 // 回退到系统图标
                 button.image = NSImage(systemSymbolName: "waveform", accessibilityDescription: "GhosTYPE")
             }
+            
+            // 左键点击打开 Dashboard
+            button.action = #selector(statusBarButtonClicked(_:))
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
         
+        // 创建右键菜单
         let menu = NSMenu()
         menu.addItem(NSMenuItem(title: "GhosTYPE", action: nil, keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "快捷键: \(AppSettings.shared.hotkeyDisplay)", action: nil, keyEquivalent: ""))
+        menu.addItem(NSMenuItem.separator())
+        
+        // 模式说明
+        menu.addItem(NSMenuItem(title: "🟢 默认: 润色上屏", action: nil, keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: "🟣 +Shift: 翻译上屏", action: nil, keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: "🟠 +Cmd: 随心记", action: nil, keyEquivalent: ""))
         menu.addItem(NSMenuItem.separator())
         
         let accessibilityItem = NSMenuItem(title: permissionManager.isAccessibilityTrusted ? "✅ 辅助功能权限" : "❌ 辅助功能权限 (点击开启)", action: #selector(openAccessibilitySettings), keyEquivalent: "")
@@ -239,9 +410,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         menu.addItem(micItem)
         
         menu.addItem(NSMenuItem.separator())
+        menu.addItem(NSMenuItem(title: "📊 打开 Dashboard", action: #selector(showDashboard), keyEquivalent: "d"))
         menu.addItem(NSMenuItem(title: "🧪 测试窗口", action: #selector(showTestWindow), keyEquivalent: "t"))
         menu.addItem(NSMenuItem(title: "退出", action: #selector(terminateApp), keyEquivalent: "q"))
         statusItem.menu = menu
+    }
+    
+    @objc func statusBarButtonClicked(_ sender: NSStatusBarButton) {
+        guard let event = NSApp.currentEvent else { return }
+        
+        if event.type == .rightMouseUp {
+            // 右键显示菜单
+            statusItem.button?.performClick(nil)
+        } else {
+            // 左键打开 Dashboard
+            dashboardController.toggle()
+        }
+    }
+    
+    @objc func showDashboard() {
+        dashboardController.show()
     }
     
     @objc func openAccessibilitySettings() {
@@ -308,7 +496,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         guard let screen = NSScreen.main else { return }
         
         let windowWidth = overlayWindow.frame.width
-        let windowHeight = overlayWindow.frame.height
+        let _ = overlayWindow.frame.height
         
         // 水平居中
         let x = screen.frame.origin.x + (screen.frame.width - windowWidth) / 2

@@ -2,14 +2,31 @@ import Cocoa
 import Carbon
 
 /// 全局快捷键管理器 - 按住说话，松开插入文字
+/// 支持动态修饰键检测：
+/// - 默认：润色模式
+/// - Shift：翻译模式
+/// - Cmd：随心记模式
 class HotkeyManager {
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     
+    // MARK: - Callbacks
+    
+    /// 快捷键按下回调
     var onHotkeyDown: (() -> Void)?
-    var onHotkeyUp: (() -> Void)?
+    
+    /// 快捷键松开回调，传入当前模式
+    var onHotkeyUp: ((InputMode) -> Void)?
+    
+    /// 模式变化回调（录音过程中修饰键变化）
+    var onModeChanged: ((InputMode) -> Void)?
+    
+    // MARK: - State
     
     private var isHotkeyPressed = false
+    
+    /// 当前输入模式
+    private(set) var currentMode: InputMode = .polish
     
     // 从 AppSettings 读取配置
     private var targetModifiers: NSEvent.ModifierFlags {
@@ -21,6 +38,8 @@ class HotkeyManager {
     
     // 修饰键的 keyCode 列表
     private let modifierKeyCodes: Set<UInt16> = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
+    
+    // MARK: - Public Methods
     
     func start() {
         print("[Hotkey] Starting event tap...")
@@ -58,6 +77,7 @@ class HotkeyManager {
         CGEvent.tapEnable(tap: tap, enable: true)
         
         print("[Hotkey] ✅ Event tap started - \(AppSettings.shared.hotkeyDisplay) to record")
+        print("[Hotkey] ✅ Modifiers: Shift=翻译, Cmd=随心记")
     }
     
     func stop() {
@@ -70,6 +90,8 @@ class HotkeyManager {
         eventTap = nil
         runLoopSource = nil
     }
+    
+    // MARK: - Private Methods
     
     private func handleEvent(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
         let keyCode = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
@@ -89,7 +111,19 @@ class HotkeyManager {
         // 检查修饰键匹配
         let targetMods = targetModifiers.intersection([.command, .option, .control, .shift, .function])
         let currentMods = modifiers.intersection([.command, .option, .control, .shift, .function])
-        let hasTargetModifiers = targetMods.isEmpty || currentMods == targetMods
+        let hasTargetModifiers = targetMods.isEmpty || currentMods.contains(targetMods)
+        
+        // 录音过程中监听修饰键变化
+        if type == .flagsChanged && isHotkeyPressed {
+            let newMode = InputMode.fromModifiers(modifiers)
+            if newMode != currentMode {
+                currentMode = newMode
+                print("[Hotkey] 🔄 Mode changed to: \(newMode.displayName)")
+                DispatchQueue.main.async {
+                    self.onModeChanged?(newMode)
+                }
+            }
+        }
         
         // 处理修饰键作为快捷键的情况（比如只按 Option）
         if isModifierKey && type == .flagsChanged {
@@ -97,15 +131,20 @@ class HotkeyManager {
             
             if isModifierPressed && !isHotkeyPressed {
                 isHotkeyPressed = true
+                currentMode = InputMode.fromModifiers(modifiers)
+                print("[Hotkey] ✅ DOWN (modifier key), mode: \(currentMode.displayName)")
                 DispatchQueue.main.async {
                     self.onHotkeyDown?()
                 }
                 return nil
             } else if !isModifierPressed && isHotkeyPressed {
                 isHotkeyPressed = false
+                print("[Hotkey] ✅ UP (modifier key), final mode: \(currentMode.displayName)")
+                let finalMode = currentMode
                 DispatchQueue.main.async {
-                    self.onHotkeyUp?()
+                    self.onHotkeyUp?(finalMode)
                 }
+                currentMode = .polish // 重置
                 return nil
             }
             return Unmanaged.passRetained(event)
@@ -116,7 +155,8 @@ class HotkeyManager {
         if type == .keyDown && isTargetKey && hasTargetModifiers {
             if !isHotkeyPressed {
                 isHotkeyPressed = true
-                print("[Hotkey] ✅ DOWN: keyCode=\(keyCode), mods=\(modifiers)")
+                currentMode = InputMode.fromModifiers(modifiers)
+                print("[Hotkey] ✅ DOWN: keyCode=\(keyCode), mods=\(modifiers), mode: \(currentMode.displayName)")
                 DispatchQueue.main.async {
                     self.onHotkeyDown?()
                 }
@@ -127,20 +167,24 @@ class HotkeyManager {
         // keyUp: 只要是目标键且正在按住状态，就拦截
         if type == .keyUp && isTargetKey && isHotkeyPressed {
             isHotkeyPressed = false
-            print("[Hotkey] ✅ UP: keyCode=\(keyCode)")
+            print("[Hotkey] ✅ UP: keyCode=\(keyCode), final mode: \(currentMode.displayName)")
+            let finalMode = currentMode
             DispatchQueue.main.async {
-                self.onHotkeyUp?()
+                self.onHotkeyUp?(finalMode)
             }
+            currentMode = .polish // 重置
             return nil // 吃掉事件
         }
         
-        // 修饰键变化：如果正在按住且修饰键松开了，也触发 up
+        // 修饰键变化：如果正在按住且主触发修饰键松开了，也触发 up
         if type == .flagsChanged && isHotkeyPressed && !hasTargetModifiers {
             isHotkeyPressed = false
-            print("[Hotkey] ✅ Modifier released, triggering UP")
+            print("[Hotkey] ✅ Modifier released, triggering UP, final mode: \(currentMode.displayName)")
+            let finalMode = currentMode
             DispatchQueue.main.async {
-                self.onHotkeyUp?()
+                self.onHotkeyUp?(finalMode)
             }
+            currentMode = .polish // 重置
             // 不吃掉 flagsChanged 事件
         }
         

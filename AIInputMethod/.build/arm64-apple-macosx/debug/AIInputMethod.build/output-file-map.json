@@ -8,6 +8,18 @@
     "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp~partial.swiftmodule",
     "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/AIInputMethodApp.swiftdeps"
   },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/AI/InputMode.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/InputMode.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/InputMode.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/InputMode~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/InputMode.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/AI/MiniMaxService.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/MiniMaxService.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/MiniMaxService.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/MiniMaxService~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/MiniMaxService.swiftdeps"
+  },
   "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Accessibility/CursorManager.swift": {
     "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.d",
     "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/CursorManager.swift.o",
@@ -19,6 +31,90 @@
     "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.swift.o",
     "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver~partial.swiftmodule",
     "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/FocusObserver.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/DashboardState.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardState.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardState.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardState~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardState.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/DashboardWindowController.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardWindowController.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardWindowController.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardWindowController~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardWindowController.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/DeviceIdManager.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DeviceIdManager.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DeviceIdManager.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DeviceIdManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DeviceIdManager.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/LibraryViewModel.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryViewModel.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryViewModel.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryViewModel~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryViewModel.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/NavItem.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/NavItem.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/NavItem.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/NavItem~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/NavItem.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/PersistenceController.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PersistenceController.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PersistenceController.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PersistenceController~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PersistenceController.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/PreferencesViewModel.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesViewModel.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesViewModel.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesViewModel~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesViewModel.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/QuotaManager.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaManager.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaManager.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaManager.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/QuotaRecord+CoreDataClass.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataClass.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataClass.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataClass~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataClass.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/QuotaRecord+CoreDataProperties.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataProperties.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataProperties.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataProperties~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/QuotaRecord+CoreDataProperties.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/RecordCategory.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordCategory.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordCategory.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordCategory~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordCategory.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/StatsCalculator.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/StatsCalculator.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/StatsCalculator.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/StatsCalculator~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/StatsCalculator.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/UsageRecord+CoreDataClass.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataClass.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataClass.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataClass~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataClass.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Dashboard/UsageRecord+CoreDataProperties.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataProperties.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataProperties.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataProperties~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/UsageRecord+CoreDataProperties.swiftdeps"
   },
   "/Users/gengdawei/ghostype/AIInputMethod/Sources/Features/Hotkey/HotkeyManager.swift": {
     "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/HotkeyManager.d",
@@ -43,6 +139,72 @@
     "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService.swift.o",
     "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService~partial.swiftmodule",
     "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SpeechService.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/BentoCard.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/BentoCard.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/BentoCard.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/BentoCard~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/BentoCard.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/EnergyRingView.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/EnergyRingView.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/EnergyRingView.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/EnergyRingView~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/EnergyRingView.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/PieChartView.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PieChartView.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PieChartView.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PieChartView~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PieChartView.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/RecordDetailPanel.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordDetailPanel.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordDetailPanel.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordDetailPanel~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordDetailPanel.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Components/RecordListItem.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordListItem.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordListItem.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordListItem~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/RecordListItem.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/DashboardView.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardView.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardView.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardView~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/DashboardView.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/OnboardingContentView.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingContentView.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingContentView.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingContentView~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingContentView.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Pages/LibraryPage.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryPage.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryPage.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryPage~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/LibraryPage.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Pages/OverviewPage.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverviewPage.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverviewPage.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverviewPage~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OverviewPage.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/Pages/PreferencesPage.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesPage.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesPage.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesPage~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/PreferencesPage.swiftdeps"
+  },
+  "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/Dashboard/SidebarView.swift": {
+    "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SidebarView.d",
+    "object": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SidebarView.swift.o",
+    "swiftmodule": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SidebarView~partial.swiftmodule",
+    "swift-dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/SidebarView.swiftdeps"
   },
   "/Users/gengdawei/ghostype/AIInputMethod/Sources/UI/OnboardingWindow.swift": {
     "dependencies": "/Users/gengdawei/ghostype/AIInputMethod/.build/arm64-apple-macosx/debug/AIInputMethod.build/OnboardingWindow.d",
