@@ -8,16 +8,23 @@ APP_BUNDLE="$DISPLAY_NAME.app"
 echo "🧹 Clearing app data for fresh start..."
 defaults delete com.gengdawei.ghostype 2>/dev/null || true
 
-echo "📦 Bundling $DISPLAY_NAME..."
+echo "📦 Bundling $DISPLAY_NAME (Release)..."
+
+# 清理旧的 app bundle
+rm -rf "$APP_BUNDLE"
 
 mkdir -p "$APP_BUNDLE/Contents/MacOS"
 mkdir -p "$APP_BUNDLE/Contents/Resources"
 
-# Copy Executable
-if [ -f ".build/debug/$APP_NAME" ]; then
+# Copy Executable - 优先使用 release 版本
+if [ -f ".build/release/$APP_NAME" ]; then
+    cp ".build/release/$APP_NAME" "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
+    chmod +x "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
+    echo "✅ Executable copied (release)."
+elif [ -f ".build/debug/$APP_NAME" ]; then
     cp ".build/debug/$APP_NAME" "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
     chmod +x "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
-    echo "✅ Executable copied."
+    echo "✅ Executable copied (debug)."
 else
     echo "❌ Executable not found."
     exit 1
@@ -39,14 +46,17 @@ if [ -f "Sources/Resources/AppIcon.png" ]; then
     sips -z 1024 1024 Sources/Resources/AppIcon.png --out "$ICONSET/icon_512x512@2x.png" > /dev/null 2>&1
     iconutil -c icns "$ICONSET" -o "$APP_BUNDLE/Contents/Resources/AppIcon.icns" 2>/dev/null
     rm -rf "$ICONSET"
-    echo "✅ App icon created."
+    echo "✅ App icon created (AppIcon.icns)."
+else
+    echo "⚠️ AppIcon.png not found, skipping icon generation."
 fi
 
 # MenuBar Icon
 if [ -f "Sources/Resources/MenuBarIcon.pdf" ]; then
     cp Sources/Resources/MenuBarIcon.pdf "$APP_BUNDLE/Contents/Resources/"
     echo "✅ MenuBar icon (PDF) copied."
-elif [ -f "Sources/Resources/MenuBarIcon.png" ]; then
+fi
+if [ -f "Sources/Resources/MenuBarIcon.png" ]; then
     cp Sources/Resources/MenuBarIcon.png "$APP_BUNDLE/Contents/Resources/"
     echo "✅ MenuBar icon (PNG) copied."
 fi
@@ -92,4 +102,20 @@ cat <<EOF > "$APP_BUNDLE/Contents/Info.plist"
 EOF
 echo "✅ Info.plist created."
 
+# 🔐 代码签名 (Ad-hoc signing for accessibility permissions)
+echo "🔐 Signing app with ad-hoc signature..."
+codesign --force --deep --sign - "$APP_BUNDLE" 2>&1
+if [ $? -eq 0 ]; then
+    echo "✅ App signed successfully."
+else
+    echo "⚠️ Signing failed, but app may still work."
+fi
+
+# 验证签名
+echo "🔍 Verifying signature..."
+codesign -dv --verbose=2 "$APP_BUNDLE" 2>&1 | head -5
+
+echo ""
 echo "🚀 Done: $APP_BUNDLE"
+echo "📍 Location: $(pwd)/$APP_BUNDLE"
+ls -la "$APP_BUNDLE/Contents/Resources/"
