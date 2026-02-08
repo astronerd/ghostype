@@ -96,6 +96,8 @@ struct DashboardView: View {
             MemoPage()
         case .library:
             LibraryPageWithData()
+        case .aiPolish:
+            AIPolishPage()
         case .preferences:
             PreferencesPage()
         }

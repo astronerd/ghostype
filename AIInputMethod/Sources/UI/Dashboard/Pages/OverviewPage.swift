@@ -332,7 +332,7 @@ struct OverviewPageWithData: View {
 struct OverviewPage_Previews: PreviewProvider {
     static var previews: some View {
         OverviewPage(
-            todayStats: TodayStats(characterCount: 1234, estimatedTimeSaved: 617),
+            todayStats: TodayStats(characterCount: 1234, totalCharacterCount: 12345, estimatedTimeSaved: 617),
             quotaInfo: QuotaInfo(usedPercentage: 0.35, formattedUsedTime: "21分钟", formattedRemainingTime: "39分钟"),
             appDistribution: [],
             recentNotes: []

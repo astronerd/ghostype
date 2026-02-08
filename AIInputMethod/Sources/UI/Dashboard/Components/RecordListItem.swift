@@ -131,7 +131,7 @@ struct RecordListItem: View {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyyMMdd_HHmmss"
         let dateString = dateFormatter.string(from: record.timestamp)
-        return "GhosTYPE_记录_\(dateString).txt"
+        return "GHOSTYPE_记录_\(dateString).txt"
     }
     
     static func truncateContent(_ content: String, maxLength: Int = 100) -> String {

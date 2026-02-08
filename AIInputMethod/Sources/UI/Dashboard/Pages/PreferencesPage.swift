@@ -19,20 +19,19 @@ struct PreferencesPage: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DS.Spacing.xl) {
-                Text("偏好设置")
+                Text(L.Prefs.title)
                     .font(DS.Typography.largeTitle)
                     .foregroundColor(DS.Colors.text1)
                     .padding(.bottom, DS.Spacing.sm)
                 
                 generalSettingsSection
+                languageSettingsSection
                 permissionsSection
                 hotkeySettingsSection
                 modeModifiersSection
-                aiPolishSection
                 translateLanguageSection
                 contactsHotwordsSection
                 autoEnterSection
-                promptEditorSection
                 aiEngineSection
                 resetSection
                 
@@ -49,11 +48,11 @@ struct PreferencesPage: View {
     // MARK: - General Settings Section
     
     private var generalSettingsSection: some View {
-        MinimalSettingsSection(title: "通用", icon: "gearshape") {
+        MinimalSettingsSection(title: L.Prefs.general, icon: "gearshape") {
             VStack(spacing: 0) {
                 MinimalToggleRow(
-                    title: "开机自启动",
-                    subtitle: "登录时自动启动 GhosTYPE",
+                    title: L.Prefs.launchAtLogin,
+                    subtitle: L.Prefs.launchAtLoginDesc,
                     icon: "power",
                     isOn: Binding(
                         get: { viewModel.launchAtLogin },
@@ -65,8 +64,8 @@ struct PreferencesPage: View {
                     .padding(.leading, 44)
                 
                 MinimalToggleRow(
-                    title: "声音反馈",
-                    subtitle: "录音开始和结束时播放提示音",
+                    title: L.Prefs.soundFeedback,
+                    subtitle: L.Prefs.soundFeedbackDesc,
                     icon: "speaker.wave.2",
                     isOn: Binding(
                         get: { viewModel.soundFeedback },
@@ -78,8 +77,8 @@ struct PreferencesPage: View {
                     .padding(.leading, 44)
                 
                 MinimalNavigationRow(
-                    title: "输入模式",
-                    subtitle: viewModel.autoStartOnFocus ? "自动模式" : "手动模式",
+                    title: L.Prefs.inputMode,
+                    subtitle: viewModel.autoStartOnFocus ? L.Prefs.inputModeAuto : L.Prefs.inputModeManual,
                     icon: viewModel.autoStartOnFocus ? "text.cursor" : "hand.tap"
                 ) {
                     viewModel.autoStartOnFocus.toggle()
@@ -88,14 +87,56 @@ struct PreferencesPage: View {
         }
     }
     
+    // MARK: - Language Settings Section
+    
+    private var languageSettingsSection: some View {
+        MinimalSettingsSection(title: L.Prefs.language, icon: "globe") {
+            HStack(spacing: DS.Spacing.md) {
+                Image(systemName: "globe")
+                    .font(.system(size: 14))
+                    .foregroundColor(DS.Colors.icon)
+                    .frame(width: 28, height: 28)
+                    .background(DS.Colors.highlight)
+                    .cornerRadius(DS.Layout.cornerRadius)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L.Prefs.language)
+                        .font(DS.Typography.body)
+                        .foregroundColor(DS.Colors.text1)
+                    Text(L.Prefs.languageDesc)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text2)
+                }
+                
+                Spacer()
+                
+                Picker("", selection: Binding(
+                    get: { viewModel.appLanguage },
+                    set: { viewModel.appLanguage = $0 }
+                )) {
+                    ForEach(AppLanguage.allCases) { language in
+                        HStack {
+                            Text(language.icon)
+                            Text(language.displayName)
+                        }
+                        .tag(language)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(width: 140)
+            }
+            .padding(DS.Spacing.lg)
+        }
+    }
+    
     // MARK: - Permissions Section
     
     private var permissionsSection: some View {
-        MinimalSettingsSection(title: "权限管理", icon: "lock.shield") {
+        MinimalSettingsSection(title: L.Prefs.permissions, icon: "lock.shield") {
             VStack(spacing: 0) {
                 permissionRow(
-                    title: "辅助功能",
-                    subtitle: "监听快捷键并插入文字",
+                    title: L.Prefs.accessibility,
+                    subtitle: L.Prefs.accessibilityDesc,
                     icon: "hand.raised",
                     isGranted: viewModel.permissionManager.isAccessibilityTrusted,
                     onRequest: {
@@ -108,8 +149,8 @@ struct PreferencesPage: View {
                     .padding(.leading, 44)
                 
                 permissionRow(
-                    title: "麦克风",
-                    subtitle: "录制语音进行识别",
+                    title: L.Prefs.microphone,
+                    subtitle: L.Prefs.microphoneDesc,
                     icon: "mic",
                     isGranted: viewModel.permissionManager.isMicrophoneGranted,
                     onRequest: {
@@ -126,7 +167,7 @@ struct PreferencesPage: View {
                         viewModel.permissionManager.checkAccessibilityStatus()
                         viewModel.permissionManager.checkMicrophoneStatus()
                     }) {
-                        Label("刷新状态", systemImage: "arrow.clockwise")
+                        Label(L.Prefs.refreshStatus, systemImage: "arrow.clockwise")
                             .font(DS.Typography.caption)
                             .foregroundColor(DS.Colors.text2)
                     }
@@ -161,7 +202,7 @@ struct PreferencesPage: View {
             if isGranted {
                 StatusDot(status: .success, size: 8)
             } else {
-                Button("授权") { onRequest() }
+                Button(L.Prefs.authorize) { onRequest() }
                     .font(DS.Typography.caption)
                     .foregroundColor(DS.Colors.text1)
                     .padding(.horizontal, DS.Spacing.md)
@@ -178,15 +219,15 @@ struct PreferencesPage: View {
     // MARK: - Hotkey Settings Section
     
     private var hotkeySettingsSection: some View {
-        MinimalSettingsSection(title: "快捷键", icon: "keyboard") {
+        MinimalSettingsSection(title: L.Prefs.hotkey, icon: "keyboard") {
             VStack(spacing: DS.Spacing.md) {
                 HStack {
                     VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-                        Text("触发快捷键")
+                        Text(L.Prefs.hotkeyTrigger)
                             .font(DS.Typography.body)
                             .foregroundColor(DS.Colors.text1)
                         
-                        Text("按住快捷键说话，松开完成输入")
+                        Text(L.Prefs.hotkeyDesc)
                             .font(DS.Typography.caption)
                             .foregroundColor(DS.Colors.text2)
                     }
@@ -213,7 +254,7 @@ struct PreferencesPage: View {
                         .font(.system(size: 11))
                         .foregroundColor(DS.Colors.text3)
                     
-                    Text(isRecordingHotkey ? "按下新的快捷键组合..." : "点击上方按钮修改快捷键")
+                    Text(isRecordingHotkey ? L.Prefs.hotkeyRecording : L.Prefs.hotkeyHint)
                         .font(DS.Typography.caption)
                         .foregroundColor(DS.Colors.text3)
                     
@@ -228,14 +269,14 @@ struct PreferencesPage: View {
     // MARK: - Mode Modifiers Section
     
     private var modeModifiersSection: some View {
-        MinimalSettingsSection(title: "模式修饰键", icon: "keyboard.badge.ellipsis") {
+        MinimalSettingsSection(title: L.Prefs.modeModifiers, icon: "keyboard.badge.ellipsis") {
             VStack(spacing: 0) {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("翻译模式")
+                        Text(L.Prefs.translateMode)
                             .font(DS.Typography.body)
                             .foregroundColor(DS.Colors.text1)
-                        Text("按住主触发键 + 此修饰键进入翻译模式")
+                        Text(L.Prefs.translateModeDesc)
                             .font(DS.Typography.caption)
                             .foregroundColor(DS.Colors.text2)
                     }
@@ -257,10 +298,10 @@ struct PreferencesPage: View {
                 
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("随心记模式")
+                        Text(L.Prefs.memoMode)
                             .font(DS.Typography.body)
                             .foregroundColor(DS.Colors.text1)
-                        Text("按住主触发键 + 此修饰键进入随心记模式")
+                        Text(L.Prefs.memoModeDesc)
                             .font(DS.Typography.caption)
                             .foregroundColor(DS.Colors.text2)
                     }
@@ -280,70 +321,10 @@ struct PreferencesPage: View {
         }
     }
 
-    // MARK: - AI Polish Section
-    
-    private var aiPolishSection: some View {
-        MinimalSettingsSection(title: "AI 润色", icon: "wand.and.stars") {
-            VStack(spacing: 0) {
-                MinimalToggleRow(
-                    title: "启用 AI 润色",
-                    subtitle: "关闭后直接输出原始转录文本",
-                    icon: "wand.and.stars",
-                    isOn: Binding(
-                        get: { viewModel.enableAIPolish },
-                        set: { viewModel.enableAIPolish = $0 }
-                    )
-                )
-                
-                MinimalDivider()
-                    .padding(.leading, 44)
-                
-                HStack(spacing: DS.Spacing.md) {
-                    Image(systemName: "textformat.size")
-                        .font(.system(size: 14))
-                        .foregroundColor(DS.Colors.icon)
-                        .frame(width: 28, height: 28)
-                        .background(DS.Colors.highlight)
-                        .cornerRadius(DS.Layout.cornerRadius)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("自动润色阈值")
-                            .font(DS.Typography.body)
-                            .foregroundColor(DS.Colors.text1)
-                        Text("低于此字数的文本不进行 AI 润色")
-                            .font(DS.Typography.caption)
-                            .foregroundColor(DS.Colors.text2)
-                    }
-                    Spacer()
-                    HStack(spacing: DS.Spacing.md) {
-                        Slider(
-                            value: Binding(
-                                get: { Double(viewModel.polishThreshold) },
-                                set: { viewModel.polishThreshold = Int($0) }
-                            ),
-                            in: 0...200,
-                            step: 1
-                        )
-                        .frame(width: 100)
-                        Text("\(viewModel.polishThreshold) 字")
-                            .font(DS.Typography.caption)
-                            .foregroundColor(DS.Colors.text2)
-                            .monospacedDigit()
-                            .frame(width: 45, alignment: .trailing)
-                    }
-                }
-                .padding(.horizontal, DS.Spacing.lg)
-                .padding(.vertical, DS.Spacing.md)
-                .opacity(viewModel.enableAIPolish ? 1.0 : 0.5)
-                .disabled(!viewModel.enableAIPolish)
-            }
-        }
-    }
-
     // MARK: - Translate Language Section
     
     private var translateLanguageSection: some View {
-        MinimalSettingsSection(title: "翻译设置", icon: "globe") {
+        MinimalSettingsSection(title: L.Prefs.translateSettings, icon: "globe") {
             HStack(spacing: DS.Spacing.md) {
                 Image(systemName: "globe")
                     .font(.system(size: 14))
@@ -353,10 +334,10 @@ struct PreferencesPage: View {
                     .cornerRadius(DS.Layout.cornerRadius)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("翻译语言")
+                    Text(L.Prefs.translateLanguage)
                         .font(DS.Typography.body)
                         .foregroundColor(DS.Colors.text1)
-                    Text("选择翻译模式的目标语言")
+                    Text(L.Prefs.translateLanguageDesc)
                         .font(DS.Typography.caption)
                         .foregroundColor(DS.Colors.text2)
                 }
@@ -381,11 +362,11 @@ struct PreferencesPage: View {
     // MARK: - Contacts Hotwords Section
     
     private var contactsHotwordsSection: some View {
-        MinimalSettingsSection(title: "通讯录热词", icon: "person.crop.circle") {
+        MinimalSettingsSection(title: L.Prefs.contactsHotwords, icon: "person.crop.circle") {
             VStack(spacing: 0) {
                 MinimalToggleRow(
-                    title: "启用通讯录热词",
-                    subtitle: "使用通讯录联系人姓名提高识别准确率",
+                    title: L.Prefs.contactsHotwordsEnable,
+                    subtitle: L.Prefs.contactsHotwordsDesc,
                     icon: "person.crop.circle",
                     isOn: Binding(
                         get: { viewModel.enableContactsHotwords },
@@ -406,7 +387,7 @@ struct PreferencesPage: View {
                             .cornerRadius(DS.Layout.cornerRadius)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("授权状态")
+                            Text(L.Prefs.authStatus)
                                 .font(DS.Typography.body)
                                 .foregroundColor(DS.Colors.text1)
                             Text(viewModel.contactsAuthStatus.displayText)
@@ -417,7 +398,7 @@ struct PreferencesPage: View {
                         Spacer()
                         
                         if viewModel.contactsAuthStatus == .authorized {
-                            Text("\(viewModel.hotwordsCount) 个热词")
+                            Text("\(viewModel.hotwordsCount) \(L.Prefs.hotwordsCount)")
                                 .font(DS.Typography.caption)
                                 .foregroundColor(DS.Colors.text2)
                             
@@ -428,7 +409,7 @@ struct PreferencesPage: View {
                             }
                             .buttonStyle(.plain)
                         } else if viewModel.contactsAuthStatus == .notDetermined {
-                            Button("授权访问") { viewModel.requestContactsAccessIfNeeded() }
+                            Button(L.Prefs.authorizeAccess) { viewModel.requestContactsAccessIfNeeded() }
                                 .font(DS.Typography.caption)
                                 .foregroundColor(DS.Colors.text1)
                                 .padding(.horizontal, DS.Spacing.md)
@@ -437,7 +418,7 @@ struct PreferencesPage: View {
                                 .cornerRadius(DS.Layout.cornerRadius)
                                 .buttonStyle(.plain)
                         } else if viewModel.contactsAuthStatus == .denied {
-                            Button("打开设置") {
+                            Button(L.Prefs.openSettings) {
                                 NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Contacts")!)
                             }
                             .font(DS.Typography.caption)
@@ -459,11 +440,11 @@ struct PreferencesPage: View {
     // MARK: - Auto Enter Section
     
     private var autoEnterSection: some View {
-        MinimalSettingsSection(title: "自动发送", icon: "return") {
+        MinimalSettingsSection(title: L.Prefs.autoSend, icon: "return") {
             VStack(spacing: 0) {
                 MinimalToggleRow(
-                    title: "启用自动发送",
-                    subtitle: "上字后自动按回车发送消息",
+                    title: L.Prefs.autoSendEnable,
+                    subtitle: L.Prefs.autoSendDesc,
                     icon: "return",
                     isOn: Binding(
                         get: { viewModel.enableAutoEnter },
@@ -484,10 +465,10 @@ struct PreferencesPage: View {
                             .cornerRadius(DS.Layout.cornerRadius)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("自动化权限")
+                            Text(L.Prefs.automationPermission)
                                 .font(DS.Typography.body)
                                 .foregroundColor(DS.Colors.text1)
-                            Text("允许控制 System Events")
+                            Text(L.Prefs.automationPermissionDesc)
                                 .font(DS.Typography.caption)
                                 .foregroundColor(DS.Colors.text2)
                         }
@@ -497,7 +478,7 @@ struct PreferencesPage: View {
                         if viewModel.isAppleScriptAuthorized {
                             StatusDot(status: .success, size: 8)
                         } else {
-                            Button("授权") { viewModel.requestAppleScriptPermission() }
+                            Button(L.Prefs.authorize) { viewModel.requestAppleScriptPermission() }
                                 .font(DS.Typography.caption)
                                 .foregroundColor(DS.Colors.text1)
                                 .padding(.horizontal, DS.Spacing.md)
@@ -515,7 +496,7 @@ struct PreferencesPage: View {
                     
                     VStack(alignment: .leading, spacing: DS.Spacing.md) {
                         HStack {
-                            Text("启用的应用")
+                            Text(L.Prefs.enabledApps)
                                 .font(DS.Typography.caption)
                                 .foregroundColor(DS.Colors.text2)
                             
@@ -525,7 +506,7 @@ struct PreferencesPage: View {
                                 HStack(spacing: DS.Spacing.xs) {
                                     Image(systemName: "plus")
                                         .font(.system(size: 10))
-                                    Text("添加应用")
+                                    Text(L.Prefs.addApp)
                                         .font(DS.Typography.caption)
                                 }
                                 .foregroundColor(DS.Colors.text1)
@@ -538,7 +519,7 @@ struct PreferencesPage: View {
                         }
                         
                         if viewModel.autoEnterApps.isEmpty {
-                            Text("暂无应用，点击上方按钮添加")
+                            Text(L.Prefs.noAppsHint)
                                 .font(DS.Typography.caption)
                                 .foregroundColor(DS.Colors.text3)
                                 .frame(maxWidth: .infinity)
@@ -582,33 +563,17 @@ struct PreferencesPage: View {
         }
     }
 
-    // MARK: - Prompt Editor Section
-    
-    private var promptEditorSection: some View {
-        MinimalSettingsSection(title: "自定义 Prompt", icon: "text.quote") {
-            PromptEditorView(
-                title: "润色 Prompt",
-                prompt: Binding(
-                    get: { viewModel.polishPrompt },
-                    set: { viewModel.polishPrompt = $0 }
-                ),
-                defaultPrompt: AppSettings.defaultPolishPrompt
-            )
-            .padding(DS.Spacing.lg)
-        }
-    }
-    
     // MARK: - AI Engine Section
     
     private var aiEngineSection: some View {
-        MinimalSettingsSection(title: "AI 引擎", icon: "cpu") {
+        MinimalSettingsSection(title: L.Prefs.aiEngine, icon: "cpu") {
             HStack {
                 VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-                    Text("豆包语音识别")
+                    Text(L.Prefs.aiEngineName)
                         .font(DS.Typography.body)
                         .foregroundColor(DS.Colors.text1)
                     
-                    Text("Doubao Speech-to-Text API")
+                    Text(L.Prefs.aiEngineApi)
                         .font(DS.Typography.caption)
                         .foregroundColor(DS.Colors.text2)
                 }
@@ -623,7 +588,7 @@ struct PreferencesPage: View {
                         StatusDot(status: viewModel.aiEngineStatus == .online ? .success : .error, size: 8)
                     }
                     
-                    Text(viewModel.aiEngineStatus.displayText)
+                    Text(viewModel.aiEngineStatus.localizedText)
                         .font(DS.Typography.caption)
                         .foregroundColor(DS.Colors.text2)
                 }
@@ -651,7 +616,7 @@ struct PreferencesPage: View {
                     Image(systemName: "arrow.counterclockwise")
                         .font(.system(size: 11))
                     
-                    Text("恢复默认设置")
+                    Text(L.Prefs.reset)
                         .font(DS.Typography.caption)
                 }
                 .foregroundColor(DS.Colors.text2)
@@ -792,11 +757,11 @@ struct AppPickerSheet: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("选择应用")
+                Text(L.AppPicker.title)
                     .font(DS.Typography.title)
                     .foregroundColor(DS.Colors.text1)
                 Spacer()
-                Button("完成") { isPresented = false }
+                Button(L.Common.done) { isPresented = false }
                     .font(DS.Typography.body)
                     .foregroundColor(DS.Colors.text1)
                     .buttonStyle(.plain)
@@ -810,7 +775,7 @@ struct AppPickerSheet: View {
                     Image(systemName: "app.badge.checkmark")
                         .font(.system(size: 36))
                         .foregroundColor(DS.Colors.text3)
-                    Text("没有可添加的应用")
+                    Text(L.AppPicker.noApps)
                         .font(DS.Typography.body)
                         .foregroundColor(DS.Colors.text2)
                 }
@@ -836,7 +801,7 @@ struct AppPickerSheet: View {
                         if viewModel.autoEnterApps.contains(where: { $0.bundleId == app.bundleId }) {
                             StatusDot(status: .success, size: 8)
                         } else {
-                            Button("添加") { viewModel.addAutoEnterApp(bundleId: app.bundleId) }
+                            Button(L.Common.add) { viewModel.addAutoEnterApp(bundleId: app.bundleId) }
                                 .font(DS.Typography.caption)
                                 .foregroundColor(DS.Colors.text1)
                                 .padding(.horizontal, DS.Spacing.md)

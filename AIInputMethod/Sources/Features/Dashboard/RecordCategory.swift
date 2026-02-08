@@ -2,7 +2,7 @@
 //  RecordCategory.swift
 //  AIInputMethod
 //
-//  Created for GhosTYPE Dashboard Console
+//  Created for GHOSTYPE Dashboard Console
 //
 
 import Foundation

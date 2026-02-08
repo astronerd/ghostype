@@ -140,6 +140,15 @@ class PreferencesViewModel {
     /// AppleScript 自动化权限状态
     var isAppleScriptAuthorized: Bool = false
     
+    // MARK: - 语言设置
+    
+    /// 应用语言
+    var appLanguage: AppLanguage {
+        didSet {
+            AppSettings.shared.appLanguage = appLanguage
+        }
+    }
+    
     /// 请求 AppleScript 自动化权限（用户点击授权按钮时调用）
     func requestAppleScriptPermission() {
         // 执行一个 osascript 命令来触发系统权限弹窗
@@ -170,6 +179,7 @@ class PreferencesViewModel {
         self.polishThreshold = AppSettings.shared.polishThreshold
         self.enableContactsHotwords = AppSettings.shared.enableContactsHotwords
         self.enableAutoEnter = AppSettings.shared.enableAutoEnter
+        self.appLanguage = AppSettings.shared.appLanguage
         
         checkAIEngineStatus()
         loadContactsStatus()
@@ -326,6 +336,14 @@ enum AIEngineStatus {
         }
     }
     
+    var localizedText: String {
+        switch self {
+        case .online: return L.Prefs.aiEngineOnline
+        case .offline: return L.Prefs.aiEngineOffline
+        case .checking: return L.Prefs.aiEngineChecking
+        }
+    }
+    
     var color: Color {
         switch self {
         case .online: return .green
@@ -354,11 +372,11 @@ enum ContactsAuthStatus {
     
     var displayText: String {
         switch self {
-        case .unknown: return "未知"
-        case .notDetermined: return "未请求"
-        case .authorized: return "已授权"
-        case .denied: return "已拒绝"
-        case .restricted: return "受限"
+        case .unknown: return L.Auth.unknown
+        case .notDetermined: return L.Auth.notDetermined
+        case .authorized: return L.Auth.authorized
+        case .denied: return L.Auth.denied
+        case .restricted: return L.Auth.restricted
         }
     }
     

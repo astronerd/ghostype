@@ -44,7 +44,7 @@ struct SidebarView: View {
     
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.sm) {
-            GhosTYPELogo()
+            GHOSTYPELogo()
                 .frame(width: 152, height: 21)
             
             Text("Your Type of Spirit.")

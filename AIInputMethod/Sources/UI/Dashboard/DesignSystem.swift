@@ -232,7 +232,7 @@ struct SectionHeader: View {
 
 // MARK: - GHOSTYPE Logo View (从 SVG 文件加载)
 
-struct GhosTYPELogo: View {
+struct GHOSTYPELogo: View {
     var tintColor: Color = DS.Colors.text1
     
     var body: some View {

@@ -49,6 +49,40 @@ class AppSettings: ObservableObject {
         didSet { saveToUserDefaults() }
     }
     
+    // MARK: - AI 润色配置文件
+    
+    /// 默认润色配置（默认「默认」）
+    @Published var defaultProfile: String {
+        didSet { saveToUserDefaults() }
+    }
+    
+    /// 应用专属配置映射 [BundleID: ProfileName]
+    @Published var appProfileMapping: [String: String] {
+        didSet { saveToUserDefaults() }
+    }
+    
+    /// 自定义配置的 Prompt
+    @Published var customProfilePrompt: String {
+        didSet { saveToUserDefaults() }
+    }
+    
+    // MARK: - 智能指令设置
+    
+    /// 是否启用句内模式识别（默认 true）
+    @Published var enableInSentencePatterns: Bool {
+        didSet { saveToUserDefaults() }
+    }
+    
+    /// 是否启用句尾唤醒指令（默认 true）
+    @Published var enableTriggerCommands: Bool {
+        didSet { saveToUserDefaults() }
+    }
+    
+    /// 唤醒词（默认「Ghost」）
+    @Published var triggerWord: String {
+        didSet { saveToUserDefaults() }
+    }
+    
     // MARK: - AI Prompt 设置
     
     /// 润色 Prompt（只保留润色的自定义 Prompt）
@@ -102,6 +136,17 @@ class AppSettings: ObservableObject {
         didSet { saveToUserDefaults() }
     }
     
+    // MARK: - 语言设置
+    
+    /// 应用语言
+    @Published var appLanguage: AppLanguage {
+        didSet {
+            saveToUserDefaults()
+            // 同步更新 LocalizationManager
+            LocalizationManager.shared.currentLanguage = appLanguage
+        }
+    }
+    
     // MARK: - 默认 Prompts
     
     static let defaultPolishPrompt = """
@@ -127,6 +172,12 @@ class AppSettings: ObservableObject {
         static let memoModifier = "memoModifier"
         static let enableAIPolish = "enableAIPolish"
         static let polishThreshold = "polishThreshold"
+        static let defaultProfile = "defaultProfile"
+        static let appProfileMapping = "appProfileMapping"
+        static let customProfilePrompt = "customProfilePrompt"
+        static let enableInSentencePatterns = "enableInSentencePatterns"
+        static let enableTriggerCommands = "enableTriggerCommands"
+        static let triggerWord = "triggerWord"
         static let polishPrompt = "polishPrompt"
         static let translateLanguage = "translateLanguage"
         static let autoStartOnFocus = "autoStartOnFocus"
@@ -136,6 +187,7 @@ class AppSettings: ObservableObject {
         static let enableContactsHotwords = "enableContactsHotwords"
         static let enableAutoEnter = "enableAutoEnter"
         static let autoEnterApps = "autoEnterApps"
+        static let appLanguage = "appLanguage"
     }
     
     // MARK: - Initialization
@@ -179,6 +231,32 @@ class AppSettings: ObservableObject {
         let savedThreshold = defaults.integer(forKey: Keys.polishThreshold)
         polishThreshold = savedThreshold > 0 ? savedThreshold : 20
         
+        // 加载 AI 润色配置文件设置
+        defaultProfile = defaults.string(forKey: Keys.defaultProfile) ?? "默认"
+        
+        if let mappingData = defaults.dictionary(forKey: Keys.appProfileMapping) as? [String: String] {
+            appProfileMapping = mappingData
+        } else {
+            appProfileMapping = [:]
+        }
+        
+        customProfilePrompt = defaults.string(forKey: Keys.customProfilePrompt) ?? ""
+        
+        // 加载智能指令设置
+        if defaults.object(forKey: Keys.enableInSentencePatterns) != nil {
+            enableInSentencePatterns = defaults.bool(forKey: Keys.enableInSentencePatterns)
+        } else {
+            enableInSentencePatterns = true  // 默认开启
+        }
+        
+        if defaults.object(forKey: Keys.enableTriggerCommands) != nil {
+            enableTriggerCommands = defaults.bool(forKey: Keys.enableTriggerCommands)
+        } else {
+            enableTriggerCommands = true  // 默认开启
+        }
+        
+        triggerWord = defaults.string(forKey: Keys.triggerWord) ?? "Ghost"
+        
         // 加载润色 Prompt
         polishPrompt = defaults.string(forKey: Keys.polishPrompt) ?? Self.defaultPolishPrompt
         
@@ -202,6 +280,14 @@ class AppSettings: ObservableObject {
         // 加载自动回车设置（默认关闭）
         enableAutoEnter = defaults.bool(forKey: Keys.enableAutoEnter)
         autoEnterApps = defaults.stringArray(forKey: Keys.autoEnterApps) ?? []
+        
+        // 加载语言设置（默认跟随系统）
+        if let savedLanguage = defaults.string(forKey: Keys.appLanguage),
+           let language = AppLanguage(rawValue: savedLanguage) {
+            appLanguage = language
+        } else {
+            appLanguage = AppLanguage.systemDefault
+        }
     }
     
     // MARK: - Persistence
@@ -216,6 +302,12 @@ class AppSettings: ObservableObject {
         defaults.set(memoModifier.rawValue, forKey: Keys.memoModifier)
         defaults.set(enableAIPolish, forKey: Keys.enableAIPolish)
         defaults.set(polishThreshold, forKey: Keys.polishThreshold)
+        defaults.set(defaultProfile, forKey: Keys.defaultProfile)
+        defaults.set(appProfileMapping, forKey: Keys.appProfileMapping)
+        defaults.set(customProfilePrompt, forKey: Keys.customProfilePrompt)
+        defaults.set(enableInSentencePatterns, forKey: Keys.enableInSentencePatterns)
+        defaults.set(enableTriggerCommands, forKey: Keys.enableTriggerCommands)
+        defaults.set(triggerWord, forKey: Keys.triggerWord)
         defaults.set(polishPrompt, forKey: Keys.polishPrompt)
         defaults.set(translateLanguage.rawValue, forKey: Keys.translateLanguage)
         defaults.set(autoStartOnFocus, forKey: Keys.autoStartOnFocus)
@@ -225,6 +317,7 @@ class AppSettings: ObservableObject {
         defaults.set(enableContactsHotwords, forKey: Keys.enableContactsHotwords)
         defaults.set(enableAutoEnter, forKey: Keys.enableAutoEnter)
         defaults.set(autoEnterApps, forKey: Keys.autoEnterApps)
+        defaults.set(appLanguage.rawValue, forKey: Keys.appLanguage)
     }
     
     // MARK: - Reset

@@ -17,6 +17,8 @@ class OnboardingWindowController {
     var window: NSWindow?
     
     func show(permissionManager: PermissionManager, onComplete: @escaping () -> Void) {
+        print("[Onboarding] Creating onboarding window...")
+        
         let contentView = OnboardingWindow(permissionManager: permissionManager) {
             self.window?.close()
             onComplete()
@@ -37,12 +39,15 @@ class OnboardingWindowController {
         window.contentView = NSHostingView(rootView: contentView)
         window.center()
         window.level = .normal
+        
+        print("[Onboarding] Window created, showing...")
         window.makeKeyAndOrderFront(nil)
         
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         
         self.window = window
+        print("[Onboarding] Window should be visible now. Frame: \(window.frame)")
     }
 }
 
@@ -264,7 +269,28 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private func processPolish(_ text: String) {
         print("[Polish] Starting AI polish with Doubao...")
         
-        DoubaoLLMService.shared.polish(text: text) { [weak self] result in
+        // Requirements 4.5: 检测当前活跃应用的 BundleID
+        let currentBundleId = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+        FileLogger.log("[Polish] Current app BundleID: \(currentBundleId ?? "nil")")
+        
+        // 获取当前应用对应的 Profile
+        let viewModel = AIPolishViewModel()
+        let profile = viewModel.getProfileForApp(bundleId: currentBundleId)
+        FileLogger.log("[Polish] Using profile: \(profile.rawValue)")
+        
+        // 获取智能指令设置
+        let settings = AppSettings.shared
+        let customPrompt = profile == .custom ? settings.customProfilePrompt : nil
+        
+        // 调用 polishWithProfile 而非原有 polish 方法
+        DoubaoLLMService.shared.polishWithProfile(
+            text: text,
+            profile: profile,
+            customPrompt: customPrompt,
+            enableInSentencePatterns: settings.enableInSentencePatterns,
+            enableTriggerCommands: settings.enableTriggerCommands,
+            triggerWord: settings.triggerWord
+        ) { [weak self] result in
             guard let self = self else { return }
             
             switch result {
@@ -447,7 +473,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 button.image = icon
                 button.imageScaling = .scaleProportionallyDown
             } else {
-                button.image = NSImage(systemSymbolName: "waveform", accessibilityDescription: "GhosTYPE")
+                button.image = NSImage(systemSymbolName: "waveform", accessibilityDescription: "GHOSTYPE")
             }
             
             button.action = #selector(statusBarButtonClicked(_:))
@@ -456,7 +482,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         
         let menu = NSMenu()
         
-        let titleItem = NSMenuItem(title: "GhosTYPE", action: nil, keyEquivalent: "")
+        let titleItem = NSMenuItem(title: "GHOSTYPE", action: nil, keyEquivalent: "")
         titleItem.isEnabled = false
         menu.addItem(titleItem)
         

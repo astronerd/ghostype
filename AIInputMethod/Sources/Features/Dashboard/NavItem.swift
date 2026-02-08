@@ -12,6 +12,7 @@ enum NavItem: String, CaseIterable, Identifiable {
     case overview = "概览"
     case memo = "随心记"      // NEW - 随心记页面
     case library = "历史库"
+    case aiPolish = "AI 润色"  // NEW - AI 润色页面
     case preferences = "偏好设置"
     
     // MARK: - Identifiable
@@ -31,6 +32,8 @@ enum NavItem: String, CaseIterable, Identifiable {
             return "note.text"           // NEW - 随心记图标
         case .library:
             return "clock.arrow.circlepath"
+        case .aiPolish:
+            return "wand.and.stars"      // NEW - AI 润色图标
         case .preferences:
             return "gearshape.fill"
         }

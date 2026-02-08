@@ -103,7 +103,7 @@ struct GlowConfig {
     
     static func load() -> GlowConfig {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let configDir = appSupport.appendingPathComponent("GhosTYPE")
+        let configDir = appSupport.appendingPathComponent("GHOSTYPE")
         try? FileManager.default.createDirectory(at: configDir, withIntermediateDirectories: true)
         let configPath = configDir.appendingPathComponent("OverlayConfig.json")
         guard let data = try? Data(contentsOf: configPath),

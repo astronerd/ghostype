@@ -58,7 +58,7 @@ struct Step1HotkeyView: View {
         VStack(spacing: 0) {
             // Logo header
             VStack(spacing: DS.Spacing.sm) {
-                GhosTYPELogo()
+                GHOSTYPELogo()
                     .frame(width: 152, height: 21)
                 
                 Text("Your Type of Spirit.")
@@ -266,7 +266,7 @@ struct Step2AutoModeView: View {
         VStack(spacing: 0) {
             // Logo header
             VStack(spacing: DS.Spacing.sm) {
-                GhosTYPELogo()
+                GHOSTYPELogo()
                     .frame(width: 152, height: 21)
                 
                 Text("Your Type of Spirit.")
@@ -397,7 +397,7 @@ struct Step3PermissionsView: View {
         VStack(spacing: 0) {
             // Logo header
             VStack(spacing: DS.Spacing.sm) {
-                GhosTYPELogo()
+                GHOSTYPELogo()
                     .frame(width: 152, height: 21)
                 
                 Text("Your Type of Spirit.")

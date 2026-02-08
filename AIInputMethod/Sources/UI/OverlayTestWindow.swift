@@ -27,7 +27,7 @@ struct OverlayConfig: Codable {
     var commitDriftDuration: Double = 0.3
     
     static var configFilePath: URL {
-        { let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!; let configDir = appSupport.appendingPathComponent("GhosTYPE"); try? FileManager.default.createDirectory(at: configDir, withIntermediateDirectories: true); return configDir }()
+        { let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!; let configDir = appSupport.appendingPathComponent("GHOSTYPE"); try? FileManager.default.createDirectory(at: configDir, withIntermediateDirectories: true); return configDir }()
             .appendingPathComponent("OverlayConfig.json")
     }
     

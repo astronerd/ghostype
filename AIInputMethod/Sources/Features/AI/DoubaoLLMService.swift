@@ -83,6 +83,66 @@ class DoubaoLLMService {
         completion(.success(text))
     }
     
+    // MARK: - Profile-based Polish
+    
+    /// 使用配置文件进行润色
+    /// - Parameters:
+    ///   - text: 原始文本
+    ///   - profile: 润色配置文件
+    ///   - customPrompt: 自定义 Prompt（仅当 profile 为 .custom 时使用）
+    ///   - enableInSentencePatterns: 是否启用句内模式识别（Block 2）
+    ///   - enableTriggerCommands: 是否启用句尾唤醒指令（Block 3）
+    ///   - triggerWord: 唤醒词
+    ///   - completion: 完成回调
+    ///
+    /// **阈值逻辑**:
+    /// - polishThreshold 只控制 Block 1（基础润色）
+    /// - 如果开启了 Block 2 或 Block 3，即使文本长度 < 阈值也要调用 AI 处理
+    /// - 只有当 Block 2 和 Block 3 都关闭，且文本 < 阈值时，才跳过 AI 调用
+    func polishWithProfile(
+        text: String,
+        profile: PolishProfile,
+        customPrompt: String?,
+        enableInSentencePatterns: Bool,
+        enableTriggerCommands: Bool,
+        triggerWord: String,
+        completion: @escaping (Result<String, Error>) -> Void
+    ) {
+        // 禁用润色时直接返回原文
+        guard AppSettings.shared.enableAIPolish else {
+            print("[DoubaoLLM] AI Polish disabled, returning original text")
+            completion(.success(text))
+            return
+        }
+        
+        // 判断是否需要调用 AI
+        // - 如果开启了 Block 2（句内转写）或 Block 3（句末指令），必须调用 AI
+        // - 如果都没开启，则阈值控制是否调用 AI
+        let needsSmartCommands = enableInSentencePatterns || enableTriggerCommands
+        let meetsThreshold = text.count >= AppSettings.shared.polishThreshold
+        
+        if !needsSmartCommands && !meetsThreshold {
+            // 没有开启智能指令，且文本太短，跳过 AI 调用
+            print("[DoubaoLLM] Text too short (\(text.count) < \(AppSettings.shared.polishThreshold)) and no smart commands enabled, skipping")
+            completion(.success(text))
+            return
+        }
+        
+        print("[DoubaoLLM] Processing: length=\(text.count), threshold=\(AppSettings.shared.polishThreshold), block2=\(enableInSentencePatterns), block3=\(enableTriggerCommands)")
+        
+        // 使用 PromptBuilder 构建动态 Prompt
+        let systemPrompt = PromptBuilder.buildPrompt(
+            profile: profile,
+            customPrompt: customPrompt,
+            enableInSentencePatterns: enableInSentencePatterns,
+            enableTriggerCommands: enableTriggerCommands,
+            triggerWord: triggerWord
+        )
+        
+        // 调用 LLM 进行润色
+        sendRequest(systemPrompt: systemPrompt, userMessage: text, completion: completion)
+    }
+    
     // MARK: - Private Methods
     
     private func sendRequest(systemPrompt: String, userMessage: String, completion: @escaping (Result<String, Error>) -> Void) {

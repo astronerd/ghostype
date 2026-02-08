@@ -1,0 +1,191 @@
+import Foundation
+
+// MARK: - Chinese Strings / 中文字符串
+
+struct ChineseStrings: StringsTable {
+    var nav: NavStrings { ChineseNav() }
+    var overview: OverviewStrings { ChineseOverview() }
+    var library: LibraryStrings { ChineseLibrary() }
+    var memo: MemoStrings { ChineseMemo() }
+    var aiPolish: AIPolishStrings { ChineseAIPolish() }
+    var prefs: PrefsStrings { ChinesePrefs() }
+    var common: CommonStrings { ChineseCommon() }
+    var appPicker: AppPickerStrings { ChineseAppPicker() }
+    var profile: ProfileStrings { ChineseProfile() }
+    var auth: AuthStrings { ChineseAuth() }
+}
+
+// MARK: - Navigation
+
+private struct ChineseNav: NavStrings {
+    var overview: String { "概览" }
+    var library: String { "记录库" }
+    var memo: String { "随心记" }
+    var aiPolish: String { "AI 润色" }
+    var preferences: String { "偏好设置" }
+}
+
+// MARK: - Overview
+
+private struct ChineseOverview: OverviewStrings {
+    var title: String { "概览" }
+    var todayUsage: String { "今日使用" }
+    var totalRecords: String { "总记录数" }
+    var polishCount: String { "润色" }
+    var translateCount: String { "翻译" }
+    var memoCount: String { "随心记" }
+}
+
+// MARK: - Library
+
+private struct ChineseLibrary: LibraryStrings {
+    var title: String { "记录库" }
+    var empty: String { "暂无记录" }
+    var search: String { "搜索..." }
+    var all: String { "全部" }
+    var polish: String { "润色" }
+    var translate: String { "翻译" }
+    var memo: String { "随心记" }
+}
+
+// MARK: - Memo
+
+private struct ChineseMemo: MemoStrings {
+    var title: String { "随心记" }
+    var empty: String { "暂无笔记" }
+    var placeholder: String { "按住快捷键说话，记录灵感..." }
+}
+
+// MARK: - AI Polish
+
+private struct ChineseAIPolish: AIPolishStrings {
+    var title: String { "AI 润色" }
+    var enable: String { "启用 AI 润色" }
+    var enableDesc: String { "关闭后直接输出原始语音识别结果" }
+    var threshold: String { "润色阈值" }
+    var thresholdDesc: String { "文本长度达到阈值才进行润色" }
+    var thresholdUnit: String { "字符" }
+    var profile: String { "润色风格" }
+    var profileDesc: String { "选择默认的润色风格" }
+    var inSentence: String { "句内转写" }
+    var inSentenceDesc: String { "识别邮箱、电话、拆字等特殊模式" }
+    var trigger: String { "句末指令" }
+    var triggerDesc: String { "在句末使用唤醒词触发特殊指令" }
+    var triggerWord: String { "唤醒词" }
+    var triggerWordDesc: String { "句末指令的触发词" }
+}
+
+// MARK: - Preferences
+
+private struct ChinesePrefs: PrefsStrings {
+    var title: String { "偏好设置" }
+    var general: String { "通用" }
+    var launchAtLogin: String { "开机自启动" }
+    var launchAtLoginDesc: String { "登录时自动启动「鬼才打字」" }
+    var soundFeedback: String { "声音反馈" }
+    var soundFeedbackDesc: String { "录音开始和结束时播放提示音" }
+    var inputMode: String { "输入模式" }
+    var inputModeAuto: String { "自动模式" }
+    var inputModeManual: String { "手动模式" }
+    var language: String { "语言" }
+    var languageDesc: String { "选择应用界面语言" }
+    var permissions: String { "权限管理" }
+    var accessibility: String { "辅助功能" }
+    var accessibilityDesc: String { "监听快捷键并插入文字" }
+    var microphone: String { "麦克风" }
+    var microphoneDesc: String { "录制语音进行识别" }
+    var refreshStatus: String { "刷新状态" }
+    var authorize: String { "授权" }
+    var hotkey: String { "快捷键" }
+    var hotkeyTrigger: String { "触发快捷键" }
+    var hotkeyDesc: String { "按住快捷键说话，松开完成输入" }
+    var hotkeyHint: String { "点击上方按钮修改快捷键" }
+    var hotkeyRecording: String { "按下新的快捷键组合..." }
+    var modeModifiers: String { "模式修饰键" }
+    var translateMode: String { "翻译模式" }
+    var translateModeDesc: String { "按住主触发键 + 此修饰键进入翻译模式" }
+    var memoMode: String { "随心记模式" }
+    var memoModeDesc: String { "按住主触发键 + 此修饰键进入随心记模式" }
+    var translateSettings: String { "翻译设置" }
+    var translateLanguage: String { "翻译语言" }
+    var translateLanguageDesc: String { "选择翻译模式的目标语言" }
+    var contactsHotwords: String { "通讯录热词" }
+    var contactsHotwordsEnable: String { "启用通讯录热词" }
+    var contactsHotwordsDesc: String { "使用通讯录联系人姓名提高识别准确率" }
+    var authStatus: String { "授权状态" }
+    var hotwordsCount: String { "个热词" }
+    var authorizeAccess: String { "授权访问" }
+    var openSettings: String { "打开设置" }
+    var autoSend: String { "自动发送" }
+    var autoSendEnable: String { "启用自动发送" }
+    var autoSendDesc: String { "上字后自动按回车发送消息" }
+    var automationPermission: String { "自动化权限" }
+    var automationPermissionDesc: String { "允许控制 System Events" }
+    var enabledApps: String { "启用的应用" }
+    var addApp: String { "添加应用" }
+    var noAppsHint: String { "暂无应用，点击上方按钮添加" }
+    var aiEngine: String { "AI 引擎" }
+    var aiEngineName: String { "豆包语音识别" }
+    var aiEngineApi: String { "Doubao Speech-to-Text API" }
+    var aiEngineOnline: String { "在线" }
+    var aiEngineOffline: String { "离线" }
+    var aiEngineChecking: String { "检测中..." }
+    var reset: String { "恢复默认设置" }
+}
+
+// MARK: - Common
+
+private struct ChineseCommon: CommonStrings {
+    var cancel: String { "取消" }
+    var done: String { "完成" }
+    var save: String { "保存" }
+    var delete: String { "删除" }
+    var edit: String { "编辑" }
+    var add: String { "添加" }
+    var copy: String { "复制" }
+    var close: String { "关闭" }
+    var ok: String { "确定" }
+    var yes: String { "是" }
+    var no: String { "否" }
+    var on: String { "开" }
+    var off: String { "关" }
+    var enabled: String { "已启用" }
+    var disabled: String { "已禁用" }
+    var defaultText: String { "默认" }
+    var custom: String { "自定义" }
+    var none: String { "无" }
+    var unknown: String { "未知" }
+    var loading: String { "加载中..." }
+    var error: String { "错误" }
+    var success: String { "成功" }
+    var warning: String { "警告" }
+    var characters: String { "字符" }
+}
+
+// MARK: - App Picker
+
+private struct ChineseAppPicker: AppPickerStrings {
+    var title: String { "选择应用" }
+    var noApps: String { "没有可添加的应用" }
+}
+
+// MARK: - Profile
+
+private struct ChineseProfile: ProfileStrings {
+    var standard: String { "标准" }
+    var professional: String { "专业" }
+    var casual: String { "轻松" }
+    var concise: String { "简洁" }
+    var creative: String { "创意" }
+    var custom: String { "自定义" }
+}
+
+// MARK: - Auth
+
+private struct ChineseAuth: AuthStrings {
+    var unknown: String { "未知" }
+    var notDetermined: String { "未请求" }
+    var authorized: String { "已授权" }
+    var denied: String { "已拒绝" }
+    var restricted: String { "受限" }
+}
