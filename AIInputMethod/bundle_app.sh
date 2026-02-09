@@ -118,4 +118,14 @@ codesign -dv --verbose=2 "$APP_BUNDLE" 2>&1 | head -5
 echo ""
 echo "🚀 Done: $APP_BUNDLE"
 echo "📍 Location: $(pwd)/$APP_BUNDLE"
+
+# 复制 .env 到 app bundle 旁边
+if [ -f ".env" ]; then
+    cp .env "$APP_BUNDLE/Contents/MacOS/.env"
+    echo "✅ .env copied into app bundle."
+elif [ -f ".env.example" ]; then
+    cp .env.example "$APP_BUNDLE/Contents/MacOS/.env"
+    echo "✅ .env.example copied as .env into app bundle."
+fi
+
 ls -la "$APP_BUNDLE/Contents/Resources/"

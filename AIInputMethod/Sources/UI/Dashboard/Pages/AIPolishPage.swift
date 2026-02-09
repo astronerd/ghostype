@@ -2,8 +2,7 @@
 //  AIPolishPage.swift
 //  AIInputMethod
 //
-//  AI 润色配置页面 - Radical Minimalist 极简风格
-//  Requirements: 2.1, 2.2, 3.2, 3.3, 4.1, 4.2, 9.1, 9.2, 9.3, 9.4
+//  AI 润色配置页面 - 风格卡片 + 共享应用选择器
 //
 
 import SwiftUI
@@ -14,23 +13,23 @@ import AppKit
 struct AIPolishPage: View {
     
     @State private var viewModel = AIPolishViewModel()
+    @State private var showingAppPicker = false
+    @State private var showingCustomProfileEditor = false
+    @State private var editingProfile: CustomProfile? = nil
+    @State private var editorName = ""
+    @State private var editorPrompt = ""
     
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DS.Spacing.xl) {
-                // 页面标题
-                Text("AI 润色")
+                Text(L.AIPolish.title)
                     .font(DS.Typography.largeTitle)
                     .foregroundColor(DS.Colors.text1)
                     .padding(.bottom, DS.Spacing.sm)
                 
-                // 基础设置区块
                 basicSettingsSection
-                
-                // 润色配置区块 (Task 7.2)
-                profileSettingsSection
-                
-                // 智能指令区块 (Task 7.3)
+                profileCardsSection
+                appProfileSection
                 smartCommandsSection
                 
                 Spacer(minLength: DS.Spacing.xl)
@@ -43,251 +42,324 @@ struct AIPolishPage: View {
         .background(DS.Colors.bg1)
     }
     
-    // MARK: - Basic Settings Section
-    // Requirements: 2.1, 2.2, 9.1, 9.2, 9.3, 9.4
+    // MARK: - Basic Settings
     
     private var basicSettingsSection: some View {
-        MinimalSettingsSection(title: "基础设置", icon: "slider.horizontal.3") {
-            VStack(spacing: 0) {
-                // 启用 AI 润色开关 (Requirement 2.1)
-                MinimalToggleRow(
-                    title: "启用 AI 润色",
-                    subtitle: "关闭后直接输出原始转录文本",
-                    icon: "wand.and.stars",
-                    isOn: Binding(
-                        get: { viewModel.enableAIPolish },
-                        set: { viewModel.enableAIPolish = $0 }
-                    )
+        MinimalSettingsSection(title: L.AIPolish.basicSettings, icon: "slider.horizontal.3") {
+            MinimalToggleRow(
+                title: L.AIPolish.enable,
+                subtitle: L.AIPolish.enableDesc,
+                icon: "wand.and.stars",
+                isOn: Binding(
+                    get: { viewModel.enableAIPolish },
+                    set: { viewModel.enableAIPolish = $0 }
                 )
-                
-                MinimalDivider()
-                    .padding(.leading, 44)
-                
-                // 自动润色阈值滑块 (Requirement 2.2)
-                thresholdRow
-            }
-        }
-    }
-    
-    // MARK: - Threshold Row
-    
-    private var thresholdRow: some View {
-        HStack(spacing: DS.Spacing.md) {
-            Image(systemName: "textformat.size")
-                .font(.system(size: 14))
-                .foregroundColor(DS.Colors.icon)
-                .frame(width: 28, height: 28)
-                .background(DS.Colors.highlight)
-                .cornerRadius(DS.Layout.cornerRadius)
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text("自动润色阈值")
-                    .font(DS.Typography.body)
-                    .foregroundColor(DS.Colors.text1)
-                Text("低于此字数的文本不进行 AI 润色")
-                    .font(DS.Typography.caption)
-                    .foregroundColor(DS.Colors.text2)
-            }
-            
-            Spacer()
-            
-            HStack(spacing: DS.Spacing.md) {
-                Slider(
-                    value: Binding(
-                        get: { Double(viewModel.polishThreshold) },
-                        set: { viewModel.polishThreshold = Int($0) }
-                    ),
-                    in: 0...200,
-                    step: 1
-                )
-                .frame(width: 100)
-                
-                Text("\(viewModel.polishThreshold) 字")
-                    .font(DS.Typography.caption)
-                    .foregroundColor(DS.Colors.text2)
-                    .monospacedDigit()
-                    .frame(width: 45, alignment: .trailing)
-            }
-        }
-        .padding(.horizontal, DS.Spacing.lg)
-        .padding(.vertical, DS.Spacing.md)
-        .opacity(viewModel.enableAIPolish ? 1.0 : 0.5)
-        .disabled(!viewModel.enableAIPolish)
-    }
-    
-    // MARK: - Profile Settings Section
-    // Requirements: 3.2, 3.3, 4.1, 4.2
-    
-    private var profileSettingsSection: some View {
-        MinimalSettingsSection(title: "润色配置", icon: "doc.text") {
-            VStack(spacing: 0) {
-                // 默认配置下拉选择器 (Requirement 3.2)
-                defaultProfileRow
-                
-                // 自定义 Prompt 编辑区域 (Requirement 3.3)
-                if viewModel.defaultProfile == .custom {
-                    MinimalDivider()
-                        .padding(.leading, 44)
-                    
-                    customPromptEditor
-                }
-                
-                MinimalDivider()
-                    .padding(.leading, 44)
-                
-                // 应用专属配置列表 (Requirement 4.1)
-                appProfileListSection
-            }
-        }
-        .opacity(viewModel.enableAIPolish ? 1.0 : 0.5)
-        .disabled(!viewModel.enableAIPolish)
-    }
-    
-    // MARK: - Default Profile Row
-    
-    private var defaultProfileRow: some View {
-        HStack(spacing: DS.Spacing.md) {
-            Image(systemName: "slider.horizontal.below.rectangle")
-                .font(.system(size: 14))
-                .foregroundColor(DS.Colors.icon)
-                .frame(width: 28, height: 28)
-                .background(DS.Colors.highlight)
-                .cornerRadius(DS.Layout.cornerRadius)
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text("默认配置")
-                    .font(DS.Typography.body)
-                    .foregroundColor(DS.Colors.text1)
-                Text(viewModel.defaultProfile.description)
-                    .font(DS.Typography.caption)
-                    .foregroundColor(DS.Colors.text2)
-            }
-            
-            Spacer()
-            
-            Picker("", selection: Binding(
-                get: { viewModel.defaultProfile },
-                set: { viewModel.defaultProfile = $0 }
-            )) {
-                ForEach(PolishProfile.allCases) { profile in
-                    Text(profile.rawValue).tag(profile)
-                }
-            }
-            .pickerStyle(.menu)
-            .frame(width: 120)
-        }
-        .padding(.horizontal, DS.Spacing.lg)
-        .padding(.vertical, DS.Spacing.md)
-    }
-    
-    // MARK: - Custom Prompt Editor
-    
-    private var customPromptEditor: some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.md) {
-            HStack(spacing: DS.Spacing.md) {
-                Image(systemName: "text.quote")
-                    .font(.system(size: 14))
-                    .foregroundColor(DS.Colors.icon)
-                    .frame(width: 28, height: 28)
-                    .background(DS.Colors.highlight)
-                    .cornerRadius(DS.Layout.cornerRadius)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("自定义 Prompt")
-                        .font(DS.Typography.body)
-                        .foregroundColor(DS.Colors.text1)
-                    Text("输入您的自定义润色指令")
-                        .font(DS.Typography.caption)
-                        .foregroundColor(DS.Colors.text2)
-                }
-                
-                Spacer()
-            }
-            
-            TextEditor(text: Binding(
-                get: { viewModel.customProfilePrompt },
-                set: { viewModel.customProfilePrompt = $0 }
-            ))
-            .font(DS.Typography.mono(11, weight: .regular))
-            .frame(minHeight: 100, maxHeight: 150)
-            .padding(DS.Spacing.sm)
-            .background(DS.Colors.bg1)
-            .cornerRadius(DS.Layout.cornerRadius)
-            .overlay(
-                RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
-                    .stroke(DS.Colors.border, lineWidth: DS.Layout.borderWidth)
             )
-            
-            HStack {
-                Spacer()
-                Text("\(viewModel.customProfilePrompt.count) 字符")
-                    .font(DS.Typography.caption)
-                    .foregroundColor(DS.Colors.text2)
-            }
         }
-        .padding(.horizontal, DS.Spacing.lg)
-        .padding(.vertical, DS.Spacing.md)
     }
     
-    // MARK: - App Profile List Section
+    // MARK: - Profile Cards Section (Task 9.1)
     
-    private var appProfileListSection: some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.md) {
-            HStack {
-                Image(systemName: "app.badge")
-                    .font(.system(size: 14))
-                    .foregroundColor(DS.Colors.icon)
-                    .frame(width: 28, height: 28)
-                    .background(DS.Colors.highlight)
-                    .cornerRadius(DS.Layout.cornerRadius)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("应用专属配置")
-                        .font(DS.Typography.body)
-                        .foregroundColor(DS.Colors.text1)
-                    Text("为不同应用设置不同的润色风格")
-                        .font(DS.Typography.caption)
-                        .foregroundColor(DS.Colors.text2)
-                }
-                
-                Spacer()
-                
-                // 添加应用按钮 (Requirement 4.2)
-                Button(action: { showAppPicker() }) {
-                    HStack(spacing: DS.Spacing.xs) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 10))
-                        Text("添加应用")
-                            .font(DS.Typography.caption)
+    private let cardColumns = [GridItem(.adaptive(minimum: 100, maximum: 140), spacing: 8)]
+    
+    private var profileCardsSection: some View {
+        MinimalSettingsSection(title: L.AIPolish.styleSection, icon: "paintpalette") {
+            VStack(alignment: .leading, spacing: DS.Spacing.md) {
+                // 预设风格卡片
+                LazyVGrid(columns: cardColumns, spacing: 8) {
+                    ForEach(PolishProfile.allCases) { profile in
+                        presetCard(profile: profile)
                     }
-                    .foregroundColor(DS.Colors.text1)
-                    .padding(.horizontal, DS.Spacing.md)
-                    .padding(.vertical, DS.Spacing.xs)
-                    .background(DS.Colors.highlight)
-                    .cornerRadius(DS.Layout.cornerRadius)
+                    
+                    // 自定义风格卡片
+                    ForEach(viewModel.customProfiles) { custom in
+                        customCard(profile: custom)
+                    }
+                    
+                    // "+" 添加卡片
+                    addCard
                 }
-                .buttonStyle(.plain)
+                .padding(.horizontal, DS.Spacing.md)
+                .padding(.vertical, DS.Spacing.sm)
             }
-            
-            // 应用专属配置列表 (Requirement 4.1)
-            let configuredApps = viewModel.getConfiguredApps()
-            if configuredApps.isEmpty {
-                Text("暂无应用专属配置，点击上方按钮添加")
+        }
+        .opacity(viewModel.enableAIPolish ? 1.0 : 0.5)
+        .disabled(!viewModel.enableAIPolish)
+        .sheet(isPresented: $showingCustomProfileEditor) {
+            customProfileEditorSheet
+        }
+    }
+    
+    // MARK: - Preset Card
+    
+    private func presetCard(profile: PolishProfile) -> some View {
+        let isSelected = viewModel.selectedProfileId == profile.rawValue
+        
+        return Button(action: { viewModel.selectProfile(id: profile.rawValue) }) {
+            VStack(spacing: 6) {
+                Image(systemName: profile.icon)
+                    .font(.system(size: 18))
+                    .foregroundColor(isSelected ? DS.Colors.text1 : DS.Colors.text2)
+                
+                Text(profile.rawValue)
+                    .font(DS.Typography.caption)
+                    .foregroundColor(DS.Colors.text1)
+                    .lineLimit(1)
+                
+                Text(profile.description)
+                    .font(.system(size: 9))
+                    .foregroundColor(DS.Colors.text3)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 80)
+            .background(isSelected ? DS.Colors.highlight : DS.Colors.bg1)
+            .cornerRadius(DS.Layout.cornerRadius + 2)
+            .overlay(
+                RoundedRectangle(cornerRadius: DS.Layout.cornerRadius + 2)
+                    .stroke(isSelected ? DS.Colors.accent : DS.Colors.border, lineWidth: isSelected ? 1.5 : DS.Layout.borderWidth)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+    
+    // MARK: - Custom Card
+    
+    private func customCard(profile: CustomProfile) -> some View {
+        let isSelected = viewModel.selectedProfileId == profile.id.uuidString
+        
+        return Button(action: { viewModel.selectProfile(id: profile.id.uuidString) }) {
+            VStack(spacing: 6) {
+                Image(systemName: "text.quote")
+                    .font(.system(size: 18))
+                    .foregroundColor(isSelected ? DS.Colors.text1 : DS.Colors.text2)
+                
+                Text(profile.name)
+                    .font(DS.Typography.caption)
+                    .foregroundColor(DS.Colors.text1)
+                    .lineLimit(1)
+                
+                // 编辑/删除按钮
+                HStack(spacing: 8) {
+                    Button(action: { startEditing(profile) }) {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 9))
+                            .foregroundColor(DS.Colors.text3)
+                    }
+                    .buttonStyle(.plain)
+                    
+                    Button(action: { viewModel.deleteCustomProfile(id: profile.id) }) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 9))
+                            .foregroundColor(DS.Colors.text3)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 80)
+            .background(isSelected ? DS.Colors.highlight : DS.Colors.bg1)
+            .cornerRadius(DS.Layout.cornerRadius + 2)
+            .overlay(
+                RoundedRectangle(cornerRadius: DS.Layout.cornerRadius + 2)
+                    .stroke(isSelected ? DS.Colors.accent : DS.Colors.border, lineWidth: isSelected ? 1.5 : DS.Layout.borderWidth)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+    
+    // MARK: - Add Card
+    
+    private var addCard: some View {
+        Button(action: { startCreating() }) {
+            VStack(spacing: 6) {
+                Image(systemName: "plus")
+                    .font(.system(size: 20))
+                    .foregroundColor(DS.Colors.text3)
+                
+                Text(L.Common.custom)
                     .font(DS.Typography.caption)
                     .foregroundColor(DS.Colors.text3)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, DS.Spacing.sm)
-            } else {
-                ForEach(configuredApps) { appInfo in
-                    appProfileRow(appInfo: appInfo)
-                }
             }
+            .frame(maxWidth: .infinity)
+            .frame(height: 80)
+            .background(DS.Colors.bg1)
+            .cornerRadius(DS.Layout.cornerRadius + 2)
+            .overlay(
+                RoundedRectangle(cornerRadius: DS.Layout.cornerRadius + 2)
+                    .stroke(DS.Colors.border, style: StrokeStyle(lineWidth: DS.Layout.borderWidth, dash: [4]))
+            )
         }
-        .padding(.horizontal, DS.Spacing.lg)
-        .padding(.vertical, DS.Spacing.md)
+        .buttonStyle(.plain)
     }
     
-    // MARK: - App Profile Row
+    // MARK: - Custom Profile Editor (Task 9.2)
+    
+    private func startCreating() {
+        editingProfile = nil
+        editorName = ""
+        editorPrompt = ""
+        showingCustomProfileEditor = true
+    }
+    
+    private func startEditing(_ profile: CustomProfile) {
+        editingProfile = profile
+        editorName = profile.name
+        editorPrompt = profile.prompt
+        showingCustomProfileEditor = true
+    }
+    
+    private var customProfileEditorSheet: some View {
+        let isEditing = editingProfile != nil
+        let canSave = !editorName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && !editorPrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        
+        return VStack(spacing: 0) {
+            // 标题栏
+            HStack {
+                Text(isEditing ? L.AIPolish.editCustomStyle : L.AIPolish.createCustomStyle)
+                    .font(DS.Typography.title)
+                    .foregroundColor(DS.Colors.text1)
+                Spacer()
+                Button(L.Common.cancel) { showingCustomProfileEditor = false }
+                    .font(DS.Typography.body)
+                    .foregroundColor(DS.Colors.text2)
+                    .buttonStyle(.plain)
+            }
+            .padding(DS.Spacing.lg)
+            
+            MinimalDivider()
+            
+            VStack(alignment: .leading, spacing: DS.Spacing.lg) {
+                // 名称
+                VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                    Text(L.AIPolish.styleName)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text2)
+                    TextField(L.AIPolish.styleNamePlaceholder, text: $editorName)
+                        .textFieldStyle(.roundedBorder)
+                }
+                
+                // Prompt
+                VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                    Text(L.AIPolish.promptLabel)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text2)
+                    TextEditor(text: $editorPrompt)
+                        .font(DS.Typography.mono(11, weight: .regular))
+                        .frame(minHeight: 120, maxHeight: 200)
+                        .padding(DS.Spacing.sm)
+                        .background(DS.Colors.bg1)
+                        .cornerRadius(DS.Layout.cornerRadius)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
+                                .stroke(DS.Colors.border, lineWidth: DS.Layout.borderWidth)
+                        )
+                    HStack {
+                        Spacer()
+                        Text("\(editorPrompt.count) \(L.Common.characters)")
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text3)
+                    }
+                }
+                
+                // 保存按钮
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        let name = editorName.trimmingCharacters(in: .whitespacesAndNewlines)
+                        let prompt = editorPrompt.trimmingCharacters(in: .whitespacesAndNewlines)
+                        if let editing = editingProfile {
+                            viewModel.updateCustomProfile(id: editing.id, name: name, prompt: prompt)
+                        } else {
+                            viewModel.addCustomProfile(name: name, prompt: prompt)
+                        }
+                        showingCustomProfileEditor = false
+                    }) {
+                        Text(L.Common.save)
+                            .font(DS.Typography.body)
+                            .foregroundColor(canSave ? DS.Colors.text1 : DS.Colors.text3)
+                            .padding(.horizontal, DS.Spacing.xl)
+                            .padding(.vertical, DS.Spacing.sm)
+                            .background(canSave ? DS.Colors.highlight : DS.Colors.bg1)
+                            .cornerRadius(DS.Layout.cornerRadius)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!canSave)
+                }
+            }
+            .padding(DS.Spacing.lg)
+            
+            Spacer()
+        }
+        .frame(width: 420, height: 380)
+        .background(DS.Colors.bg1)
+    }
+    
+    // MARK: - App Profile Section
+    
+    private var appProfileSection: some View {
+        MinimalSettingsSection(title: L.AIPolish.appProfile, icon: "app.badge") {
+            VStack(alignment: .leading, spacing: DS.Spacing.md) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(L.AIPolish.appProfileDesc)
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text2)
+                    }
+                    
+                    Spacer()
+                    
+                    Button(action: { showingAppPicker = true }) {
+                        HStack(spacing: DS.Spacing.xs) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 10))
+                            Text(L.Prefs.addApp)
+                                .font(DS.Typography.caption)
+                        }
+                        .foregroundColor(DS.Colors.text1)
+                        .padding(.horizontal, DS.Spacing.md)
+                        .padding(.vertical, DS.Spacing.xs)
+                        .background(DS.Colors.highlight)
+                        .cornerRadius(DS.Layout.cornerRadius)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, DS.Spacing.lg)
+                .padding(.top, DS.Spacing.md)
+                
+                let configuredApps = viewModel.getConfiguredApps()
+                if configuredApps.isEmpty {
+                    Text(L.AIPolish.noAppProfile)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text3)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, DS.Spacing.sm)
+                        .padding(.horizontal, DS.Spacing.lg)
+                } else {
+                    ForEach(configuredApps) { appInfo in
+                        appProfileRow(appInfo: appInfo)
+                            .padding(.horizontal, DS.Spacing.lg)
+                    }
+                }
+                
+                Spacer().frame(height: DS.Spacing.sm)
+            }
+        }
+        .opacity(viewModel.enableAIPolish ? 1.0 : 0.5)
+        .disabled(!viewModel.enableAIPolish)
+        .sheet(isPresented: $showingAppPicker) {
+            AppPickerSheet(
+                onSelect: { bundleId in
+                    viewModel.addAppMapping(bundleId: bundleId, profileId: PolishProfile.standard.rawValue)
+                },
+                isPresented: $showingAppPicker
+            )
+        }
+    }
+    
+    // MARK: - App Profile Row (Task 9.3)
     
     private func appProfileRow(appInfo: AppProfileInfo) -> some View {
         HStack(spacing: DS.Spacing.sm) {
@@ -308,13 +380,19 @@ struct AIPolishPage: View {
             Spacer()
             
             Picker("", selection: Binding(
-                get: { appInfo.profile },
-                set: { newProfile in
-                    viewModel.addAppMapping(bundleId: appInfo.bundleId, profile: newProfile)
+                get: { appInfo.profileId },
+                set: { newId in
+                    viewModel.addAppMapping(bundleId: appInfo.bundleId, profileId: newId)
                 }
             )) {
                 ForEach(PolishProfile.allCases) { profile in
-                    Text(profile.rawValue).tag(profile)
+                    Text(profile.rawValue).tag(profile.rawValue)
+                }
+                if !viewModel.customProfiles.isEmpty {
+                    Divider()
+                    ForEach(viewModel.customProfiles) { custom in
+                        Text(custom.name).tag(custom.id.uuidString)
+                    }
                 }
             }
             .pickerStyle(.menu)
@@ -331,15 +409,12 @@ struct AIPolishPage: View {
     }
     
     // MARK: - Smart Commands Section
-    // Requirements: 5.1, 6.1, 6.2, 9.5
     
     private var smartCommandsSection: some View {
-        MinimalSettingsSection(title: "智能指令", icon: "command") {
+        MinimalSettingsSection(title: L.AIPolish.smartCommands, icon: "command") {
             VStack(spacing: 0) {
-                // 句内模式识别开关 (Requirement 5.1)
                 inSentencePatternsRow
                 
-                // 句内模式示例说明 (Requirement 9.5)
                 if viewModel.enableInSentencePatterns {
                     inSentencePatternsExamples
                 }
@@ -347,17 +422,12 @@ struct AIPolishPage: View {
                 MinimalDivider()
                     .padding(.leading, 44)
                 
-                // 句尾唤醒指令开关 (Requirement 6.1)
                 triggerCommandsRow
                 
-                // 唤醒词输入框 (Requirement 6.2)
                 if viewModel.enableTriggerCommands {
                     MinimalDivider()
                         .padding(.leading, 44)
-                    
                     triggerWordRow
-                    
-                    // 句尾唤醒指令示例说明 (Requirement 9.5)
                     triggerCommandsExamples
                 }
             }
@@ -366,12 +436,10 @@ struct AIPolishPage: View {
         .disabled(!viewModel.enableAIPolish)
     }
     
-    // MARK: - In-Sentence Patterns Row
-    
     private var inSentencePatternsRow: some View {
         MinimalToggleRow(
-            title: "句内模式识别",
-            subtitle: "自动处理拆字、换行、Emoji 等模式",
+            title: L.AIPolish.inSentence,
+            subtitle: L.AIPolish.inSentenceDesc,
             icon: "text.magnifyingglass",
             isOn: Binding(
                 get: { viewModel.enableInSentencePatterns },
@@ -380,20 +448,16 @@ struct AIPolishPage: View {
         )
     }
     
-    // MARK: - In-Sentence Patterns Examples
-    
     private var inSentencePatternsExamples: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.sm) {
             HStack(spacing: DS.Spacing.md) {
                 Image(systemName: "lightbulb")
                     .font(.system(size: 12))
                     .foregroundColor(DS.Colors.text3)
-                
-                Text("示例")
+                Text(L.AIPolish.examples)
                     .font(DS.Typography.caption)
                     .foregroundColor(DS.Colors.text3)
             }
-            
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 exampleRow(input: "耿直的耿", output: "耿")
                 exampleRow(input: "找一个恶魔的emoji", output: "😈")
@@ -407,12 +471,10 @@ struct AIPolishPage: View {
         .background(DS.Colors.highlight.opacity(0.5))
     }
     
-    // MARK: - Trigger Commands Row
-    
     private var triggerCommandsRow: some View {
         MinimalToggleRow(
-            title: "句尾唤醒指令",
-            subtitle: "通过唤醒词触发翻译、格式转换等操作",
+            title: L.AIPolish.trigger,
+            subtitle: L.AIPolish.triggerDesc,
             icon: "mic.badge.plus",
             isOn: Binding(
                 get: { viewModel.enableTriggerCommands },
@@ -420,8 +482,6 @@ struct AIPolishPage: View {
             )
         )
     }
-    
-    // MARK: - Trigger Word Row
     
     private var triggerWordRow: some View {
         HStack(spacing: DS.Spacing.md) {
@@ -431,18 +491,15 @@ struct AIPolishPage: View {
                 .frame(width: 28, height: 28)
                 .background(DS.Colors.highlight)
                 .cornerRadius(DS.Layout.cornerRadius)
-            
             VStack(alignment: .leading, spacing: 2) {
-                Text("唤醒词")
+                Text(L.AIPolish.triggerWord)
                     .font(DS.Typography.body)
                     .foregroundColor(DS.Colors.text1)
-                Text("在句尾说出唤醒词后跟指令")
+                Text(L.AIPolish.triggerWordDesc)
                     .font(DS.Typography.caption)
                     .foregroundColor(DS.Colors.text2)
             }
-            
             Spacer()
-            
             TextField("Ghost", text: Binding(
                 get: { viewModel.triggerWord },
                 set: { viewModel.triggerWord = $0 }
@@ -454,20 +511,16 @@ struct AIPolishPage: View {
         .padding(.vertical, DS.Spacing.md)
     }
     
-    // MARK: - Trigger Commands Examples
-    
     private var triggerCommandsExamples: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.sm) {
             HStack(spacing: DS.Spacing.md) {
                 Image(systemName: "lightbulb")
                     .font(.system(size: 12))
                     .foregroundColor(DS.Colors.text3)
-                
                 Text("示例（使用唤醒词「\(viewModel.triggerWord)」）")
                     .font(DS.Typography.caption)
                     .foregroundColor(DS.Colors.text3)
             }
-            
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 exampleRow(
                     input: "今天天气真好 \(viewModel.triggerWord) 翻译成英文",
@@ -489,55 +542,26 @@ struct AIPolishPage: View {
         .background(DS.Colors.highlight.opacity(0.5))
     }
     
-    // MARK: - Example Row Helper
-    
     private func exampleRow(input: String, output: String) -> some View {
         HStack(spacing: DS.Spacing.sm) {
             Text("「\(input)」")
                 .font(DS.Typography.caption)
                 .foregroundColor(DS.Colors.text2)
-            
             Image(systemName: "arrow.right")
                 .font(.system(size: 10))
                 .foregroundColor(DS.Colors.text3)
-            
             Text(output)
                 .font(DS.Typography.caption)
                 .foregroundColor(DS.Colors.text1)
         }
     }
-    
-    // MARK: - App Picker
-    
-    private func showAppPicker() {
-        let panel = NSOpenPanel()
-        panel.title = "选择应用"
-        panel.message = "选择要添加专属配置的应用程序"
-        panel.prompt = "选择"
-        panel.allowedContentTypes = [.application]
-        panel.allowsMultipleSelection = false
-        panel.canChooseDirectories = false
-        panel.canChooseFiles = true
-        panel.directoryURL = URL(fileURLWithPath: "/Applications")
-        
-        if panel.runModal() == .OK, let url = panel.url {
-            // 获取应用的 Bundle ID
-            if let bundle = Bundle(url: url),
-               let bundleId = bundle.bundleIdentifier {
-                // 添加应用映射，默认使用「默认」配置
-                viewModel.addAppMapping(bundleId: bundleId, profile: .standard)
-            }
-        }
-    }
 }
-
-// MARK: - Preview
 
 #if DEBUG
 struct AIPolishPage_Previews: PreviewProvider {
     static var previews: some View {
         AIPolishPage()
-            .frame(width: 600, height: 500)
+            .frame(width: 600, height: 700)
     }
 }
 #endif

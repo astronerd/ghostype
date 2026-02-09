@@ -46,6 +46,7 @@ enum L {
     // MARK: - AI Polish Page / AI润色页
     enum AIPolish {
         static var title: String { current.aiPolish.title }
+        static var basicSettings: String { current.aiPolish.basicSettings }
         static var enable: String { current.aiPolish.enable }
         static var enableDesc: String { current.aiPolish.enableDesc }
         static var threshold: String { current.aiPolish.threshold }
@@ -53,8 +54,19 @@ enum L {
         static var thresholdUnit: String { current.aiPolish.thresholdUnit }
         static var profile: String { current.aiPolish.profile }
         static var profileDesc: String { current.aiPolish.profileDesc }
+        static var styleSection: String { current.aiPolish.styleSection }
+        static var createCustomStyle: String { current.aiPolish.createCustomStyle }
+        static var editCustomStyle: String { current.aiPolish.editCustomStyle }
+        static var styleName: String { current.aiPolish.styleName }
+        static var styleNamePlaceholder: String { current.aiPolish.styleNamePlaceholder }
+        static var promptLabel: String { current.aiPolish.promptLabel }
+        static var appProfile: String { current.aiPolish.appProfile }
+        static var appProfileDesc: String { current.aiPolish.appProfileDesc }
+        static var noAppProfile: String { current.aiPolish.noAppProfile }
+        static var smartCommands: String { current.aiPolish.smartCommands }
         static var inSentence: String { current.aiPolish.inSentence }
         static var inSentenceDesc: String { current.aiPolish.inSentenceDesc }
+        static var examples: String { current.aiPolish.examples }
         static var trigger: String { current.aiPolish.trigger }
         static var triggerDesc: String { current.aiPolish.triggerDesc }
         static var triggerWord: String { current.aiPolish.triggerWord }
@@ -231,6 +243,7 @@ protocol MemoStrings {
 
 protocol AIPolishStrings {
     var title: String { get }
+    var basicSettings: String { get }
     var enable: String { get }
     var enableDesc: String { get }
     var threshold: String { get }
@@ -238,8 +251,19 @@ protocol AIPolishStrings {
     var thresholdUnit: String { get }
     var profile: String { get }
     var profileDesc: String { get }
+    var styleSection: String { get }
+    var createCustomStyle: String { get }
+    var editCustomStyle: String { get }
+    var styleName: String { get }
+    var styleNamePlaceholder: String { get }
+    var promptLabel: String { get }
+    var appProfile: String { get }
+    var appProfileDesc: String { get }
+    var noAppProfile: String { get }
+    var smartCommands: String { get }
     var inSentence: String { get }
     var inSentenceDesc: String { get }
+    var examples: String { get }
     var trigger: String { get }
     var triggerDesc: String { get }
     var triggerWord: String { get }

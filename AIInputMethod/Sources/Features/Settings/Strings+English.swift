@@ -60,19 +60,31 @@ private struct EnglishMemo: MemoStrings {
 
 private struct EnglishAIPolish: AIPolishStrings {
     var title: String { "AI Polish" }
+    var basicSettings: String { "Basic Settings" }
     var enable: String { "Enable AI Polish" }
-    var enableDesc: String { "When disabled, outputs raw speech recognition" }
+    var enableDesc: String { "When disabled, outputs raw transcription" }
     var threshold: String { "Polish Threshold" }
     var thresholdDesc: String { "Minimum text length to trigger polishing" }
     var thresholdUnit: String { "chars" }
     var profile: String { "Polish Style" }
     var profileDesc: String { "Select default polish style" }
+    var styleSection: String { "AI Polish Style" }
+    var createCustomStyle: String { "Create Custom Style" }
+    var editCustomStyle: String { "Edit Custom Style" }
+    var styleName: String { "Name" }
+    var styleNamePlaceholder: String { "e.g. Email, Social Media" }
+    var promptLabel: String { "Prompt" }
+    var appProfile: String { "Per-App Configuration" }
+    var appProfileDesc: String { "Set different polish styles for different apps" }
+    var noAppProfile: String { "No per-app config yet, click button above to add" }
+    var smartCommands: String { "Smart Commands" }
     var inSentence: String { "In-Sentence Patterns" }
-    var inSentenceDesc: String { "Recognize emails, phones, spelling, etc." }
+    var inSentenceDesc: String { "Auto-handle spelling, line breaks, Emoji, etc." }
+    var examples: String { "Examples" }
     var trigger: String { "Trigger Commands" }
-    var triggerDesc: String { "Use trigger word at end for special commands" }
+    var triggerDesc: String { "Use trigger word for translation, formatting, etc." }
     var triggerWord: String { "Trigger Word" }
-    var triggerWordDesc: String { "Word to activate end-of-sentence commands" }
+    var triggerWordDesc: String { "Say trigger word at end followed by command" }
 }
 
 // MARK: - Preferences

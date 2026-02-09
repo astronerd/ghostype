@@ -60,19 +60,31 @@ private struct ChineseMemo: MemoStrings {
 
 private struct ChineseAIPolish: AIPolishStrings {
     var title: String { "AI 润色" }
+    var basicSettings: String { "基础设置" }
     var enable: String { "启用 AI 润色" }
-    var enableDesc: String { "关闭后直接输出原始语音识别结果" }
+    var enableDesc: String { "关闭后直接输出原始转录文本" }
     var threshold: String { "润色阈值" }
     var thresholdDesc: String { "文本长度达到阈值才进行润色" }
     var thresholdUnit: String { "字符" }
     var profile: String { "润色风格" }
     var profileDesc: String { "选择默认的润色风格" }
-    var inSentence: String { "句内转写" }
-    var inSentenceDesc: String { "识别邮箱、电话、拆字等特殊模式" }
-    var trigger: String { "句末指令" }
-    var triggerDesc: String { "在句末使用唤醒词触发特殊指令" }
+    var styleSection: String { "AI 润色风格" }
+    var createCustomStyle: String { "创建自定义风格" }
+    var editCustomStyle: String { "编辑自定义风格" }
+    var styleName: String { "名称" }
+    var styleNamePlaceholder: String { "例如：邮件、朋友圈" }
+    var promptLabel: String { "Prompt" }
+    var appProfile: String { "应用专属配置" }
+    var appProfileDesc: String { "为不同应用设置不同的润色风格" }
+    var noAppProfile: String { "暂无应用专属配置，点击上方按钮添加" }
+    var smartCommands: String { "智能指令" }
+    var inSentence: String { "句内模式识别" }
+    var inSentenceDesc: String { "自动处理拆字、换行、Emoji 等模式" }
+    var examples: String { "示例" }
+    var trigger: String { "句尾唤醒指令" }
+    var triggerDesc: String { "通过唤醒词触发翻译、格式转换等操作" }
     var triggerWord: String { "唤醒词" }
-    var triggerWordDesc: String { "句末指令的触发词" }
+    var triggerWordDesc: String { "在句尾说出唤醒词后跟指令" }
 }
 
 // MARK: - Preferences

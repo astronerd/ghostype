@@ -39,7 +39,14 @@
 - build 前确认改动生效
 - 不要假设 strReplace 一定成功
 
-## 6. 完整思考整个流程
+## 6. 构建和打包流程
+
+- `bundle_app.sh` 优先使用 `.build/release/` 下的 executable
+- 改完代码后如果要打包测试，**必须先 `swift build -c release`**，不能只 build debug
+- 流程：`swift build -c release` → `bash bundle_app.sh` → `open GhosTYPE.app`
+- **不要用 `swift build -c debug` 然后直接 bundle**，否则打包的还是旧的 release 版本
+
+## 7. 完整思考整个流程
 
 - 写脚本时参考已有的类似脚本，不要漏掉关键步骤（如签名）
 - 考虑升级场景：已安装用户的本地数据（UserDefaults、CoreData）会保留

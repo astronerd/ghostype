@@ -348,7 +348,7 @@ struct PreferencesPage: View {
                     get: { viewModel.translateLanguage },
                     set: { viewModel.translateLanguage = $0 }
                 )) {
-                    ForEach(DoubaoLLMService.TranslateLanguage.allCases, id: \.self) { language in
+                    ForEach(GeminiService.TranslateLanguage.allCases, id: \.self) { language in
                         Text(language.displayName).tag(language)
                     }
                 }
@@ -559,7 +559,12 @@ struct PreferencesPage: View {
             }
         }
         .sheet(isPresented: $showingAppPicker) {
-            AppPickerSheet(viewModel: viewModel, isPresented: $showingAppPicker)
+            AppPickerSheet(
+                onSelect: { bundleId in
+                    viewModel.addAutoEnterApp(bundleId: bundleId)
+                },
+                isPresented: $showingAppPicker
+            )
         }
     }
 
@@ -745,102 +750,6 @@ struct MinimalNavigationRow: View {
         }
         .buttonStyle(.plain)
     }
-}
-
-// MARK: - App Picker Sheet
-
-struct AppPickerSheet: View {
-    var viewModel: PreferencesViewModel
-    @Binding var isPresented: Bool
-    @State private var runningApps: [RunningAppInfo] = []
-    
-    var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text(L.AppPicker.title)
-                    .font(DS.Typography.title)
-                    .foregroundColor(DS.Colors.text1)
-                Spacer()
-                Button(L.Common.done) { isPresented = false }
-                    .font(DS.Typography.body)
-                    .foregroundColor(DS.Colors.text1)
-                    .buttonStyle(.plain)
-            }
-            .padding(DS.Spacing.lg)
-            
-            MinimalDivider()
-            
-            if runningApps.isEmpty {
-                VStack(spacing: DS.Spacing.md) {
-                    Image(systemName: "app.badge.checkmark")
-                        .font(.system(size: 36))
-                        .foregroundColor(DS.Colors.text3)
-                    Text(L.AppPicker.noApps)
-                        .font(DS.Typography.body)
-                        .foregroundColor(DS.Colors.text2)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                List(runningApps) { app in
-                    HStack(spacing: DS.Spacing.md) {
-                        Image(nsImage: app.icon)
-                            .resizable()
-                            .frame(width: 28, height: 28)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(app.name)
-                                .font(DS.Typography.body)
-                                .foregroundColor(DS.Colors.text1)
-                            Text(app.bundleId)
-                                .font(DS.Typography.caption)
-                                .foregroundColor(DS.Colors.text2)
-                        }
-                        
-                        Spacer()
-                        
-                        if viewModel.autoEnterApps.contains(where: { $0.bundleId == app.bundleId }) {
-                            StatusDot(status: .success, size: 8)
-                        } else {
-                            Button(L.Common.add) { viewModel.addAutoEnterApp(bundleId: app.bundleId) }
-                                .font(DS.Typography.caption)
-                                .foregroundColor(DS.Colors.text1)
-                                .padding(.horizontal, DS.Spacing.md)
-                                .padding(.vertical, DS.Spacing.xs)
-                                .background(DS.Colors.highlight)
-                                .cornerRadius(DS.Layout.cornerRadius)
-                                .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.vertical, DS.Spacing.xs)
-                }
-                .listStyle(.plain)
-            }
-        }
-        .frame(width: 400, height: 350)
-        .background(DS.Colors.bg1)
-        .onAppear { loadRunningApps() }
-    }
-    
-    private func loadRunningApps() {
-        let workspace = NSWorkspace.shared
-        let apps = workspace.runningApplications
-            .filter { $0.activationPolicy == .regular }
-            .filter { $0.bundleIdentifier != Bundle.main.bundleIdentifier }
-            .compactMap { app -> RunningAppInfo? in
-                guard let bundleId = app.bundleIdentifier,
-                      let name = app.localizedName else { return nil }
-                let icon = app.icon ?? NSImage(systemSymbolName: "app", accessibilityDescription: nil)!
-                return RunningAppInfo(bundleId: bundleId, name: name, icon: icon)
-            }
-        runningApps = apps.sorted { $0.name < $1.name }
-    }
-}
-
-struct RunningAppInfo: Identifiable {
-    let id = UUID()
-    let bundleId: String
-    let name: String
-    let icon: NSImage
 }
 
 // MARK: - ModifierKeyPicker

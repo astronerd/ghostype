@@ -74,6 +74,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     func applicationDidFinishLaunching(_ notification: Notification) {
         print("[App] Launching...")
         
+        // 加载 .env 文件到进程环境变量
+        loadDotEnv()
+        
+        
         permissionManager.checkAccessibilityStatus()
         permissionManager.checkMicrophoneStatus()
         
@@ -232,22 +236,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         switch mode {
         case .polish:
             if AppSettings.shared.enableAIPolish {
-                // 检查阈值：文本长度 >= 阈值时才进行 AI 润色
-                let threshold = AppSettings.shared.polishThreshold
-                let textLength = text.count
-                FileLogger.log("[Polish] Text length: \(textLength), Threshold: \(threshold)")
-                
-                if textLength >= threshold {
-                    processPolish(text)
-                } else {
-                    FileLogger.log("[Polish] Text too short (< \(threshold)), inserting raw text")
-                    insertTextAtCursor(text)
-                    saveUsageRecord(content: text, category: .polish)
-                    OverlayStateManager.shared.setCommitting(type: .textInput)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        self.hideOverlay()
-                    }
-                }
+                // 阈值判断交给 GeminiService.polishWithProfile 内部处理
+                // 它会综合考虑阈值和智能指令开关来决定是否调用 AI
+                processPolish(text)
             } else {
                 FileLogger.log("[Process] AI Polish OFF, inserting raw text")
                 insertTextAtCursor(text)
@@ -267,26 +258,25 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     }
     
     private func processPolish(_ text: String) {
-        print("[Polish] Starting AI polish with Doubao...")
+        print("[Polish] Starting AI polish with Gemini...")
         
         // Requirements 4.5: 检测当前活跃应用的 BundleID
         let currentBundleId = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
         FileLogger.log("[Polish] Current app BundleID: \(currentBundleId ?? "nil")")
         
-        // 获取当前应用对应的 Profile
+        // 获取当前应用对应的 Profile（支持预设 + 自定义风格）
         let viewModel = AIPolishViewModel()
-        let profile = viewModel.getProfileForApp(bundleId: currentBundleId)
-        FileLogger.log("[Polish] Using profile: \(profile.rawValue)")
+        let resolved = viewModel.resolveProfile(for: currentBundleId)
+        FileLogger.log("[Polish] Using profile: \(resolved.profile.rawValue), customPrompt: \(resolved.customPrompt != nil)")
         
         // 获取智能指令设置
         let settings = AppSettings.shared
-        let customPrompt = profile == .custom ? settings.customProfilePrompt : nil
         
-        // 调用 polishWithProfile 而非原有 polish 方法
-        DoubaoLLMService.shared.polishWithProfile(
+        // 调用 GeminiService.polishWithProfile（支持 Block 2/3/Tone）
+        GeminiService.shared.polishWithProfile(
             text: text,
-            profile: profile,
-            customPrompt: customPrompt,
+            profile: resolved.profile,
+            customPrompt: resolved.customPrompt,
             enableInSentencePatterns: settings.enableInSentencePatterns,
             enableTriggerCommands: settings.enableTriggerCommands,
             triggerWord: settings.triggerWord
@@ -316,7 +306,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         
         let language = AppSettings.shared.translateLanguage
         
-        DoubaoLLMService.shared.translate(text: text, language: language) { [weak self] result in
+        GeminiService.shared.translate(text: text, language: language) { [weak self] result in
             guard let self = self else { return }
             
             switch result {
@@ -666,5 +656,46 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     
     func hideOverlay() {
         overlayWindow.orderOut(nil)
+    }
+    
+    // MARK: - .env 文件加载
+    
+    /// 从 .env 文件加载环境变量到进程中
+    private func loadDotEnv() {
+        // 搜索 .env 文件：executable 同级目录 → 上级目录们
+        let execURL = Bundle.main.executableURL ?? URL(fileURLWithPath: ProcessInfo.processInfo.arguments[0])
+        var searchDir = execURL.deletingLastPathComponent()
+        
+        // 从 MacOS/ 往上找：MacOS → Contents → .app → 项目目录
+        var candidates: [URL] = []
+        for _ in 0..<5 {
+            candidates.append(searchDir.appendingPathComponent(".env"))
+            searchDir = searchDir.deletingLastPathComponent()
+        }
+        // 也加上 cwd
+        candidates.append(URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(".env"))
+        
+        for url in candidates {
+            guard let content = try? String(contentsOf: url, encoding: .utf8) else { continue }
+            print("[App] Loaded .env from: \(url.path)")
+            var count = 0
+            for line in content.components(separatedBy: .newlines) {
+                let trimmed = line.trimmingCharacters(in: .whitespaces)
+                if trimmed.isEmpty || trimmed.hasPrefix("#") { continue }
+                let parts = trimmed.split(separator: "=", maxSplits: 1)
+                if parts.count == 2 {
+                    let key = String(parts[0]).trimmingCharacters(in: .whitespaces)
+                    let value = String(parts[1]).trimmingCharacters(in: .whitespaces)
+                    // 只在环境变量不存在时设置（不覆盖已有的）
+                    if ProcessInfo.processInfo.environment[key] == nil {
+                        setenv(key, value, 0)
+                        count += 1
+                    }
+                }
+            }
+            print("[App] Loaded \(count) env vars from .env")
+            return
+        }
+        print("[App] ⚠️ No .env file found")
     }
 }

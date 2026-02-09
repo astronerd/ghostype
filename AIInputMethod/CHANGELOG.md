@@ -1,5 +1,38 @@
 # GhosTYPE 开发记录
 
+## 2026-02-09 v1.2 — AI 润色风格 & 应用配置
+
+### 一、AI 引擎迁移：MiniMax → Gemini
+- 新增 `GeminiService.swift`，使用 Google Gemini 2.0 Flash 模型
+- 删除 `DoubaoLLMService.swift` 和 `MiniMaxService.swift`
+- 统一通过 `PromptBuilder` 构建 prompt，支持润色/翻译/笔记三种模式
+
+### 二、润色风格系统
+- 新增 5 种预设润色风格：默认、正式、口语、简洁、创意
+- 支持自定义润色风格（`CustomProfile.swift`）：用户可创建/编辑/删除
+- `PolishProfile` 重构为 enum + CustomProfile 双轨制
+- `PromptTemplates` 为每种风格提供独立 prompt 模板
+
+### 三、应用级配置
+- 新增 `AppPickerSheet.swift`：从运行中的应用列表选择应用
+- 支持为不同应用绑定不同润色风格
+- `PreferencesPage` 集成应用选择器，替换旧的手动输入方式
+
+### 四、AI 润色页面重构
+- `AIPolishPage.swift` 全面重构：预设风格选择、自定义风格管理、应用配置
+- `AIPolishViewModel` 新增自定义风格 CRUD 和应用配置管理
+
+### 五、本地化
+- 新增 13 个 AI 润色相关本地化 key（中/英）
+- AIPolishPage 所有 UI 文案改用 `L.AIPolish.xxx`
+
+### 六、其他
+- `bundle_app.sh` 更新签名流程
+- `.env.example` 新增，方便新开发者配置
+- `DoubaoSpeechService` 小幅优化
+
+---
+
 ## 2026-02-06 重大更新
 
 ### 一、Dashboard Console 完整实现

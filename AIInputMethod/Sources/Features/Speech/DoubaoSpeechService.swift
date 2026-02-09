@@ -26,19 +26,14 @@ class DoubaoSpeechService: ObservableObject {
     
     private let logger = Logger(subsystem: "com.gengdawei.AIInputMethod", category: "Doubao")
     
-    // 内置凭证（混淆存储）
-    private var appId: String { decodeCredential(Self.encAppId) }
-    private var accessToken: String { decodeCredential(Self.encToken) }
-    
-    // 混淆后的凭证 - Base64 + XOR (新实例)
-    private static let encAppId = "eXhzcXF5c3l1dA=="
-    private static let encToken = "EBs3GHZzcwAmAB4RNgwsECMWKyt3DnIweXRsBnUTK2w="
-    private static let xorKey: UInt8 = 0x41
-    
-    private func decodeCredential(_ encoded: String) -> String {
-        guard let data = Data(base64Encoded: encoded) else { return "" }
-        let decoded = data.map { $0 ^ Self.xorKey }
-        return String(bytes: decoded, encoding: .utf8) ?? ""
+    // 凭证从环境变量读取（支持 setenv 动态设置）
+    private var appId: String {
+        if let ptr = getenv("DOUBAO_ASR_APP_ID") { return String(cString: ptr) }
+        return ""
+    }
+    private var accessToken: String {
+        if let ptr = getenv("DOUBAO_ASR_ACCESS_TOKEN") { return String(cString: ptr) }
+        return ""
     }
     
     // 音频缓冲

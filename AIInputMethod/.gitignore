@@ -1,3 +1,6 @@
 .build/
 *.dSYM
 .DS_Store
+
+# 环境变量（含密钥，不要提交）
+.env

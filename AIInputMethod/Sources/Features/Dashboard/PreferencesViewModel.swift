@@ -101,7 +101,7 @@ class PreferencesViewModel {
     }
     
     /// 翻译语言选项
-    var translateLanguage: DoubaoLLMService.TranslateLanguage {
+    var translateLanguage: GeminiService.TranslateLanguage {
         get { AppSettings.shared.translateLanguage }
         set { AppSettings.shared.translateLanguage = newValue }
     }

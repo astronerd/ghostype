@@ -51,18 +51,23 @@ class AppSettings: ObservableObject {
     
     // MARK: - AI 润色配置文件
     
-    /// 默认润色配置（默认「默认」）
+    /// 默认润色配置（兼容旧版，读取用）
     @Published var defaultProfile: String {
         didSet { saveToUserDefaults() }
     }
     
-    /// 应用专属配置映射 [BundleID: ProfileName]
+    /// 当前选中的配置 ID（预设 rawValue 或自定义 UUID 字符串）
+    @Published var selectedProfileId: String {
+        didSet { saveToUserDefaults() }
+    }
+    
+    /// 应用专属配置映射 [BundleID: ProfileID]
     @Published var appProfileMapping: [String: String] {
         didSet { saveToUserDefaults() }
     }
     
-    /// 自定义配置的 Prompt
-    @Published var customProfilePrompt: String {
+    /// 自定义润色风格列表（JSON 编码存储到 UserDefaults）
+    @Published var customProfiles: [CustomProfile] {
         didSet { saveToUserDefaults() }
     }
     
@@ -91,7 +96,7 @@ class AppSettings: ObservableObject {
     }
     
     /// 翻译语言选项（中英互译、中日互译）
-    @Published var translateLanguage: DoubaoLLMService.TranslateLanguage {
+    @Published var translateLanguage: GeminiService.TranslateLanguage {
         didSet { saveToUserDefaults() }
     }
     
@@ -149,18 +154,11 @@ class AppSettings: ObservableObject {
     
     // MARK: - 默认 Prompts
     
-    static let defaultPolishPrompt = """
-    你是一个专业的速记员和文字编辑。请将用户的语音转录文本进行润色。
-
-    规则：
-    1. 去除口语中的赘词（如"那个"、"额"、"然后"、"就是"、"嗯"）
-    2. 修正明显的语法错误和标点符号
-    3. 保持原意，不要添加或删除实质内容
-    4. 不要回复任何解释性文字，只输出润色后的文本
-    5. 如果输入是英文，保持英文输出；如果是中文，保持中文输出
-
-    直接输出润色后的文本，不要有任何前缀或后缀。
-    """
+    /// 默认润色 Prompt（简单调用路径使用，如 GeminiService.polish()）
+    /// 完整的 polishWithProfile 路径使用 PromptBuilder 拼接
+    static let defaultPolishPrompt = PromptTemplates.roleDefinition
+        + "\n\n" + PromptTemplates.block1
+        + "\n\n" + PromptTemplates.Tone.standard
     
     // MARK: - UserDefaults Keys
     
@@ -173,8 +171,9 @@ class AppSettings: ObservableObject {
         static let enableAIPolish = "enableAIPolish"
         static let polishThreshold = "polishThreshold"
         static let defaultProfile = "defaultProfile"
+        static let selectedProfileId = "selectedProfileId"
         static let appProfileMapping = "appProfileMapping"
-        static let customProfilePrompt = "customProfilePrompt"
+        static let customProfiles = "customProfiles"
         static let enableInSentencePatterns = "enableInSentencePatterns"
         static let enableTriggerCommands = "enableTriggerCommands"
         static let triggerWord = "triggerWord"
@@ -234,13 +233,26 @@ class AppSettings: ObservableObject {
         // 加载 AI 润色配置文件设置
         defaultProfile = defaults.string(forKey: Keys.defaultProfile) ?? "默认"
         
+        // 加载 selectedProfileId（优先使用新 key，回退到 defaultProfile）
+        if let savedProfileId = defaults.string(forKey: Keys.selectedProfileId) {
+            selectedProfileId = savedProfileId
+        } else {
+            selectedProfileId = defaults.string(forKey: Keys.defaultProfile) ?? "默认"
+        }
+        
         if let mappingData = defaults.dictionary(forKey: Keys.appProfileMapping) as? [String: String] {
             appProfileMapping = mappingData
         } else {
             appProfileMapping = [:]
         }
         
-        customProfilePrompt = defaults.string(forKey: Keys.customProfilePrompt) ?? ""
+        // 加载自定义润色风格列表
+        if let data = defaults.data(forKey: Keys.customProfiles),
+           let profiles = try? JSONDecoder().decode([CustomProfile].self, from: data) {
+            customProfiles = profiles
+        } else {
+            customProfiles = []
+        }
         
         // 加载智能指令设置
         if defaults.object(forKey: Keys.enableInSentencePatterns) != nil {
@@ -262,7 +274,7 @@ class AppSettings: ObservableObject {
         
         // 加载翻译语言选项
         if let savedLanguage = defaults.string(forKey: Keys.translateLanguage),
-           let language = DoubaoLLMService.TranslateLanguage(rawValue: savedLanguage) {
+           let language = GeminiService.TranslateLanguage(rawValue: savedLanguage) {
             translateLanguage = language
         } else {
             translateLanguage = .chineseEnglish
@@ -303,8 +315,11 @@ class AppSettings: ObservableObject {
         defaults.set(enableAIPolish, forKey: Keys.enableAIPolish)
         defaults.set(polishThreshold, forKey: Keys.polishThreshold)
         defaults.set(defaultProfile, forKey: Keys.defaultProfile)
+        defaults.set(selectedProfileId, forKey: Keys.selectedProfileId)
         defaults.set(appProfileMapping, forKey: Keys.appProfileMapping)
-        defaults.set(customProfilePrompt, forKey: Keys.customProfilePrompt)
+        if let data = try? JSONEncoder().encode(customProfiles) {
+            defaults.set(data, forKey: Keys.customProfiles)
+        }
         defaults.set(enableInSentencePatterns, forKey: Keys.enableInSentencePatterns)
         defaults.set(enableTriggerCommands, forKey: Keys.enableTriggerCommands)
         defaults.set(triggerWord, forKey: Keys.triggerWord)
