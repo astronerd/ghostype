@@ -2,242 +2,199 @@
 //  QuotaManager.swift
 //  AIInputMethod
 //
-//  Quota management for tracking voice input duration.
-//  Implements the Quota_System for tracking usage and calculating percentages.
-//  Validates: Requirements 9.1, 9.3
+//  Quota management using server-side character quota.
+//  Fetches usage data from GHOSTYPE backend via ProfileResponse.
+//  Validates: Requirements 7.2, 7.3, 7.4, 7.5
 //
 
 import Foundation
-import SwiftUI
-
-// MARK: - Quota Constants
-
-/// 额度系统常量配置
-enum QuotaConstants {
-    /// 免费用户每月额度（秒）- 1小时 = 3600秒
-    static let freeMonthlyQuota: Int = 3600
-    
-    /// 警告阈值（百分比）- 超过此值显示警告
-    static let warningThreshold: Double = 0.9
-}
 
 // MARK: - Quota Manager
 
 /// 额度管理器
-/// 负责追踪语音输入时长、计算使用百分比、管理额度重置
+/// 从服务端获取字符额度数据，替代本地 CoreData 秒数额度
 /// 使用 @Observable 宏实现响应式状态管理（macOS 14+）
-/// Validates: Requirements 9.1, 9.3
+/// Validates: Requirements 7.2, 7.3, 7.4, 7.5
 @Observable
 class QuotaManager {
-    
+
+    // MARK: - Singleton
+
+    static let shared = QuotaManager()
+
     // MARK: - Properties
-    
-    /// 已使用的秒数
-    private(set) var usedSeconds: Int
-    
-    /// 额度重置日期
-    private(set) var resetDate: Date
-    
-    /// 每月总额度（秒）
-    let totalSeconds: Int
-    
-    /// 持久化控制器（用于 CoreData 存储）
-    private let persistenceController: PersistenceController
-    
-    /// 设备 ID 管理器
-    private let deviceIdManager: DeviceIdManager
-    
+
+    /// 已使用字符数
+    private(set) var usedCharacters: Int
+
+    /// 字符上限（-1 表示无限）
+    private(set) var limitCharacters: Int
+
+    /// 下次重置时间
+    private(set) var resetAt: Date?
+
+    /// 订阅计划: "free" 或 "pro"
+    private(set) var plan: String
+
+    /// 是否为终身 VIP
+    private(set) var isLifetimeVip: Bool
+
     // MARK: - Computed Properties
-    
+
+    /// 额度是否无限制（limit == -1）
+    /// Validates: Requirements 7.3
+    var isUnlimited: Bool {
+        return limitCharacters == -1
+    }
+
     /// 已使用百分比 (0.0 - 1.0)
-    /// 计算公式: usedSeconds / totalSeconds，结果限制在 [0.0, 1.0] 范围内
-    /// Validates: Requirements 9.3
+    /// 无限制用户始终返回 0.0
+    /// Validates: Requirements 7.4
     var usedPercentage: Double {
-        guard totalSeconds > 0 else {
-            return 0.0
-        }
-        let percentage = Double(usedSeconds) / Double(totalSeconds)
-        // 确保百分比在 0.0 到 1.0 之间
+        guard !isUnlimited else { return 0.0 }
+        guard limitCharacters > 0 else { return 0.0 }
+        let percentage = Double(usedCharacters) / Double(limitCharacters)
         return min(max(percentage, 0.0), 1.0)
     }
-    
-    /// 剩余秒数
-    var remainingSeconds: Int {
-        return max(totalSeconds - usedSeconds, 0)
-    }
-    
-    /// 是否已超过警告阈值
-    var isWarning: Bool {
-        return usedPercentage >= QuotaConstants.warningThreshold
-    }
-    
-    /// 是否已耗尽额度
-    var isExhausted: Bool {
-        return usedSeconds >= totalSeconds
-    }
-    
-    /// 格式化的已使用时间字符串
-    var formattedUsedTime: String {
-        return formatTime(seconds: usedSeconds)
-    }
-    
-    /// 格式化的剩余时间字符串
-    var formattedRemainingTime: String {
-        return formatTime(seconds: remainingSeconds)
-    }
-    
-    /// 格式化的总额度时间字符串
-    var formattedTotalTime: String {
-        return formatTime(seconds: totalSeconds)
-    }
-    
-    // MARK: - Initialization
-    
-    /// 初始化额度管理器
-    /// - Parameters:
-    ///   - persistenceController: CoreData 持久化控制器，默认使用共享实例
-    ///   - deviceIdManager: 设备 ID 管理器，默认使用共享实例
-    ///   - totalSeconds: 每月总额度（秒），默认为免费用户额度
-    init(
-        persistenceController: PersistenceController = .shared,
-        deviceIdManager: DeviceIdManager = .shared,
-        totalSeconds: Int = QuotaConstants.freeMonthlyQuota
-    ) {
-        self.persistenceController = persistenceController
-        self.deviceIdManager = deviceIdManager
-        self.totalSeconds = totalSeconds
-        
-        // 从 CoreData 加载或创建额度记录
-        let quotaRecord = persistenceController.fetchOrCreateQuotaRecord(deviceId: deviceIdManager.deviceId)
-        self.usedSeconds = Int(quotaRecord.usedSeconds)
-        self.resetDate = quotaRecord.resetDate
-        
-        // 检查是否需要重置
-        checkAndResetIfNeeded()
-    }
-    
-    /// 用于测试的初始化方法（不依赖 CoreData）
-    /// - Parameters:
-    ///   - usedSeconds: 初始已使用秒数
-    ///   - resetDate: 重置日期
-    ///   - totalSeconds: 总额度秒数
-    init(usedSeconds: Int, resetDate: Date, totalSeconds: Int = QuotaConstants.freeMonthlyQuota) {
-        self.usedSeconds = max(usedSeconds, 0)
-        self.resetDate = resetDate
-        self.totalSeconds = totalSeconds
-        self.persistenceController = .shared
-        self.deviceIdManager = .shared
-    }
-    
-    // MARK: - Public Methods
-    
-    /// 记录使用时长
-    /// - Parameter seconds: 使用的秒数
-    /// Validates: Requirements 9.1
-    func recordUsage(seconds: Int) {
-        guard seconds > 0 else {
-            return
-        }
-        
-        // 累加使用时长
-        usedSeconds += seconds
-        
-        // 更新 CoreData
-        updateQuotaRecord()
-    }
-    
-    /// 检查并在需要时重置额度
-    /// 如果当前日期已超过重置日期，则重置已使用秒数并设置新的重置日期
-    func checkAndResetIfNeeded() {
-        let now = Date()
-        
-        // 如果当前日期已超过重置日期，执行重置
-        if now >= resetDate {
-            resetQuota()
-        }
-    }
-    
-    /// 重置额度
-    /// 将已使用秒数归零，并设置新的重置日期（下个月）
-    func resetQuota() {
-        usedSeconds = 0
-        resetDate = Self.calculateNextResetDate()
-        
-        // 更新 CoreData
-        updateQuotaRecord()
-    }
-    
-    /// 获取距离重置还有多少天
-    var daysUntilReset: Int {
-        let calendar = Calendar.current
-        let now = Date()
-        let components = calendar.dateComponents([.day], from: now, to: resetDate)
-        return max(components.day ?? 0, 0)
-    }
-    
-    // MARK: - Private Methods
-    
-    /// 更新 CoreData 中的额度记录
-    private func updateQuotaRecord() {
-        let quotaRecord = persistenceController.fetchOrCreateQuotaRecord(deviceId: deviceIdManager.deviceId)
-        quotaRecord.usedSeconds = Int32(usedSeconds)
-        quotaRecord.resetDate = resetDate
-        quotaRecord.lastUpdated = Date()
-        persistenceController.save()
-    }
-    
-    /// 计算下一个重置日期（下个月的第一天）
-    private static func calculateNextResetDate() -> Date {
-        let calendar = Calendar.current
-        let now = Date()
-        
-        // 获取当前年月
-        let components = calendar.dateComponents([.year, .month], from: now)
-        
-        // 获取本月第一天
-        guard let startOfMonth = calendar.date(from: components),
-              // 加一个月得到下个月第一天
-              let nextMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth) else {
-            // 如果计算失败，返回 30 天后
-            return calendar.date(byAdding: .day, value: 30, to: now) ?? now
-        }
-        
-        return nextMonth
-    }
-    
-    /// 格式化时间为可读字符串
-    /// - Parameter seconds: 秒数
-    /// - Returns: 格式化的时间字符串（如 "30分钟" 或 "1小时30分钟"）
-    private func formatTime(seconds: Int) -> String {
-        let hours = seconds / 3600
-        let minutes = (seconds % 3600) / 60
-        let remainingSeconds = seconds % 60
-        
-        if hours > 0 {
-            if minutes > 0 {
-                return "\(hours)小时\(minutes)分钟"
-            } else {
-                return "\(hours)小时"
-            }
-        } else if minutes > 0 {
-            return "\(minutes)分钟"
+
+    /// 格式化的已使用字符串
+    /// Free 用户: "1234 / 6000 字符"
+    /// Pro 用户: "1234 字符（无限制）"
+    /// Validates: Requirements 7.3, 7.4
+    var formattedUsed: String {
+        let chars = L.Quota.characters
+        if isUnlimited {
+            return "\(usedCharacters) \(chars)\(L.Quota.unlimited)"
         } else {
-            return "\(remainingSeconds)秒"
+            return "\(usedCharacters) / \(limitCharacters) \(chars)"
         }
+    }
+
+    /// 格式化的重置时间
+    /// 例如: "3 天后重置" (中文) 或 "Resets in 3 days" (英文)
+    /// Validates: Requirements 7.5
+    var formattedResetTime: String {
+        guard let resetAt = resetAt else { return "" }
+
+        let now = Date()
+        guard resetAt > now else {
+            return L.Quota.expired
+        }
+
+        let interval = resetAt.timeIntervalSince(now)
+        let hours = Int(interval / 3600)
+        let days = hours / 24
+
+        if days > 0 {
+            return "\(L.Quota.resetPrefix)\(days)\(L.Quota.daysUnit)\(L.Quota.resetSuffix)"
+        } else if hours > 0 {
+            return "\(L.Quota.resetPrefix)\(hours)\(L.Quota.hoursUnit)\(L.Quota.resetSuffix)"
+        } else {
+            // Less than 1 hour
+            return "\(L.Quota.resetPrefix)< 1\(L.Quota.hoursUnit)\(L.Quota.resetSuffix)"
+        }
+    }
+
+    // MARK: - Initialization
+
+    /// 私有初始化（单例模式）
+    private init() {
+        self.usedCharacters = 0
+        self.limitCharacters = 0
+        self.resetAt = nil
+        self.plan = "free"
+        self.isLifetimeVip = false
+    }
+
+    /// 用于测试的内部初始化方法
+    /// - Parameters:
+    ///   - usedCharacters: 已使用字符数
+    ///   - limitCharacters: 字符上限（-1 表示无限）
+    ///   - resetAt: 下次重置时间
+    ///   - plan: 订阅计划
+    ///   - isLifetimeVip: 是否终身 VIP
+    init(
+        usedCharacters: Int,
+        limitCharacters: Int,
+        resetAt: Date?,
+        plan: String = "free",
+        isLifetimeVip: Bool = false
+    ) {
+        self.usedCharacters = usedCharacters
+        self.limitCharacters = limitCharacters
+        self.resetAt = resetAt
+        self.plan = plan
+        self.isLifetimeVip = isLifetimeVip
+    }
+
+    // MARK: - Public Methods
+
+    /// 从服务器刷新额度数据
+    /// 调用 GhostypeAPIClient.shared.fetchProfile() 并更新本地状态
+    func refresh() async {
+        do {
+            let response = try await GhostypeAPIClient.shared.fetchProfile()
+            await MainActor.run {
+                self.update(from: response)
+            }
+        } catch {
+            // 刷新失败时保持当前状态，仅记录日志
+            print("[QuotaManager] Failed to refresh quota: \(error)")
+        }
+    }
+
+    /// 用 ProfileResponse 更新本地状态
+    /// - Parameter response: 服务器返回的用户配置响应
+    /// Validates: Requirements 7.2, 7.3, 7.4, 7.5
+    func update(from response: ProfileResponse) {
+        self.usedCharacters = response.usage.used
+        self.limitCharacters = response.usage.limit
+        self.plan = response.subscription.plan
+        self.isLifetimeVip = response.subscription.is_lifetime_vip
+
+        // 解析 ISO 8601 格式的 reset_at 时间
+        self.resetAt = Self.parseISO8601(response.usage.reset_at)
+    }
+
+    // MARK: - Private Helpers
+
+    /// 解析 ISO 8601 日期字符串
+    /// - Parameter dateString: ISO 8601 格式的日期字符串
+    /// - Returns: 解析后的 Date，解析失败返回 nil
+    private static func parseISO8601(_ dateString: String) -> Date? {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = formatter.date(from: dateString) {
+            return date
+        }
+        // 尝试不带小数秒的格式
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter.date(from: dateString)
     }
 }
 
 // MARK: - QuotaManager Extension for Testing
 
 extension QuotaManager {
-    
+
     /// 创建用于测试的 QuotaManager 实例
     /// - Parameters:
-    ///   - usedSeconds: 已使用秒数
-    ///   - totalSeconds: 总额度秒数
+    ///   - usedCharacters: 已使用字符数
+    ///   - limitCharacters: 字符上限（-1 表示无限）
+    ///   - plan: 订阅计划
     /// - Returns: 配置好的 QuotaManager 实例
-    static func forTesting(usedSeconds: Int = 0, totalSeconds: Int = QuotaConstants.freeMonthlyQuota) -> QuotaManager {
-        let futureDate = Calendar.current.date(byAdding: .month, value: 1, to: Date()) ?? Date()
-        return QuotaManager(usedSeconds: usedSeconds, resetDate: futureDate, totalSeconds: totalSeconds)
+    static func forTesting(
+        usedCharacters: Int = 0,
+        limitCharacters: Int = 6000,
+        plan: String = "free"
+    ) -> QuotaManager {
+        let futureDate = Calendar.current.date(byAdding: .day, value: 7, to: Date())
+        return QuotaManager(
+            usedCharacters: usedCharacters,
+            limitCharacters: limitCharacters,
+            resetAt: futureDate,
+            plan: plan,
+            isLifetimeVip: plan == "pro"
+        )
     }
 }

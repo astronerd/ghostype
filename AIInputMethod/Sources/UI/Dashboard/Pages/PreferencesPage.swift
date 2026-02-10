@@ -348,7 +348,7 @@ struct PreferencesPage: View {
                     get: { viewModel.translateLanguage },
                     set: { viewModel.translateLanguage = $0 }
                 )) {
-                    ForEach(GeminiService.TranslateLanguage.allCases, id: \.self) { language in
+                    ForEach(TranslateLanguage.allCases, id: \.self) { language in
                         Text(language.displayName).tag(language)
                     }
                 }

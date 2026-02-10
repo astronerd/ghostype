@@ -15,6 +15,11 @@ let package = Package(
             name: "AIInputMethod",
             dependencies: [],
             path: "Sources"
+        ),
+        .testTarget(
+            name: "AIInputMethodTests",
+            dependencies: [],
+            path: "Tests"
         )
     ]
 )

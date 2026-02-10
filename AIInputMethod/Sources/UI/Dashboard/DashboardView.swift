@@ -40,7 +40,7 @@ struct DashboardView: View {
                     selectedItem: $dashboardState.selectedNavItem,
                     isEnabled: dashboardState.isSidebarNavigationEnabled,
                     deviceId: DeviceIdManager.shared.truncatedId(),
-                    quotaPercentage: QuotaManager.forTesting().usedPercentage
+                    quotaPercentage: QuotaManager.shared.usedPercentage
                 )
                 .frame(width: DS.Layout.sidebarWidth)
                 

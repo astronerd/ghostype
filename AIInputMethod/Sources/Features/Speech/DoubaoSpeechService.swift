@@ -13,6 +13,13 @@ func logToFile(_ message: String) {
 }
 
 // 豆包语音识别服务 - 使用二进制 WebSocket 协议
+
+/// ASR 凭证响应模型
+struct ASRCredentialsResponse: Codable {
+    let app_id: String
+    let access_token: String
+}
+
 class DoubaoSpeechService: ObservableObject {
     @Published var transcript: String = ""
     @Published var isRecording: Bool = false
@@ -26,21 +33,46 @@ class DoubaoSpeechService: ObservableObject {
     
     private let logger = Logger(subsystem: "com.gengdawei.AIInputMethod", category: "Doubao")
     
-    // 凭证从环境变量读取（支持 setenv 动态设置）
-    private var appId: String {
-        if let ptr = getenv("DOUBAO_ASR_APP_ID") { return String(cString: ptr) }
-        return ""
-    }
-    private var accessToken: String {
-        if let ptr = getenv("DOUBAO_ASR_ACCESS_TOKEN") { return String(cString: ptr) }
-        return ""
-    }
+    // ASR 凭证缓存（从服务器获取，替代环境变量）
+    private var cachedAppId: String = ""
+    private var cachedAccessToken: String = ""
+
+    private var appId: String { cachedAppId }
+    private var accessToken: String { cachedAccessToken }
     
     // 音频缓冲
     private var audioBuffer = Data()
     private var sendTimer: DispatchSourceTimer?
     
     init() {}
+    
+    /// 从服务器获取 ASR 凭证，缓存到内存
+    func fetchCredentials() async throws {
+        let baseURL: String = {
+            #if DEBUG
+            return "http://localhost:3000"
+            #else
+            return "https://ghostype.com"
+            #endif
+        }()
+        guard let url = URL(string: "\(baseURL)/api/v1/asr/credentials") else {
+            throw GhostypeError.serverError(code: "INVALID_URL", message: "Invalid ASR credentials URL")
+        }
+        var request = URLRequest(url: url)
+        request.setValue(DeviceIdManager.shared.deviceId, forHTTPHeaderField: "X-Device-Id")
+        request.timeoutInterval = 10
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+            throw GhostypeError.serverError(code: "ASR_CREDENTIALS_FAILED", message: "Failed to fetch ASR credentials (HTTP \(statusCode))")
+        }
+        let credentials = try JSONDecoder().decode(ASRCredentialsResponse.self, from: data)
+        self.cachedAppId = credentials.app_id
+        self.cachedAccessToken = credentials.access_token
+        logToFile("[Doubao] ASR credentials cached: appId=\(credentials.app_id.prefix(4))...")
+    }
     
     func hasCredentials() -> Bool {
         return !appId.isEmpty && !accessToken.isEmpty

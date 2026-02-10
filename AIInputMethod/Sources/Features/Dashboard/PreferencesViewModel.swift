@@ -101,7 +101,7 @@ class PreferencesViewModel {
     }
     
     /// 翻译语言选项
-    var translateLanguage: GeminiService.TranslateLanguage {
+    var translateLanguage: TranslateLanguage {
         get { AppSettings.shared.translateLanguage }
         set { AppSettings.shared.translateLanguage = newValue }
     }

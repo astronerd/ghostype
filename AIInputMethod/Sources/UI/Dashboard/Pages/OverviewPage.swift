@@ -274,15 +274,15 @@ struct QuotaInfo {
     static func from(_ manager: QuotaManager) -> QuotaInfo {
         return QuotaInfo(
             usedPercentage: manager.usedPercentage,
-            formattedUsedTime: manager.formattedUsedTime,
-            formattedRemainingTime: manager.formattedRemainingTime
+            formattedUsedTime: manager.formattedUsed,
+            formattedRemainingTime: manager.formattedResetTime
         )
     }
     
     static let empty = QuotaInfo(
         usedPercentage: 0.0,
-        formattedUsedTime: "0秒",
-        formattedRemainingTime: "1小时"
+        formattedUsedTime: "0 / 6000 \(L.Quota.characters)",
+        formattedRemainingTime: ""
     )
 }
 
@@ -300,7 +300,7 @@ struct OverviewPageWithData: View {
     
     init(
         statsCalculator: StatsCalculator = StatsCalculator(),
-        quotaManager: QuotaManager = QuotaManager.forTesting()
+        quotaManager: QuotaManager = QuotaManager.shared
     ) {
         self.statsCalculator = statsCalculator
         self.quotaManager = quotaManager
@@ -333,7 +333,7 @@ struct OverviewPage_Previews: PreviewProvider {
     static var previews: some View {
         OverviewPage(
             todayStats: TodayStats(characterCount: 1234, totalCharacterCount: 12345, estimatedTimeSaved: 617),
-            quotaInfo: QuotaInfo(usedPercentage: 0.35, formattedUsedTime: "21分钟", formattedRemainingTime: "39分钟"),
+            quotaInfo: QuotaInfo(usedPercentage: 0.35, formattedUsedTime: "2100 / 6000 characters", formattedRemainingTime: "Resets in 5 days"),
             appDistribution: [],
             recentNotes: []
         )

@@ -96,7 +96,7 @@ class AppSettings: ObservableObject {
     }
     
     /// 翻译语言选项（中英互译、中日互译）
-    @Published var translateLanguage: GeminiService.TranslateLanguage {
+    @Published var translateLanguage: TranslateLanguage {
         didSet { saveToUserDefaults() }
     }
     
@@ -154,7 +154,7 @@ class AppSettings: ObservableObject {
     
     // MARK: - 默认 Prompts
     
-    /// 默认润色 Prompt（简单调用路径使用，如 GeminiService.polish()）
+    /// 默认润色 Prompt（简单调用路径使用）
     /// 完整的 polishWithProfile 路径使用 PromptBuilder 拼接
     static let defaultPolishPrompt = PromptTemplates.roleDefinition
         + "\n\n" + PromptTemplates.block1
@@ -231,13 +231,13 @@ class AppSettings: ObservableObject {
         polishThreshold = savedThreshold > 0 ? savedThreshold : 20
         
         // 加载 AI 润色配置文件设置
-        defaultProfile = defaults.string(forKey: Keys.defaultProfile) ?? "默认"
+        defaultProfile = defaults.string(forKey: Keys.defaultProfile) ?? PolishProfile.standard.rawValue
         
         // 加载 selectedProfileId（优先使用新 key，回退到 defaultProfile）
         if let savedProfileId = defaults.string(forKey: Keys.selectedProfileId) {
             selectedProfileId = savedProfileId
         } else {
-            selectedProfileId = defaults.string(forKey: Keys.defaultProfile) ?? "默认"
+            selectedProfileId = defaults.string(forKey: Keys.defaultProfile) ?? PolishProfile.standard.rawValue
         }
         
         if let mappingData = defaults.dictionary(forKey: Keys.appProfileMapping) as? [String: String] {
@@ -274,7 +274,7 @@ class AppSettings: ObservableObject {
         
         // 加载翻译语言选项
         if let savedLanguage = defaults.string(forKey: Keys.translateLanguage),
-           let language = GeminiService.TranslateLanguage(rawValue: savedLanguage) {
+           let language = TranslateLanguage(rawValue: savedLanguage) {
             translateLanguage = language
         } else {
             translateLanguage = .chineseEnglish

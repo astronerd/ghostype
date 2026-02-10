@@ -164,6 +164,13 @@ enum L {
         static var noApps: String { current.appPicker.noApps }
     }
     
+    // MARK: - Translate Language / 翻译语言
+    enum Translate {
+        static var chineseEnglish: String { current.translate.chineseEnglish }
+        static var chineseJapanese: String { current.translate.chineseJapanese }
+        static var auto: String { current.translate.auto }
+    }
+    
     // MARK: - Polish Profiles / 润色风格
     enum Profile {
         static var standard: String { current.profile.standard }
@@ -181,6 +188,17 @@ enum L {
         static var authorized: String { current.auth.authorized }
         static var denied: String { current.auth.denied }
         static var restricted: String { current.auth.restricted }
+    }
+    
+    // MARK: - Quota / 额度
+    enum Quota {
+        static var characters: String { current.quota.characters }
+        static var unlimited: String { current.quota.unlimited }
+        static var resetPrefix: String { current.quota.resetPrefix }
+        static var resetSuffix: String { current.quota.resetSuffix }
+        static var daysUnit: String { current.quota.daysUnit }
+        static var hoursUnit: String { current.quota.hoursUnit }
+        static var expired: String { current.quota.expired }
     }
     
     // MARK: - Private Implementation
@@ -204,8 +222,10 @@ protocol StringsTable {
     var prefs: PrefsStrings { get }
     var common: CommonStrings { get }
     var appPicker: AppPickerStrings { get }
+    var translate: TranslateStrings { get }
     var profile: ProfileStrings { get }
     var auth: AuthStrings { get }
+    var quota: QuotaStrings { get }
 }
 
 protocol NavStrings {
@@ -367,10 +387,26 @@ protocol ProfileStrings {
     var custom: String { get }
 }
 
+protocol TranslateStrings {
+    var chineseEnglish: String { get }
+    var chineseJapanese: String { get }
+    var auto: String { get }
+}
+
 protocol AuthStrings {
     var unknown: String { get }
     var notDetermined: String { get }
     var authorized: String { get }
     var denied: String { get }
     var restricted: String { get }
+}
+
+protocol QuotaStrings {
+    var characters: String { get }
+    var unlimited: String { get }
+    var resetPrefix: String { get }
+    var resetSuffix: String { get }
+    var daysUnit: String { get }
+    var hoursUnit: String { get }
+    var expired: String { get }
 }

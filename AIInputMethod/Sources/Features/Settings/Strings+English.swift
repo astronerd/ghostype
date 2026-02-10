@@ -11,8 +11,10 @@ struct EnglishStrings: StringsTable {
     var prefs: PrefsStrings { EnglishPrefs() }
     var common: CommonStrings { EnglishCommon() }
     var appPicker: AppPickerStrings { EnglishAppPicker() }
+    var translate: TranslateStrings { EnglishTranslate() }
     var profile: ProfileStrings { EnglishProfile() }
     var auth: AuthStrings { EnglishAuth() }
+    var quota: QuotaStrings { EnglishQuota() }
 }
 
 // MARK: - Navigation
@@ -181,6 +183,14 @@ private struct EnglishAppPicker: AppPickerStrings {
     var noApps: String { "No apps available to add" }
 }
 
+// MARK: - Translate Language
+
+private struct EnglishTranslate: TranslateStrings {
+    var chineseEnglish: String { "Chinese ↔ English" }
+    var chineseJapanese: String { "Chinese ↔ Japanese" }
+    var auto: String { "Auto Detect" }
+}
+
 // MARK: - Profile
 
 private struct EnglishProfile: ProfileStrings {
@@ -200,4 +210,16 @@ private struct EnglishAuth: AuthStrings {
     var authorized: String { "Authorized" }
     var denied: String { "Denied" }
     var restricted: String { "Restricted" }
+}
+
+// MARK: - Quota
+
+private struct EnglishQuota: QuotaStrings {
+    var characters: String { "characters" }
+    var unlimited: String { "Unlimited" }
+    var resetPrefix: String { "Resets in " }
+    var resetSuffix: String { "" }
+    var daysUnit: String { " days" }
+    var hoursUnit: String { " hours" }
+    var expired: String { "Expired" }
 }

@@ -11,8 +11,10 @@ struct ChineseStrings: StringsTable {
     var prefs: PrefsStrings { ChinesePrefs() }
     var common: CommonStrings { ChineseCommon() }
     var appPicker: AppPickerStrings { ChineseAppPicker() }
+    var translate: TranslateStrings { ChineseTranslate() }
     var profile: ProfileStrings { ChineseProfile() }
     var auth: AuthStrings { ChineseAuth() }
+    var quota: QuotaStrings { ChineseQuota() }
 }
 
 // MARK: - Navigation
@@ -181,6 +183,14 @@ private struct ChineseAppPicker: AppPickerStrings {
     var noApps: String { "没有可添加的应用" }
 }
 
+// MARK: - Translate Language
+
+private struct ChineseTranslate: TranslateStrings {
+    var chineseEnglish: String { "中英互译" }
+    var chineseJapanese: String { "中日互译" }
+    var auto: String { "自动检测" }
+}
+
 // MARK: - Profile
 
 private struct ChineseProfile: ProfileStrings {
@@ -200,4 +210,16 @@ private struct ChineseAuth: AuthStrings {
     var authorized: String { "已授权" }
     var denied: String { "已拒绝" }
     var restricted: String { "受限" }
+}
+
+// MARK: - Quota
+
+private struct ChineseQuota: QuotaStrings {
+    var characters: String { "字符" }
+    var unlimited: String { "无限制" }
+    var resetPrefix: String { "" }
+    var resetSuffix: String { "后重置" }
+    var daysUnit: String { "天" }
+    var hoursUnit: String { "小时" }
+    var expired: String { "已过期" }
 }

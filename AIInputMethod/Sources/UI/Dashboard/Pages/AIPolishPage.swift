@@ -101,7 +101,7 @@ struct AIPolishPage: View {
                     .font(.system(size: 18))
                     .foregroundColor(isSelected ? DS.Colors.text1 : DS.Colors.text2)
                 
-                Text(profile.rawValue)
+                Text(profile.displayName)
                     .font(DS.Typography.caption)
                     .foregroundColor(DS.Colors.text1)
                     .lineLimit(1)
@@ -386,7 +386,7 @@ struct AIPolishPage: View {
                 }
             )) {
                 ForEach(PolishProfile.allCases) { profile in
-                    Text(profile.rawValue).tag(profile.rawValue)
+                    Text(profile.displayName).tag(profile.rawValue)
                 }
                 if !viewModel.customProfiles.isEmpty {
                     Divider()
