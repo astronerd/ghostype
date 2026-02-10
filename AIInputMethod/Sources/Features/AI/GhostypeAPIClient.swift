@@ -86,6 +86,17 @@ class GhostypeAPIClient {
         return response.text
     }
 
+    /// 上报用量（语音输入上屏后调用）
+    /// - Parameter characters: 本次上屏的字符数
+    /// - Returns: 最新的 used 和 limit，可直接刷新能量环
+    func reportUsage(characters: Int) async throws -> UsageReportResponse {
+        let url = URL(string: "\(apiBaseURL)/api/v1/usage/report")!
+        var request = try buildRequest(url: url, method: "POST", timeout: profileTimeout)
+        request.httpBody = try JSONEncoder().encode(UsageReportRequest(characters: characters))
+
+        return try await performRequest(request, retryOn500: true)
+    }
+
     /// 获取用户配置和额度信息
     /// - Returns: 用户配置响应
     func fetchProfile() async throws -> ProfileResponse {

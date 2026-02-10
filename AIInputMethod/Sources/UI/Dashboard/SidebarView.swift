@@ -18,12 +18,14 @@ struct SidebarView: View {
     @Binding var selectedItem: NavItem
     var isEnabled: Bool
     var deviceId: String
-    var quotaPercentage: Double
     @ObservedObject private var authManager = AuthManager.shared
     
     // MARK: - Body
     
     var body: some View {
+        // 直接在 body 中访问 QuotaManager.shared，确保 SwiftUI 追踪变化
+        let quotaManager = QuotaManager.shared
+        
         VStack(alignment: .leading, spacing: 0) {
             // 顶部标题
             headerSection
@@ -34,10 +36,14 @@ struct SidebarView: View {
             Spacer()
             
             // 底部设备信息
-            bottomSection
+            bottomSection(quotaManager: quotaManager)
         }
         .frame(maxHeight: .infinity)
         .background(DS.Colors.bg2)
+        .onAppear {
+            // 刷新服务器额度数据
+            Task { await QuotaManager.shared.refresh() }
+        }
         .onChange(of: authManager.isLoggedIn) { _, isLoggedIn in
             // 未登录时自动切换到 AccountPage
             if !isLoggedIn && selectedItem.requiresAuth {
@@ -92,7 +98,7 @@ struct SidebarView: View {
     
     // MARK: - Bottom Section
     
-    private var bottomSection: some View {
+    private func bottomSection(quotaManager: QuotaManager) -> some View {
         VStack(alignment: .leading, spacing: DS.Spacing.md) {
             MinimalDivider()
                 .padding(.horizontal, DS.Spacing.lg)
@@ -116,7 +122,7 @@ struct SidebarView: View {
                         .font(DS.Typography.caption)
                         .foregroundColor(DS.Colors.text2)
                     Spacer()
-                    Text("\(Int(quotaPercentage * 100))%")
+                    Text("\(Int(quotaManager.usedPercentage * 100))%")
                         .font(DS.Typography.caption)
                         .foregroundColor(DS.Colors.text2)
                 }
@@ -129,8 +135,8 @@ struct SidebarView: View {
                             .frame(height: 3)
                         
                         Rectangle()
-                            .fill(quotaPercentage > 0.9 ? DS.Colors.statusWarning : DS.Colors.text1)
-                            .frame(width: geo.size.width * min(quotaPercentage, 1.0), height: 3)
+                            .fill(quotaManager.usedPercentage > 0.9 ? DS.Colors.statusWarning : DS.Colors.text1)
+                            .frame(width: geo.size.width * min(quotaManager.usedPercentage, 1.0), height: 3)
                     }
                 }
                 .frame(height: 3)
@@ -196,8 +202,7 @@ struct SidebarView_Previews: PreviewProvider {
         SidebarView(
             selectedItem: .constant(.overview),
             isEnabled: true,
-            deviceId: "ABCD1234",
-            quotaPercentage: 0.35
+            deviceId: "ABCD1234"
         )
         .frame(width: DS.Layout.sidebarWidth, height: 600)
     }

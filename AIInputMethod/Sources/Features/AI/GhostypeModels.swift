@@ -62,6 +62,21 @@ struct ProfileResponse: Codable {
     }
 }
 
+// MARK: - Usage Report Models
+
+/// 用量上报请求体
+/// POST /api/v1/usage/report
+struct UsageReportRequest: Codable {
+    let characters: Int
+}
+
+/// 用量上报响应
+/// 返回最新的 used 和 limit，可直接刷新能量环
+struct UsageReportResponse: Codable {
+    let used: Int
+    let limit: Int
+}
+
 // MARK: - Error Enum
 
 /// GHOSTYPE API 错误类型

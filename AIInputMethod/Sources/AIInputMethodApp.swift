@@ -107,6 +107,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         // 执行数据迁移（枚举 rawValue 中文→英文）
         MigrationService.runIfNeeded()
         
+        // 🔥 先订阅登录/登出通知，确保 Onboarding 期间登录也能正确更新状态
+        setupAuthNotifications()
+        
         // 从服务器获取 ASR 凭证
         Task {
             do {
@@ -162,6 +165,36 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         }
     }
     
+    // MARK: - Auth Notifications
+    
+    /// 订阅登录/登出通知
+    /// 必须在 Onboarding 之前调用，确保 Onboarding 期间登录也能正确更新状态
+    func setupAuthNotifications() {
+        NotificationCenter.default.publisher(for: .userDidLogin)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.isVoiceInputEnabled = true
+                print("[App] ✅ User logged in, voice input enabled")
+                // 重新获取 ASR 凭证
+                Task { try? await self.speechService.fetchCredentials() }
+                // 刷新额度
+                Task { await QuotaManager.shared.refresh() }
+            }
+            .store(in: &cancellables)
+        
+        NotificationCenter.default.publisher(for: .userDidLogout)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.isVoiceInputEnabled = false
+                print("[App] ⚠️ User logged out, voice input disabled")
+            }
+            .store(in: &cancellables)
+        
+        print("[App] ✅ Auth notifications subscribed")
+    }
+    
     func startApp() {
         print("[App] ========== STARTING APP ==========")
         
@@ -193,29 +226,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         speechService.onPartialResult = { text in
             FileLogger.log("[Speech] Partial result (流式): \(text)")
         }
-        
-        // 订阅登录/登出通知
-        NotificationCenter.default.publisher(for: .userDidLogin)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                self.isVoiceInputEnabled = true
-                print("[App] ✅ User logged in, voice input enabled")
-                // 重新获取 ASR 凭证
-                Task { try? await self.speechService.fetchCredentials() }
-                // 刷新额度
-                Task { await QuotaManager.shared.refresh() }
-            }
-            .store(in: &cancellables)
-        
-        NotificationCenter.default.publisher(for: .userDidLogout)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                self.isVoiceInputEnabled = false
-                print("[App] ⚠️ User logged out, voice input disabled")
-            }
-            .store(in: &cancellables)
         
         // 🔥 启动时预加载通讯录热词缓存
         if AppSettings.shared.enableContactsHotwords {
@@ -326,6 +336,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 FileLogger.log("[Process] AI Polish OFF, inserting raw text")
                 insertTextAtCursor(text)
                 saveUsageRecord(content: text, category: .polish)
+                // 上报用量并刷新能量环
+                Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
                 OverlayStateManager.shared.setCommitting(type: .textInput)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                     self.hideOverlay()
@@ -352,6 +364,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             FileLogger.log("[Polish] Text too short (\(text.count) < \(polishThreshold)), returning original")
             insertTextAtCursor(text)
             saveUsageRecord(content: text, category: .polish)
+            // 上报用量并刷新能量环
+            Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
             OverlayStateManager.shared.setCommitting(type: .textInput)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 self.hideOverlay()
@@ -382,6 +396,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 print("[Polish] Success: \(polishedText)")
                 self.insertTextAtCursor(polishedText)
                 self.saveUsageRecord(content: polishedText, category: .polish)
+                // 上报用量并刷新能量环
+                Task { await QuotaManager.shared.reportAndRefresh(characters: polishedText.count) }
             } catch {
                 // Requirements 6.7: 错误时回退插入原文
                 print("[Polish] Error: \(error.localizedDescription)")
@@ -410,6 +426,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 print("[Translate] Success: \(translatedText)")
                 self.insertTextAtCursor(translatedText)
                 self.saveUsageRecord(content: translatedText, category: .translate)
+                // 上报用量并刷新能量环
+                Task { await QuotaManager.shared.reportAndRefresh(characters: translatedText.count) }
             } catch {
                 // Requirements 6.7: 错误时回退插入原文
                 print("[Translate] Error: \(error.localizedDescription)")
@@ -429,6 +447,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         
         self.saveUsageRecord(content: text, category: .memo)
         FileLogger.log("[Memo] Saved to notes")
+        // 上报用量并刷新能量环
+        Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
         
         OverlayStateManager.shared.setCommitting(type: .memoSaved)
         

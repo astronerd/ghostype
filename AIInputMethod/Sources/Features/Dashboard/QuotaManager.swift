@@ -134,12 +134,33 @@ class QuotaManager {
     func refresh() async {
         do {
             let response = try await GhostypeAPIClient.shared.fetchProfile()
+            print("[QuotaManager] 📊 Server response - used: \(response.usage.used), limit: \(response.usage.limit), reset_at: \(response.usage.reset_at), plan: \(response.subscription.plan)")
             await MainActor.run {
                 self.update(from: response)
+                print("[QuotaManager] ✅ Updated - usedCharacters: \(self.usedCharacters), limitCharacters: \(self.limitCharacters), usedPercentage: \(self.usedPercentage)")
             }
         } catch {
             // 刷新失败时保持当前状态，仅记录日志
-            print("[QuotaManager] Failed to refresh quota: \(error)")
+            print("[QuotaManager] ❌ Failed to refresh quota: \(error)")
+        }
+    }
+
+    /// 上报用量并用返回值直接刷新能量环
+    /// - Parameter characters: 本次上屏的字符数
+    func reportAndRefresh(characters: Int) async {
+        guard characters > 0 else { return }
+        do {
+            let response = try await GhostypeAPIClient.shared.reportUsage(characters: characters)
+            print("[QuotaManager] 📤 Reported \(characters) chars → used: \(response.used), limit: \(response.limit)")
+            await MainActor.run {
+                self.usedCharacters = response.used
+                self.limitCharacters = response.limit
+                print("[QuotaManager] ✅ Updated from report - usedPercentage: \(self.usedPercentage)")
+            }
+        } catch {
+            print("[QuotaManager] ❌ Failed to report usage: \(error)")
+            // 上报失败时 fallback 到 refresh
+            await refresh()
         }
     }
 

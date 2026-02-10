@@ -291,22 +291,26 @@ struct QuotaInfo {
 struct OverviewPageWithData: View {
     
     @State private var todayStats: TodayStats = .empty
-    @State private var quotaInfo: QuotaInfo = .empty
     @State private var appDistribution: [AppUsage] = []
     @State private var recentNotes: [UsageRecord] = []
     
     private let statsCalculator: StatsCalculator
-    private let quotaManager: QuotaManager
+    private var quotaManager = QuotaManager.shared
     
     init(
-        statsCalculator: StatsCalculator = StatsCalculator(),
-        quotaManager: QuotaManager = QuotaManager.shared
+        statsCalculator: StatsCalculator = StatsCalculator()
     ) {
         self.statsCalculator = statsCalculator
-        self.quotaManager = quotaManager
     }
     
     var body: some View {
+        // 直接在 body 中访问 @Observable 属性，确保 SwiftUI 追踪变化
+        let quotaInfo = QuotaInfo(
+            usedPercentage: quotaManager.usedPercentage,
+            formattedUsedTime: quotaManager.formattedUsed,
+            formattedRemainingTime: quotaManager.formattedResetTime
+        )
+        
         OverviewPage(
             todayStats: todayStats,
             quotaInfo: quotaInfo,
@@ -315,12 +319,13 @@ struct OverviewPageWithData: View {
         )
         .onAppear {
             loadData()
+            // 刷新服务器额度数据
+            Task { await QuotaManager.shared.refresh() }
         }
     }
     
     private func loadData() {
         todayStats = statsCalculator.calculateTodayStats()
-        quotaInfo = QuotaInfo.from(quotaManager)
         appDistribution = statsCalculator.calculateAppDistribution()
         recentNotes = statsCalculator.fetchRecentNotes()
     }
