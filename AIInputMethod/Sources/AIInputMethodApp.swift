@@ -398,6 +398,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 self.saveUsageRecord(content: polishedText, category: .polish)
                 // 上报用量并刷新能量环
                 Task { await QuotaManager.shared.reportAndRefresh(characters: polishedText.count) }
+                // 🔥 通知 Ghost Twin 刷新状态（Validates: Requirements 7.6）
+                NotificationCenter.default.post(name: .ghostTwinStatusShouldRefresh, object: nil)
             } catch {
                 // Requirements 6.7: 错误时回退插入原文
                 print("[Polish] Error: \(error.localizedDescription)")
@@ -428,6 +430,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 self.saveUsageRecord(content: translatedText, category: .translate)
                 // 上报用量并刷新能量环
                 Task { await QuotaManager.shared.reportAndRefresh(characters: translatedText.count) }
+                // 🔥 通知 Ghost Twin 刷新状态（Validates: Requirements 7.6）
+                NotificationCenter.default.post(name: .ghostTwinStatusShouldRefresh, object: nil)
             } catch {
                 // Requirements 6.7: 错误时回退插入原文
                 print("[Translate] Error: \(error.localizedDescription)")

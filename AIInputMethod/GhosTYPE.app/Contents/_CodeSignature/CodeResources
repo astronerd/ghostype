@@ -24,6 +24,10 @@
 		<data>
 		2o7DS5wwpyVIdJWwM4Ds+rGNYYE=
 		</data>
+		<key>Resources/ghostmask.svg</key>
+		<data>
+		MD08Hwtt/4osOimbBuQIH4jz7sA=
+		</data>
 		<key>Resources/logo 16px.svg</key>
 		<data>
 		KN50/IKDOTWAkEwGSVSBiDpgWt8=
@@ -68,6 +72,13 @@
 			<key>hash2</key>
 			<data>
 			O6cUwCschbEyq+fmh1Wnss0hlhfpy9jxyyulSqvd+wY=
+			</data>
+		</dict>
+		<key>Resources/ghostmask.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			d/0xvhcYXNkrVbNevzRAgU/v/I6IVVn/JIy4nNPNaXg=
 			</data>
 		</dict>
 		<key>Resources/logo 16px.svg</key>

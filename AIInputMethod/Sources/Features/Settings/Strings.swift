@@ -48,10 +48,38 @@ enum L {
     enum Nav {
         static var account: String { current.nav.account }
         static var overview: String { current.nav.overview }
+        static var incubator: String { current.nav.incubator }
         static var library: String { current.nav.library }
         static var memo: String { current.nav.memo }
         static var aiPolish: String { current.nav.aiPolish }
         static var preferences: String { current.nav.preferences }
+    }
+    
+    // MARK: - Incubator / 孵化室
+    enum Incubator {
+        static var title: String { current.incubator.title }
+        static var level: String { current.incubator.level }
+        static var syncRate: String { current.incubator.syncRate }
+        static var wordsProgress: String { current.incubator.wordsProgress }
+        static var levelUp: String { current.incubator.levelUp }
+        static var ghostStatus: String { current.incubator.ghostStatus }
+        static var incoming: String { current.incubator.incoming }
+        static var noMoreSignals: String { current.incubator.noMoreSignals }
+        static var idleTextsLevel1to3: [String] { current.incubator.idleTextsLevel1to3 }
+        static var idleTextsLevel4to6: [String] { current.incubator.idleTextsLevel4to6 }
+        static var idleTextsLevel7to9: [String] { current.incubator.idleTextsLevel7to9 }
+        static var idleTextsLevel10: [String] { current.incubator.idleTextsLevel10 }
+        
+        /// 根据等级返回对应的闲置文案数组
+        static func idleTexts(forLevel level: Int) -> [String] {
+            switch level {
+            case 1...3: return idleTextsLevel1to3
+            case 4...6: return idleTextsLevel4to6
+            case 7...9: return idleTextsLevel7to9
+            case 10: return idleTextsLevel10
+            default: return idleTextsLevel1to3
+            }
+        }
     }
     
     // MARK: - Overview Page / 概览页
@@ -274,6 +302,7 @@ protocol StringsTable {
     var profile: ProfileStrings { get }
     var auth: AuthStrings { get }
     var quota: QuotaStrings { get }
+    var incubator: IncubatorStrings { get }
 }
 
 protocol OnboardingStrings {
@@ -315,6 +344,7 @@ protocol AccountStrings {
 protocol NavStrings {
     var account: String { get }
     var overview: String { get }
+    var incubator: String { get }
     var library: String { get }
     var memo: String { get }
     var aiPolish: String { get }
@@ -501,4 +531,19 @@ protocol QuotaStrings {
     var daysUnit: String { get }
     var hoursUnit: String { get }
     var expired: String { get }
+}
+
+protocol IncubatorStrings {
+    var title: String { get }
+    var level: String { get }
+    var syncRate: String { get }
+    var wordsProgress: String { get }
+    var levelUp: String { get }
+    var ghostStatus: String { get }
+    var incoming: String { get }
+    var noMoreSignals: String { get }
+    var idleTextsLevel1to3: [String] { get }
+    var idleTextsLevel4to6: [String] { get }
+    var idleTextsLevel7to9: [String] { get }
+    var idleTextsLevel10: [String] { get }
 }

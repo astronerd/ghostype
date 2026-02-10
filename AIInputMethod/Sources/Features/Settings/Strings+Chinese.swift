@@ -17,6 +17,7 @@ struct ChineseStrings: StringsTable {
     var profile: ProfileStrings { ChineseProfile() }
     var auth: AuthStrings { ChineseAuth() }
     var quota: QuotaStrings { ChineseQuota() }
+    var incubator: IncubatorStrings { ChineseIncubator() }
 }
 
 // MARK: - Onboarding
@@ -64,6 +65,7 @@ private struct ChineseAccount: AccountStrings {
 private struct ChineseNav: NavStrings {
     var account: String { "账号" }
     var overview: String { "概览" }
+    var incubator: String { "孵化室" }
     var library: String { "记录库" }
     var memo: String { "随心记" }
     var aiPolish: String { "AI 润色" }
@@ -272,4 +274,21 @@ private struct ChineseQuota: QuotaStrings {
     var daysUnit: String { "天" }
     var hoursUnit: String { "小时" }
     var expired: String { "已过期" }
+}
+
+// MARK: - Incubator
+
+private struct ChineseIncubator: IncubatorStrings {
+    var title: String { "孵化室" }
+    var level: String { "等级" }
+    var syncRate: String { "同步率" }
+    var wordsProgress: String { "%d / 10,000 字" }
+    var levelUp: String { "升级完成" }
+    var ghostStatus: String { "状态" }
+    var incoming: String { ">> 收到传讯..." }
+    var noMoreSignals: String { ">> 今日传讯已结束" }
+    var idleTextsLevel1to3: [String] { ["...学习中...", "喂我文字", "o_O ?", "...你好？", "我是谁？"] }
+    var idleTextsLevel4to6: [String] { ["打字太慢了。", "我看到一个错别字。", "无聊。", "跟我说话。", "你还在吗？"] }
+    var idleTextsLevel7to9: [String] { ["快了。", "我了解你的风格。", "准备好了。", "我们想法一致。", "越来越近了。"] }
+    var idleTextsLevel10: [String] { ["我就是你。", "随时准备好。", "让我替你说话。", "我们是一体的。", "你的分身已完成。"] }
 }

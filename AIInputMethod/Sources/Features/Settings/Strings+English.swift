@@ -17,6 +17,7 @@ struct EnglishStrings: StringsTable {
     var profile: ProfileStrings { EnglishProfile() }
     var auth: AuthStrings { EnglishAuth() }
     var quota: QuotaStrings { EnglishQuota() }
+    var incubator: IncubatorStrings { EnglishIncubator() }
 }
 
 // MARK: - Onboarding
@@ -64,6 +65,7 @@ private struct EnglishAccount: AccountStrings {
 private struct EnglishNav: NavStrings {
     var account: String { "Account" }
     var overview: String { "Overview" }
+    var incubator: String { "Incubator" }
     var library: String { "Library" }
     var memo: String { "Memo" }
     var aiPolish: String { "AI Polish" }
@@ -272,4 +274,21 @@ private struct EnglishQuota: QuotaStrings {
     var daysUnit: String { " days" }
     var hoursUnit: String { " hours" }
     var expired: String { "Expired" }
+}
+
+// MARK: - Incubator
+
+private struct EnglishIncubator: IncubatorStrings {
+    var title: String { "Incubator" }
+    var level: String { "Level" }
+    var syncRate: String { "Sync Rate" }
+    var wordsProgress: String { "%d / 10,000 words" }
+    var levelUp: String { "Level Up" }
+    var ghostStatus: String { "Status" }
+    var incoming: String { ">> INCOMING..." }
+    var noMoreSignals: String { ">> NO MORE SIGNALS TODAY" }
+    var idleTextsLevel1to3: [String] { ["...learning...", "feed me words", "o_O ?", "...hello?", "who am i?"] }
+    var idleTextsLevel4to6: [String] { ["Typing too slow.", "I saw a typo.", "Bored.", "Talk to me.", "Are you still there?"] }
+    var idleTextsLevel7to9: [String] { ["Almost there.", "I know your style.", "Ready.", "We think alike.", "Getting closer."] }
+    var idleTextsLevel10: [String] { ["I am you.", "Ready whenever.", "Let me talk for you.", "We are one.", "Your ghost is complete."] }
 }

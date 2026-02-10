@@ -7,6 +7,7 @@ import Foundation
 enum NavItem: String, CaseIterable, Identifiable {
     case account
     case overview
+    case incubator
     case memo
     case library
     case aiPolish
@@ -20,6 +21,8 @@ enum NavItem: String, CaseIterable, Identifiable {
             return "person.circle"
         case .overview:
             return "chart.bar.fill"
+        case .incubator:
+            return "flask.fill"
         case .memo:
             return "note.text"
         case .library:
@@ -38,6 +41,8 @@ enum NavItem: String, CaseIterable, Identifiable {
             return L.Nav.account
         case .overview:
             return L.Nav.overview
+        case .incubator:
+            return L.Nav.incubator
         case .memo:
             return L.Nav.memo
         case .library:
@@ -52,7 +57,7 @@ enum NavItem: String, CaseIterable, Identifiable {
     /// Sidebar 分组
     static var groups: [[NavItem]] {
         [
-            [.account, .overview],
+            [.account, .overview, .incubator],
             [.memo, .library],
             [.aiPolish, .preferences]
         ]
@@ -62,7 +67,15 @@ enum NavItem: String, CaseIterable, Identifiable {
     var requiresAuth: Bool {
         switch self {
         case .account, .preferences: return false
-        case .overview, .memo, .library, .aiPolish: return true
+        case .overview, .memo, .library, .aiPolish, .incubator: return true
+        }
+    }
+    
+    /// 徽章文字（nil 表示无徽章）
+    var badge: String? {
+        switch self {
+        case .incubator: return "LAB"
+        default: return nil
         }
     }
 }

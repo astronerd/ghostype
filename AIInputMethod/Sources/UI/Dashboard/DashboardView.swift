@@ -95,6 +95,8 @@ struct DashboardView: View {
             AccountPage()
         case .overview:
             OverviewPageWithData()
+        case .incubator:
+            IncubatorPage()
         case .memo:
             MemoPage()
         case .library:

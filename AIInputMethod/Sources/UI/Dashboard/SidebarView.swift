@@ -170,6 +170,16 @@ struct SidebarNavItem: View {
                     .foregroundColor(isSelected ? DS.Colors.text1 : DS.Colors.text2)
                 
                 Spacer()
+                
+                if let badge = item.badge {
+                    Text(badge)
+                        .font(DS.Typography.mono(8, weight: .medium))
+                        .foregroundColor(DS.Colors.text2)
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .background(DS.Colors.highlight)
+                        .cornerRadius(2)
+                }
             }
             .padding(.horizontal, DS.Spacing.md)
             .frame(height: DS.Layout.sidebarRowHeight)

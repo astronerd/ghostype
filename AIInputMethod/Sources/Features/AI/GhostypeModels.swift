@@ -105,3 +105,56 @@ enum GhostypeError: LocalizedError {
         }
     }
 }
+
+// MARK: - Ghost Twin Status Response
+
+/// Ghost Twin 状态响应
+/// GET /api/v1/ghost-twin/status 返回
+struct GhostTwinStatusResponse: Codable {
+    let level: Int                          // 当前等级 1~10
+    let total_xp: Int                       // 总经验值
+    let current_level_xp: Int               // 当前等级内的经验值 (0~9999)
+    let personality_tags: [String]          // 已捕捉的人格特征标签
+    let challenges_remaining_today: Int     // 今日剩余校准挑战次数
+    let personality_profile_version: Int    // 人格档案版本号
+}
+
+// MARK: - Calibration Challenge
+
+/// 校准挑战类型
+enum ChallengeType: String, Codable {
+    case dilemma                            // 灵魂拷问，500 XP
+    case reverseTuring = "reverse_turing"   // 找鬼游戏，300 XP
+    case prediction                         // 预判赌局，200 XP
+    
+    /// 该类型挑战的 XP 奖励
+    var xpReward: Int {
+        switch self {
+        case .dilemma: return 500
+        case .reverseTuring: return 300
+        case .prediction: return 200
+        }
+    }
+}
+
+/// 校准挑战
+/// GET /api/v1/ghost-twin/challenge 返回
+struct CalibrationChallenge: Codable, Identifiable {
+    let id: String              // challenge_id
+    let type: ChallengeType     // dilemma / reverse_turing / prediction
+    let scenario: String        // 场景描述文本
+    let options: [String]       // 2~3 个选项
+    let xp_reward: Int          // 该类型的 XP 奖励
+}
+
+// MARK: - Calibration Answer Response
+
+/// 校准答案响应
+/// POST /api/v1/ghost-twin/challenge/answer 返回
+struct CalibrationAnswerResponse: Codable {
+    let xp_earned: Int                      // 本次获得的 XP
+    let new_total_xp: Int                   // 新的总 XP
+    let new_level: Int                      // 新的等级
+    let ghost_response: String              // Ghost 的俏皮反馈语
+    let personality_tags_updated: [String]  // 更新后的人格特征标签
+}
