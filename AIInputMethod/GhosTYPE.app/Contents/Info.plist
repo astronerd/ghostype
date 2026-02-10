@@ -7,9 +7,9 @@
     <key>CFBundleIdentifier</key>
     <string>com.gengdawei.ghostype</string>
     <key>CFBundleName</key>
-    <string>GhosTYPE</string>
+    <string>GHOSTYPE</string>
     <key>CFBundleDisplayName</key>
-    <string>GhosTYPE</string>
+    <string>GHOSTYPE</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundleShortVersionString</key>
@@ -21,10 +21,21 @@
     <key>LSUIElement</key>
     <true/>
     <key>NSMicrophoneUsageDescription</key>
-    <string>GhosTYPE needs microphone access for speech recognition.</string>
+    <string>GHOSTYPE needs microphone access for speech recognition.</string>
     <key>NSAccessibilityUsageDescription</key>
-    <string>GhosTYPE needs accessibility access to detect text fields.</string>
+    <string>GHOSTYPE needs accessibility access to detect text fields.</string>
     <key>NSContactsUsageDescription</key>
-    <string>GhosTYPE uses contact names as hotwords to improve speech recognition accuracy.</string>
+    <string>GHOSTYPE uses contact names as hotwords to improve speech recognition accuracy.</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>com.gengdawei.ghostype</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>ghostype</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>

@@ -8,6 +8,10 @@
 		<data>
 		KRtbCmZpnglWq6wfPOzUYRN1KBw=
 		</data>
+		<key>Resources/GhosTYPELogo.svg</key>
+		<data>
+		Zhhbb7fB4U32XWeVBcnEM3CYqzM=
+		</data>
 		<key>Resources/GhostIcon.png</key>
 		<data>
 		8H3mwiaRGNMrIGXuAh2EkQ4Zc9g=
@@ -20,6 +24,14 @@
 		<data>
 		2o7DS5wwpyVIdJWwM4Ds+rGNYYE=
 		</data>
+		<key>Resources/logo 16px.svg</key>
+		<data>
+		KN50/IKDOTWAkEwGSVSBiDpgWt8=
+		</data>
+		<key>Resources/logo.svg</key>
+		<data>
+		KJeNZb8de5cvrbJ3gTCk5HQk6g4=
+		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
@@ -28,6 +40,13 @@
 			<key>hash2</key>
 			<data>
 			kjkiWJ6+CivuhRL4cEiDl5OTJ3y51IdIX6opMy6iV8o=
+			</data>
+		</dict>
+		<key>Resources/GhosTYPELogo.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			UsMTOt8e9H2Fn1QDF+RZPxAvCyPsWsTJ9ApOL9g1ja0=
 			</data>
 		</dict>
 		<key>Resources/GhostIcon.png</key>
@@ -49,6 +68,20 @@
 			<key>hash2</key>
 			<data>
 			O6cUwCschbEyq+fmh1Wnss0hlhfpy9jxyyulSqvd+wY=
+			</data>
+		</dict>
+		<key>Resources/logo 16px.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			O3R8G/GtF0i+k5U9Vk5XwU179fBi2IbI4GAwpNkvf4g=
+			</data>
+		</dict>
+		<key>Resources/logo.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			2MDSKCQoXPqcGdPlK3Q1qcJo0Ix0FZIHM/NgWOIuGE0=
 			</data>
 		</dict>
 	</dict>
