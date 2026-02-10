@@ -10,11 +10,11 @@ class GhostypeAPIClient {
 
     // MARK: - Configuration
 
-    private var baseURL: String {
+    var apiBaseURL: String {
         #if DEBUG
         return "http://localhost:3000"
         #else
-        return "https://ghostype.com"
+        return "https://www.ghostype.one"
         #endif
     }
 
@@ -55,8 +55,8 @@ class GhostypeAPIClient {
             trigger_word: enableTrigger ? triggerWord : nil
         )
 
-        let url = URL(string: "\(baseURL)/api/v1/llm/chat")!
-        var request = buildRequest(url: url, method: "POST", timeout: llmTimeout)
+        let url = URL(string: "\(apiBaseURL)/api/v1/llm/chat")!
+        var request = try buildRequest(url: url, method: "POST", timeout: llmTimeout)
         request.httpBody = try JSONEncoder().encode(body)
 
         let response: GhostypeResponse = try await performRequest(request, retryOn500: true)
@@ -78,8 +78,8 @@ class GhostypeAPIClient {
             translate_language: language
         )
 
-        let url = URL(string: "\(baseURL)/api/v1/llm/chat")!
-        var request = buildRequest(url: url, method: "POST", timeout: llmTimeout)
+        let url = URL(string: "\(apiBaseURL)/api/v1/llm/chat")!
+        var request = try buildRequest(url: url, method: "POST", timeout: llmTimeout)
         request.httpBody = try JSONEncoder().encode(body)
 
         let response: GhostypeResponse = try await performRequest(request, retryOn500: true)
@@ -89,8 +89,8 @@ class GhostypeAPIClient {
     /// 获取用户配置和额度信息
     /// - Returns: 用户配置响应
     func fetchProfile() async throws -> ProfileResponse {
-        let url = URL(string: "\(baseURL)/api/v1/user/profile")!
-        let request = buildRequest(url: url, method: "GET", timeout: profileTimeout)
+        let url = URL(string: "\(apiBaseURL)/api/v1/user/profile")!
+        let request = try buildRequest(url: url, method: "GET", timeout: profileTimeout)
 
         return try await performRequest(request, retryOn500: true)
     }
@@ -103,7 +103,11 @@ class GhostypeAPIClient {
     ///   - method: HTTP 方法（GET/POST）
     ///   - timeout: 超时时间（秒）
     /// - Returns: 配置好 Header 的 URLRequest
-    func buildRequest(url: URL, method: String, timeout: TimeInterval) -> URLRequest {
+    func buildRequest(url: URL, method: String, timeout: TimeInterval) throws -> URLRequest {
+        guard let token = AuthManager.shared.getToken() else {
+            throw GhostypeError.unauthorized(L.Auth.loginRequired)
+        }
+        
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.timeoutInterval = timeout
@@ -111,11 +115,7 @@ class GhostypeAPIClient {
         // 公共 Header
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(DeviceIdManager.shared.deviceId, forHTTPHeaderField: "X-Device-Id")
-
-        // 有 JWT 时添加 Authorization Header
-        if let token = AuthManager.shared.getToken() {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
         return request
     }

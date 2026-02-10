@@ -6,8 +6,47 @@ import Foundation
 
 enum L {
     
+    // MARK: - Account Page / 账号页
+    enum Account {
+        static var title: String { current.account.title }
+        static var welcomeTitle: String { current.account.welcomeTitle }
+        static var welcomeDesc: String { current.account.welcomeDesc }
+        static var login: String { current.account.login }
+        static var signUp: String { current.account.signUp }
+        static var deviceIdHint: String { current.account.deviceIdHint }
+        static var profile: String { current.account.profile }
+        static var loggedIn: String { current.account.loggedIn }
+        static var logout: String { current.account.logout }
+        static var quota: String { current.account.quota }
+        static var plan: String { current.account.plan }
+        static var used: String { current.account.used }
+    }
+    
+    // MARK: - Onboarding / 引导
+    enum Onboarding {
+        static var skip: String { current.onboarding.skip }
+        static var next: String { current.onboarding.next }
+        static var back: String { current.onboarding.back }
+        static var start: String { current.onboarding.start }
+        static var hotkeyTitle: String { current.onboarding.hotkeyTitle }
+        static var hotkeyDesc: String { current.onboarding.hotkeyDesc }
+        static var hotkeyRecording: String { current.onboarding.hotkeyRecording }
+        static var hotkeyHint: String { current.onboarding.hotkeyHint }
+        static var permTitle: String { current.onboarding.permTitle }
+        static var permDesc: String { current.onboarding.permDesc }
+        static var permAccessibility: String { current.onboarding.permAccessibility }
+        static var permAccessibilityDesc: String { current.onboarding.permAccessibilityDesc }
+        static var permMicrophone: String { current.onboarding.permMicrophone }
+        static var permMicrophoneDesc: String { current.onboarding.permMicrophoneDesc }
+        static var authorize: String { current.onboarding.authorize }
+        static var waitingLogin: String { current.onboarding.waitingLogin }
+        static var waitingLoginDesc: String { current.onboarding.waitingLoginDesc }
+        static var openInBrowser: String { current.onboarding.openInBrowser }
+    }
+    
     // MARK: - Navigation / 导航
     enum Nav {
+        static var account: String { current.nav.account }
         static var overview: String { current.nav.overview }
         static var library: String { current.nav.library }
         static var memo: String { current.nav.memo }
@@ -71,6 +110,7 @@ enum L {
         static var triggerDesc: String { current.aiPolish.triggerDesc }
         static var triggerWord: String { current.aiPolish.triggerWord }
         static var triggerWordDesc: String { current.aiPolish.triggerWordDesc }
+        static var triggerExamplesTitle: String { current.aiPolish.triggerExamplesTitle }
     }
     
     // MARK: - Preferences Page / 偏好设置页
@@ -188,10 +228,16 @@ enum L {
         static var authorized: String { current.auth.authorized }
         static var denied: String { current.auth.denied }
         static var restricted: String { current.auth.restricted }
+        static var sessionExpiredTitle: String { current.auth.sessionExpiredTitle }
+        static var sessionExpiredDesc: String { current.auth.sessionExpiredDesc }
+        static var reLogin: String { current.auth.reLogin }
+        static var later: String { current.auth.later }
+        static var loginRequired: String { current.auth.loginRequired }
     }
     
     // MARK: - Quota / 额度
     enum Quota {
+        static var monthlyQuota: String { current.quota.monthlyQuota }
         static var characters: String { current.quota.characters }
         static var unlimited: String { current.quota.unlimited }
         static var resetPrefix: String { current.quota.resetPrefix }
@@ -214,6 +260,8 @@ enum L {
 // MARK: - Strings Table Protocol
 
 protocol StringsTable {
+    var onboarding: OnboardingStrings { get }
+    var account: AccountStrings { get }
     var nav: NavStrings { get }
     var overview: OverviewStrings { get }
     var library: LibraryStrings { get }
@@ -228,7 +276,44 @@ protocol StringsTable {
     var quota: QuotaStrings { get }
 }
 
+protocol OnboardingStrings {
+    var skip: String { get }
+    var next: String { get }
+    var back: String { get }
+    var start: String { get }
+    var hotkeyTitle: String { get }
+    var hotkeyDesc: String { get }
+    var hotkeyRecording: String { get }
+    var hotkeyHint: String { get }
+    var permTitle: String { get }
+    var permDesc: String { get }
+    var permAccessibility: String { get }
+    var permAccessibilityDesc: String { get }
+    var permMicrophone: String { get }
+    var permMicrophoneDesc: String { get }
+    var authorize: String { get }
+    var waitingLogin: String { get }
+    var waitingLoginDesc: String { get }
+    var openInBrowser: String { get }
+}
+
+protocol AccountStrings {
+    var title: String { get }
+    var welcomeTitle: String { get }
+    var welcomeDesc: String { get }
+    var login: String { get }
+    var signUp: String { get }
+    var deviceIdHint: String { get }
+    var profile: String { get }
+    var loggedIn: String { get }
+    var logout: String { get }
+    var quota: String { get }
+    var plan: String { get }
+    var used: String { get }
+}
+
 protocol NavStrings {
+    var account: String { get }
     var overview: String { get }
     var library: String { get }
     var memo: String { get }
@@ -288,6 +373,7 @@ protocol AIPolishStrings {
     var triggerDesc: String { get }
     var triggerWord: String { get }
     var triggerWordDesc: String { get }
+    var triggerExamplesTitle: String { get }
 }
 
 protocol PrefsStrings {
@@ -399,9 +485,15 @@ protocol AuthStrings {
     var authorized: String { get }
     var denied: String { get }
     var restricted: String { get }
+    var sessionExpiredTitle: String { get }
+    var sessionExpiredDesc: String { get }
+    var reLogin: String { get }
+    var later: String { get }
+    var loginRequired: String { get }
 }
 
 protocol QuotaStrings {
+    var monthlyQuota: String { get }
     var characters: String { get }
     var unlimited: String { get }
     var resetPrefix: String { get }

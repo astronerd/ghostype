@@ -64,6 +64,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     var testWindow: NSWindow?
     
     @Published var currentMode: InputMode = .polish
+    @Published var isVoiceInputEnabled: Bool = false
     private var currentRawText: String = ""
     private var cancellables = Set<AnyCancellable>()
     
@@ -73,14 +74,30 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     
     // MARK: - URL Scheme Handling
     
-    /// 处理 ghostype:// URL Scheme 回调
-    /// 浏览器登录完成后，Clerk 会重定向到 ghostype://auth?token={jwt}
-    func application(_ application: NSApplication, open urls: [URL]) {
-        for url in urls {
-            if url.scheme == "ghostype" && url.host == "auth" {
-                AuthManager.shared.handleAuthURL(url)
-                return
-            }
+    /// 在 applicationWillFinishLaunching 中注册 Apple Event handler
+    /// 这是 macOS 上处理 URL scheme 最可靠的方式，比 application(_:open:) 更早注册
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        NSAppleEventManager.shared().setEventHandler(
+            self,
+            andSelector: #selector(handleGetURL(event:reply:)),
+            forEventClass: AEEventClass(kInternetEventClass),
+            andEventID: AEEventID(kAEGetURL)
+        )
+        print("[App] ✅ Registered URL scheme handler via NSAppleEventManager")
+    }
+    
+    /// 处理 ghostype://auth?token={jwt} 回调
+    @objc func handleGetURL(event: NSAppleEventDescriptor, reply: NSAppleEventDescriptor) {
+        guard let urlString = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))?.stringValue,
+              let url = URL(string: urlString) else {
+            print("[Auth] ⚠️ Failed to parse URL from Apple Event")
+            return
+        }
+        
+        print("[Auth] 📥 Received URL via Apple Event: \(url)")
+        
+        if url.scheme == "ghostype" && url.host == "auth" {
+            AuthManager.shared.handleAuthURL(url)
         }
     }
     
@@ -106,6 +123,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         
         print("[App] Accessibility: \(permissionManager.isAccessibilityTrusted)")
         print("[App] Microphone: \(permissionManager.isMicrophoneGranted)")
+        
+        // 根据登录状态初始化语音输入开关
+        isVoiceInputEnabled = AuthManager.shared.isLoggedIn
+        print("[App] Voice input enabled: \(isVoiceInputEnabled) (logged in: \(AuthManager.shared.isLoggedIn))")
         
         // 检查是否需要显示 onboarding
         // onboardingRequiredVersion: 需要强制显示 onboarding 的最低版本
@@ -173,6 +194,34 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             FileLogger.log("[Speech] Partial result (流式): \(text)")
         }
         
+        // 订阅登录/登出通知
+        NotificationCenter.default.publisher(for: .userDidLogin)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.isVoiceInputEnabled = true
+                print("[App] ✅ User logged in, voice input enabled")
+                // 重新获取 ASR 凭证
+                Task { try? await self.speechService.fetchCredentials() }
+                // 刷新额度
+                Task { await QuotaManager.shared.refresh() }
+            }
+            .store(in: &cancellables)
+        
+        NotificationCenter.default.publisher(for: .userDidLogout)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.isVoiceInputEnabled = false
+                print("[App] ⚠️ User logged out, voice input disabled")
+            }
+            .store(in: &cancellables)
+        
+        // 🔥 启动时预加载通讯录热词缓存
+        if AppSettings.shared.enableContactsHotwords {
+            ContactsManager.shared.refreshCache()
+        }
+        
         print("[App] ========== APP STARTED ==========")
         print("[App] AI Polish: \(AppSettings.shared.enableAIPolish ? "ON" : "OFF")")
     }
@@ -181,6 +230,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     func setupHotkey() {
         hotkeyManager.onHotkeyDown = { [weak self] in
             guard let self = self else { return }
+            
+            // 登录状态守卫：未登录时显示提示并拒绝录音
+            guard self.isVoiceInputEnabled else {
+                print("[Hotkey] ⚠️ Voice input disabled (not logged in)")
+                self.showOverlayNearCursor()
+                OverlayStateManager.shared.setLoginRequired()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    self.hideOverlay()
+                }
+                return
+            }
+            
             print("[Hotkey] ========== DOWN ==========")
             print("[Hotkey] Starting recording, mode: \(self.hotkeyManager.currentMode.displayName)")
             self.currentMode = self.hotkeyManager.currentMode
@@ -415,7 +476,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         // 获取当前前台应用的 bundleId，用于判断是否需要自动回车
         let frontAppBundleId = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
         let shouldAutoEnter = AppSettings.shared.shouldAutoEnter(for: frontAppBundleId)
-        FileLogger.log("[Insert] Front app: \(frontAppBundleId ?? "unknown"), Auto-enter: \(shouldAutoEnter)")
+        let sendMethod = AppSettings.shared.sendMethod(for: frontAppBundleId)
+        FileLogger.log("[Insert] Front app: \(frontAppBundleId ?? "unknown"), Auto-enter: \(shouldAutoEnter), Method: \(sendMethod.rawValue)")
         
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
@@ -442,7 +504,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 
                 // 自动回车功能
                 if shouldAutoEnter {
-                    self?.sendEnterKey()
+                    self?.sendKey(method: sendMethod)
                 }
                 
                 print("[Insert] ========== DONE ==========")
@@ -450,20 +512,32 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         }
     }
     
-    /// 发送 Cmd+Enter（微信、飞书等应用用 Cmd+Enter 发送消息）
-    private func sendEnterKey() {
-        print("[Insert] Sending Enter via osascript...")
+    /// 根据配置的发送方式模拟按键
+    /// - enter: key code 36
+    /// - cmd+enter: key code 36 + command
+    /// - shift+enter: key code 36 + shift
+    private func sendKey(method: SendMethod) {
+        print("[Insert] Sending \(method.displayName) via osascript...")
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            // Use osascript command to simulate Enter key - more reliable for Electron apps
+            let script: String
+            switch method {
+            case .enter:
+                script = "tell application \"System Events\" to key code 36"
+            case .cmdEnter:
+                script = "tell application \"System Events\" to key code 36 using command down"
+            case .shiftEnter:
+                script = "tell application \"System Events\" to key code 36 using shift down"
+            }
+            
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
-            process.arguments = ["-e", "tell application \"System Events\" to key code 36"]
+            process.arguments = ["-e", script]
             
             do {
                 try process.run()
                 process.waitUntilExit()
-                print("[Insert] Enter sent via osascript, exit code: \(process.terminationStatus)")
+                print("[Insert] \(method.displayName) sent via osascript, exit code: \(process.terminationStatus)")
             } catch {
                 print("[Insert] osascript error: \(error)")
             }

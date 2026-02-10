@@ -40,19 +40,23 @@ class AuthManager: ObservableObject {
     /// 生产环境用 ghostype.com，开发环境用 localhost
     private var signInURL: String {
         let base = baseURL
-        return "\(base)/sign-in?redirect_url=ghostype://auth"
+        let redirect = "/auth/callback?scheme=ghostype://auth"
+        let encoded = redirect.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? redirect
+        return "\(base)/sign-in?redirect_url=\(encoded)"
     }
     
     private var signUpURL: String {
         let base = baseURL
-        return "\(base)/sign-up?redirect_url=ghostype://auth"
+        let redirect = "/auth/callback?scheme=ghostype://auth"
+        let encoded = redirect.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? redirect
+        return "\(base)/sign-up?redirect_url=\(encoded)"
     }
     
     private var baseURL: String {
         #if DEBUG
         return "http://localhost:3000"
         #else
-        return "https://ghostype.com"
+        return "https://www.ghostype.one"
         #endif
     }
     
@@ -147,13 +151,30 @@ class AuthManager: ObservableObject {
     
     // MARK: - Unauthorized Handling
     
-    /// 处理 401 未授权响应：清除 JWT 并回退到未登录状态
+    /// 处理 401 未授权响应：清除 JWT、发送登出通知、弹窗提示重新登录
     func handleUnauthorized() {
         KeychainHelper.delete(key: Keys.jwtToken)
         isLoggedIn = false
         userId = nil
         userEmail = nil
         
+        // 发送登出通知（触发 AppDelegate 禁用语音输入）
+        NotificationCenter.default.post(name: .userDidLogout, object: nil)
+        
         print("[Auth] ⚠️ Unauthorized (401), JWT cleared, reverted to logged-out state")
+        
+        // 弹窗提示
+        DispatchQueue.main.async {
+            let alert = NSAlert()
+            alert.messageText = L.Auth.sessionExpiredTitle
+            alert.informativeText = L.Auth.sessionExpiredDesc
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: L.Auth.reLogin)
+            alert.addButton(withTitle: L.Auth.later)
+            
+            if alert.runModal() == .alertFirstButtonReturn {
+                self.openLogin()
+            }
+        }
     }
 }

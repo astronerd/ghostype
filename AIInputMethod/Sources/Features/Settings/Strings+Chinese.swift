@@ -3,6 +3,8 @@ import Foundation
 // MARK: - Chinese Strings / 中文字符串
 
 struct ChineseStrings: StringsTable {
+    var onboarding: OnboardingStrings { ChineseOnboarding() }
+    var account: AccountStrings { ChineseAccount() }
     var nav: NavStrings { ChineseNav() }
     var overview: OverviewStrings { ChineseOverview() }
     var library: LibraryStrings { ChineseLibrary() }
@@ -17,9 +19,50 @@ struct ChineseStrings: StringsTable {
     var quota: QuotaStrings { ChineseQuota() }
 }
 
+// MARK: - Onboarding
+
+private struct ChineseOnboarding: OnboardingStrings {
+    var skip: String { "跳过" }
+    var next: String { "下一步" }
+    var back: String { "上一步" }
+    var start: String { "开始使用" }
+    var hotkeyTitle: String { "设置快捷键" }
+    var hotkeyDesc: String { "按住快捷键说话，松开完成输入" }
+    var hotkeyRecording: String { "按下快捷键组合..." }
+    var hotkeyHint: String { "点击修改" }
+    var permTitle: String { "授权权限" }
+    var permDesc: String { "需要以下权限才能正常工作" }
+    var permAccessibility: String { "辅助功能" }
+    var permAccessibilityDesc: String { "监听快捷键并插入文字" }
+    var permMicrophone: String { "麦克风" }
+    var permMicrophoneDesc: String { "录制语音进行识别" }
+    var authorize: String { "授权" }
+    var waitingLogin: String { "等待登录..." }
+    var waitingLoginDesc: String { "请在浏览器中完成登录，登录后将自动返回" }
+    var openInBrowser: String { "在浏览器中打开" }
+}
+
+// MARK: - Account
+
+private struct ChineseAccount: AccountStrings {
+    var title: String { "账号" }
+    var welcomeTitle: String { "欢迎使用 GHOSTYPE" }
+    var welcomeDesc: String { "登录后可同步设置、解锁更多额度" }
+    var login: String { "登录" }
+    var signUp: String { "注册" }
+    var deviceIdHint: String { "登录后即可使用语音输入功能" }
+    var profile: String { "账号信息" }
+    var loggedIn: String { "已登录" }
+    var logout: String { "退出登录" }
+    var quota: String { "使用额度" }
+    var plan: String { "当前方案" }
+    var used: String { "已使用" }
+}
+
 // MARK: - Navigation
 
 private struct ChineseNav: NavStrings {
+    var account: String { "账号" }
     var overview: String { "概览" }
     var library: String { "记录库" }
     var memo: String { "随心记" }
@@ -87,6 +130,7 @@ private struct ChineseAIPolish: AIPolishStrings {
     var triggerDesc: String { "通过唤醒词触发翻译、格式转换等操作" }
     var triggerWord: String { "唤醒词" }
     var triggerWordDesc: String { "在句尾说出唤醒词后跟指令" }
+    var triggerExamplesTitle: String { "示例（使用唤醒词「%@」）" }
 }
 
 // MARK: - Preferences
@@ -132,7 +176,7 @@ private struct ChinesePrefs: PrefsStrings {
     var openSettings: String { "打开设置" }
     var autoSend: String { "自动发送" }
     var autoSendEnable: String { "启用自动发送" }
-    var autoSendDesc: String { "上字后自动按回车发送消息" }
+    var autoSendDesc: String { "上字后自动发送，可为每个应用选择发送方式" }
     var automationPermission: String { "自动化权限" }
     var automationPermissionDesc: String { "允许控制 System Events" }
     var enabledApps: String { "启用的应用" }
@@ -210,11 +254,17 @@ private struct ChineseAuth: AuthStrings {
     var authorized: String { "已授权" }
     var denied: String { "已拒绝" }
     var restricted: String { "受限" }
+    var sessionExpiredTitle: String { "登录已过期" }
+    var sessionExpiredDesc: String { "请重新登录后继续使用" }
+    var reLogin: String { "重新登录" }
+    var later: String { "稍后" }
+    var loginRequired: String { "请先登录" }
 }
 
 // MARK: - Quota
 
 private struct ChineseQuota: QuotaStrings {
+    var monthlyQuota: String { "本月额度" }
     var characters: String { "字符" }
     var unlimited: String { "无限制" }
     var resetPrefix: String { "" }

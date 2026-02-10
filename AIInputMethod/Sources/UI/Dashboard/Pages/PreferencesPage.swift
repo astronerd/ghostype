@@ -542,6 +542,19 @@ struct PreferencesPage: View {
                                     
                                     Spacer()
                                     
+                                    Picker("", selection: Binding(
+                                        get: { app.sendMethod },
+                                        set: { newMethod in
+                                            viewModel.updateSendMethod(bundleId: app.bundleId, method: newMethod)
+                                        }
+                                    )) {
+                                        ForEach(SendMethod.allCases) { method in
+                                            Text(method.displayName).tag(method)
+                                        }
+                                    }
+                                    .pickerStyle(.menu)
+                                    .frame(width: 110)
+                                    
                                     Button(action: { viewModel.removeAutoEnterApp(bundleId: app.bundleId) }) {
                                         Image(systemName: "xmark")
                                             .font(.system(size: 10))

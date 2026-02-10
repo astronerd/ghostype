@@ -3,6 +3,8 @@ import Foundation
 // MARK: - English Strings / 英文字符串
 
 struct EnglishStrings: StringsTable {
+    var onboarding: OnboardingStrings { EnglishOnboarding() }
+    var account: AccountStrings { EnglishAccount() }
     var nav: NavStrings { EnglishNav() }
     var overview: OverviewStrings { EnglishOverview() }
     var library: LibraryStrings { EnglishLibrary() }
@@ -17,9 +19,50 @@ struct EnglishStrings: StringsTable {
     var quota: QuotaStrings { EnglishQuota() }
 }
 
+// MARK: - Onboarding
+
+private struct EnglishOnboarding: OnboardingStrings {
+    var skip: String { "Skip" }
+    var next: String { "Next" }
+    var back: String { "Back" }
+    var start: String { "Get Started" }
+    var hotkeyTitle: String { "Set Hotkey" }
+    var hotkeyDesc: String { "Hold hotkey to speak, release to finish" }
+    var hotkeyRecording: String { "Press hotkey combination..." }
+    var hotkeyHint: String { "Click to change" }
+    var permTitle: String { "Grant Permissions" }
+    var permDesc: String { "These permissions are required to work properly" }
+    var permAccessibility: String { "Accessibility" }
+    var permAccessibilityDesc: String { "Listen for hotkeys and insert text" }
+    var permMicrophone: String { "Microphone" }
+    var permMicrophoneDesc: String { "Record voice for recognition" }
+    var authorize: String { "Authorize" }
+    var waitingLogin: String { "Waiting for sign in..." }
+    var waitingLoginDesc: String { "Complete sign in in your browser, it will return automatically" }
+    var openInBrowser: String { "Open in Browser" }
+}
+
+// MARK: - Account
+
+private struct EnglishAccount: AccountStrings {
+    var title: String { "Account" }
+    var welcomeTitle: String { "Welcome to GHOSTYPE" }
+    var welcomeDesc: String { "Sign in to sync settings and unlock more quota" }
+    var login: String { "Sign In" }
+    var signUp: String { "Sign Up" }
+    var deviceIdHint: String { "Sign in to use voice input features" }
+    var profile: String { "Profile" }
+    var loggedIn: String { "Signed In" }
+    var logout: String { "Sign Out" }
+    var quota: String { "Usage Quota" }
+    var plan: String { "Current Plan" }
+    var used: String { "Used" }
+}
+
 // MARK: - Navigation
 
 private struct EnglishNav: NavStrings {
+    var account: String { "Account" }
     var overview: String { "Overview" }
     var library: String { "Library" }
     var memo: String { "Memo" }
@@ -87,6 +130,7 @@ private struct EnglishAIPolish: AIPolishStrings {
     var triggerDesc: String { "Use trigger word for translation, formatting, etc." }
     var triggerWord: String { "Trigger Word" }
     var triggerWordDesc: String { "Say trigger word at end followed by command" }
+    var triggerExamplesTitle: String { "Examples (using trigger word \"%@\")" }
 }
 
 // MARK: - Preferences
@@ -132,7 +176,7 @@ private struct EnglishPrefs: PrefsStrings {
     var openSettings: String { "Open Settings" }
     var autoSend: String { "Auto Send" }
     var autoSendEnable: String { "Enable Auto Send" }
-    var autoSendDesc: String { "Auto press Enter after text input" }
+    var autoSendDesc: String { "Auto send after text input, choose method per app" }
     var automationPermission: String { "Automation Permission" }
     var automationPermissionDesc: String { "Allow control of System Events" }
     var enabledApps: String { "Enabled Apps" }
@@ -210,11 +254,17 @@ private struct EnglishAuth: AuthStrings {
     var authorized: String { "Authorized" }
     var denied: String { "Denied" }
     var restricted: String { "Restricted" }
+    var sessionExpiredTitle: String { "Session Expired" }
+    var sessionExpiredDesc: String { "Please sign in again to continue" }
+    var reLogin: String { "Sign In Again" }
+    var later: String { "Later" }
+    var loginRequired: String { "Please Sign In" }
 }
 
 // MARK: - Quota
 
 private struct EnglishQuota: QuotaStrings {
+    var monthlyQuota: String { "Monthly Quota" }
     var characters: String { "characters" }
     var unlimited: String { "Unlimited" }
     var resetPrefix: String { "Resets in " }

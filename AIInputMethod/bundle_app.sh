@@ -4,9 +4,13 @@ APP_NAME="AIInputMethod"
 DISPLAY_NAME="GhosTYPE"
 APP_BUNDLE="$DISPLAY_NAME.app"
 
-# 清除应用数据（用于测试首次启动）
-echo "🧹 Clearing app data for fresh start..."
-defaults delete com.gengdawei.ghostype 2>/dev/null || true
+# 清除应用数据（仅在传入 --clean 参数时执行）
+if [ "$1" = "--clean" ]; then
+    echo "🧹 Clearing app data for fresh start..."
+    defaults delete com.gengdawei.ghostype 2>/dev/null || true
+else
+    echo "📌 Keeping existing app data (use --clean to reset)"
+fi
 
 echo "📦 Bundling $DISPLAY_NAME (Release)..."
 
@@ -67,6 +71,14 @@ if [ -f "Sources/Resources/GhostIcon.png" ]; then
     echo "✅ Ghost icon copied."
 fi
 
+# SVG Logo files
+for svg in Sources/Resources/*.svg; do
+    if [ -f "$svg" ]; then
+        cp "$svg" "$APP_BUNDLE/Contents/Resources/"
+        echo "✅ SVG copied: $(basename "$svg")"
+    fi
+done
+
 # Info.plist
 cat <<EOF > "$APP_BUNDLE/Contents/Info.plist"
 <?xml version="1.0" encoding="UTF-8"?>
@@ -97,6 +109,17 @@ cat <<EOF > "$APP_BUNDLE/Contents/Info.plist"
     <string>GhosTYPE needs accessibility access to detect text fields.</string>
     <key>NSContactsUsageDescription</key>
     <string>GhosTYPE uses contact names as hotwords to improve speech recognition accuracy.</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>com.gengdawei.ghostype</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>ghostype</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>
 EOF

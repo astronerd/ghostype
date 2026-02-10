@@ -30,19 +30,19 @@ enum DashboardPhase: Equatable {
 // MARK: - Onboarding Step
 
 /// Onboarding 流程的三个步骤
+/// - auth: 登录/注册
 /// - hotkey: 快捷键配置
-/// - inputMode: 输入模式选择
 /// - permissions: 权限申请
 enum OnboardingStep: Int, CaseIterable {
-    case hotkey = 0
-    case inputMode = 1
+    case auth = 0
+    case hotkey = 1
     case permissions = 2
     
     /// 步骤显示文本（用于步骤指示器）
     var displayText: String {
         switch self {
+        case .auth: return "账号"
         case .hotkey: return "快捷键"
-        case .inputMode: return "输入模式"
         case .permissions: return "权限"
         }
     }
@@ -90,7 +90,7 @@ class DashboardState {
     var phase: DashboardPhase
     
     /// 当前选中的导航项（Normal 状态下使用）
-    var selectedNavItem: NavItem = .overview
+    var selectedNavItem: NavItem = .account
     
     /// UserDefaults 实例（支持依赖注入，便于测试）
     private let userDefaults: UserDefaults
@@ -129,7 +129,7 @@ class DashboardState {
         } else {
             // 未完成 Onboarding，恢复到上次的步骤或从头开始
             let savedStep = userDefaults.integer(forKey: DashboardUserDefaultsKey.currentOnboardingStep.rawValue)
-            let step = OnboardingStep(rawValue: savedStep) ?? .hotkey
+            let step = OnboardingStep(rawValue: savedStep) ?? .auth
             self.phase = .onboarding(step)
         }
     }
@@ -199,7 +199,7 @@ class DashboardState {
     func resetOnboarding() {
         userDefaults.set(false, forKey: DashboardUserDefaultsKey.isOnboardingComplete.rawValue)
         userDefaults.set(OnboardingStep.hotkey.rawValue, forKey: DashboardUserDefaultsKey.currentOnboardingStep.rawValue)
-        phase = .onboarding(.hotkey)
+        phase = .onboarding(.auth)
     }
 }
 

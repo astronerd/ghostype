@@ -18,6 +18,7 @@ struct DashboardView: View {
     @State private var dashboardState = DashboardState()
     @State private var permissionManager = PermissionManager()
     @State private var showPermissionBanner = false
+    @ObservedObject private var localization = LocalizationManager.shared
     
     // MARK: - Body
     
@@ -54,6 +55,7 @@ struct DashboardView: View {
         }
         .background(DS.Colors.bg1)
         .environment(dashboardState)
+        .id(localization.currentLanguage)
         .onAppear {
             checkPermissions()
         }
@@ -90,6 +92,8 @@ struct DashboardView: View {
     @ViewBuilder
     private var normalContentView: some View {
         switch dashboardState.selectedNavItem {
+        case .account:
+            AccountPage()
         case .overview:
             OverviewPageWithData()
         case .memo:

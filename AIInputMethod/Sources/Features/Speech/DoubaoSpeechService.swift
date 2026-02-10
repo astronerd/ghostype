@@ -48,27 +48,10 @@ class DoubaoSpeechService: ObservableObject {
     
     /// 从服务器获取 ASR 凭证，缓存到内存
     func fetchCredentials() async throws {
-        let baseURL: String = {
-            #if DEBUG
-            return "http://localhost:3000"
-            #else
-            return "https://ghostype.com"
-            #endif
-        }()
-        guard let url = URL(string: "\(baseURL)/api/v1/asr/credentials") else {
-            throw GhostypeError.serverError(code: "INVALID_URL", message: "Invalid ASR credentials URL")
-        }
-        var request = URLRequest(url: url)
-        request.setValue(DeviceIdManager.shared.deviceId, forHTTPHeaderField: "X-Device-Id")
-        request.timeoutInterval = 10
+        let url = URL(string: "\(GhostypeAPIClient.shared.apiBaseURL)/api/v1/asr/credentials")!
+        let request = try GhostypeAPIClient.shared.buildRequest(url: url, method: "GET", timeout: 10)
         
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
-            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-            throw GhostypeError.serverError(code: "ASR_CREDENTIALS_FAILED", message: "Failed to fetch ASR credentials (HTTP \(statusCode))")
-        }
-        let credentials = try JSONDecoder().decode(ASRCredentialsResponse.self, from: data)
+        let credentials: ASRCredentialsResponse = try await GhostypeAPIClient.shared.performRequest(request, retryOn500: true)
         self.cachedAppId = credentials.app_id
         self.cachedAccessToken = credentials.access_token
         logToFile("[Doubao] ASR credentials cached: appId=\(credentials.app_id.prefix(4))...")
@@ -85,11 +68,28 @@ class DoubaoSpeechService: ObservableObject {
             logToFile("[Doubao] Already recording, skipping")
             return 
         }
-        guard hasCredentials() else {
-            logToFile("[Doubao] No credentials!")
-            transcript = "请先配置豆包凭证"
+        
+        // 如果没有凭证，尝试实时获取
+        if !hasCredentials() {
+            logToFile("[Doubao] No cached credentials, attempting to fetch...")
+            Task {
+                do {
+                    try await fetchCredentials()
+                    logToFile("[Doubao] ✅ Credentials fetched on-demand")
+                    await MainActor.run { self.beginRecording() }
+                } catch {
+                    logToFile("[Doubao] ❌ Failed to fetch credentials: \(error)")
+                    await MainActor.run { self.transcript = "请先登录" }
+                }
+            }
             return
         }
+        
+        beginRecording()
+    }
+    
+    private func beginRecording() {
+        guard !isRecording else { return }
         
         logToFile("[Doubao] ========== START RECORDING ==========")
         logToFile("[Doubao] AppID: \(appId.prefix(4))...")
@@ -183,6 +183,31 @@ class DoubaoSpeechService: ObservableObject {
     private func sendFullClientRequest() {
         logToFile("[Doubao] Building full client request...")
         
+        // 构建 request 字典
+        var requestDict: [String: Any] = [
+            "model_name": "bigmodel",
+            "enable_itn": true,      // 文本规范化
+            "enable_punc": true,     // 标点
+            "enable_ddc": true,      // 语义顺滑
+            "show_utterances": true,
+            "enable_nonstream": true // 🔥 开启二遍识别：流式+非流式，提升准确率
+        ]
+        
+        // 🔥 热词直传：通讯录姓名提高识别准确率
+        if AppSettings.shared.enableContactsHotwords {
+            let names = ContactsManager.shared.cachedNames
+            if !names.isEmpty {
+                // 双向流式支持 100 tokens，取前 100 个
+                let hotwordsList = names.prefix(100).map { ["word": $0] }
+                let hotwordsDict: [String: Any] = ["hotwords": Array(hotwordsList)]
+                if let jsonData = try? JSONSerialization.data(withJSONObject: hotwordsDict),
+                   let jsonString = String(data: jsonData, encoding: .utf8) {
+                    requestDict["corpus"] = ["context": jsonString]
+                    logToFile("[Doubao] 🔥 Hotwords: \(names.prefix(5))... (total: \(min(names.count, 100)))")
+                }
+            }
+        }
+        
         // 优化参数：开启二遍识别模式提升准确率
         let payload: [String: Any] = [
             "user": ["uid": "ai_input_method"],
@@ -192,14 +217,7 @@ class DoubaoSpeechService: ObservableObject {
                 "bits": 16,
                 "channel": 1
             ],
-            "request": [
-                "model_name": "bigmodel",
-                "enable_itn": true,      // 文本规范化
-                "enable_punc": true,     // 标点
-                "enable_ddc": true,      // 语义顺滑
-                "show_utterances": true,
-                "enable_nonstream": true // 🔥 开启二遍识别：流式+非流式，提升准确率
-            ]
+            "request": requestDict
         ]
         
         guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {

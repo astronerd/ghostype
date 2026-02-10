@@ -3,7 +3,7 @@
 //  AIInputMethod
 //
 //  Onboarding 引导界面 - Radical Minimalist 极简风格
-//  基于 UI_DESIGN_SPEC.md 规范设计
+//  流程：Auth → Hotkey → Permissions
 //
 
 import SwiftUI
@@ -22,18 +22,17 @@ struct OnboardingWindow: View {
         Group {
             switch currentStep {
             case 0:
-                Step1HotkeyView(
-                    settings: settings,
+                Step0AuthView(
                     onNext: { withAnimation(.easeInOut(duration: 0.2)) { currentStep = 1 } }
                 )
             case 1:
-                Step2AutoModeView(
+                Step1HotkeyView(
                     settings: settings,
                     onNext: { withAnimation(.easeInOut(duration: 0.2)) { currentStep = 2 } },
                     onBack: { withAnimation(.easeInOut(duration: 0.2)) { currentStep = 0 } }
                 )
             default:
-                Step3PermissionsView(
+                Step2PermissionsView(
                     permissionManager: permissionManager,
                     onComplete: onComplete,
                     onBack: { withAnimation(.easeInOut(duration: 0.2)) { currentStep = 1 } }
@@ -46,11 +45,158 @@ struct OnboardingWindow: View {
     }
 }
 
+// MARK: - Step 0: 登录/注册
+
+struct Step0AuthView: View {
+    @ObservedObject private var authManager = AuthManager.shared
+    @State private var isWaitingForLogin = false
+    var onNext: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Logo header
+            VStack(spacing: DS.Spacing.sm) {
+                GHOSTYPELogo()
+                    .frame(width: 152, height: 21)
+                
+                Text("Your Type of Spirit.")
+                    .font(DS.Typography.caption.italic())
+                    .foregroundColor(DS.Colors.text2)
+            }
+            .padding(.top, DS.Spacing.xl)
+            
+            Spacer()
+
+            if authManager.isLoggedIn {
+                // 已登录状态
+                Image(systemName: "checkmark.circle")
+                    .font(.system(size: 48, weight: .thin))
+                    .foregroundColor(DS.Colors.text1)
+                
+                Text(L.Account.loggedIn)
+                    .font(DS.Typography.largeTitle)
+                    .foregroundColor(DS.Colors.text1)
+                    .padding(.top, DS.Spacing.xl)
+                
+            } else if isWaitingForLogin {
+                // 等待回调状态：转菊花
+                ProgressView()
+                    .controlSize(.large)
+                    .padding(.bottom, DS.Spacing.md)
+                
+                Text(L.Onboarding.waitingLogin)
+                    .font(DS.Typography.largeTitle)
+                    .foregroundColor(DS.Colors.text1)
+                    .padding(.top, DS.Spacing.md)
+                
+                Text(L.Onboarding.waitingLoginDesc)
+                    .font(DS.Typography.body)
+                    .foregroundColor(DS.Colors.text2)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, DS.Spacing.sm)
+                
+                // 手动打开浏览器按钮
+                Button(action: { authManager.openLogin() }) {
+                    HStack(spacing: DS.Spacing.xs) {
+                        Image(systemName: "arrow.up.right.square")
+                            .font(.system(size: 12))
+                        Text(L.Onboarding.openInBrowser)
+                            .font(DS.Typography.body)
+                    }
+                    .foregroundColor(DS.Colors.text1)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 40)
+                    .background(DS.Colors.bg2)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
+                            .stroke(DS.Colors.border, lineWidth: DS.Layout.borderWidth)
+                    )
+                    .cornerRadius(DS.Layout.cornerRadius)
+                }
+                .buttonStyle(.plain)
+                .frame(maxWidth: 280)
+                .padding(.top, DS.Spacing.xxl)
+                
+            } else {
+                // 未登录初始状态
+                Image(systemName: "person.circle")
+                    .font(.system(size: 48, weight: .thin))
+                    .foregroundColor(DS.Colors.text1)
+                
+                Text(L.Account.welcomeTitle)
+                    .font(DS.Typography.largeTitle)
+                    .foregroundColor(DS.Colors.text1)
+                    .padding(.top, DS.Spacing.xl)
+                
+                Text(L.Account.welcomeDesc)
+                    .font(DS.Typography.body)
+                    .foregroundColor(DS.Colors.text2)
+                    .padding(.top, DS.Spacing.sm)
+                
+                // 登录/注册按钮
+                VStack(spacing: DS.Spacing.md) {
+                    Button(action: {
+                        authManager.openLogin()
+                        withAnimation(.easeInOut(duration: 0.3)) { isWaitingForLogin = true }
+                    }) {
+                        Text(L.Account.login)
+                            .font(DS.Typography.body)
+                            .foregroundColor(DS.Colors.bg1)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 40)
+                            .background(DS.Colors.text1)
+                            .cornerRadius(DS.Layout.cornerRadius)
+                    }
+                    .buttonStyle(.plain)
+                    
+                    Button(action: {
+                        authManager.openSignUp()
+                        withAnimation(.easeInOut(duration: 0.3)) { isWaitingForLogin = true }
+                    }) {
+                        Text(L.Account.signUp)
+                            .font(DS.Typography.body)
+                            .foregroundColor(DS.Colors.text1)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 40)
+                            .background(DS.Colors.bg2)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
+                                    .stroke(DS.Colors.border, lineWidth: DS.Layout.borderWidth)
+                            )
+                            .cornerRadius(DS.Layout.cornerRadius)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .frame(maxWidth: 280)
+                .padding(.top, DS.Spacing.xxl)
+            }
+            
+            Spacer()
+            
+            // 底部：已登录时显示下一步
+            HStack(spacing: DS.Spacing.md) {
+                if authManager.isLoggedIn {
+                    MinimalButton(title: L.Onboarding.next, style: .primary, action: onNext)
+                }
+            }
+            .padding(.horizontal, DS.Spacing.xxl)
+            .padding(.bottom, DS.Spacing.xxl)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onChange(of: authManager.isLoggedIn) {
+            if authManager.isLoggedIn {
+                isWaitingForLogin = false
+            }
+        }
+    }
+}
+
 // MARK: - Step 1: 快捷键设置
 
 struct Step1HotkeyView: View {
     @ObservedObject var settings: AppSettings
     var onNext: () -> Void
+    var onBack: (() -> Void)? = nil
     
     @State private var isRecording = false
     
@@ -75,13 +221,13 @@ struct Step1HotkeyView: View {
                 .foregroundColor(DS.Colors.text1)
             
             // 标题
-            Text("设置快捷键")
+            Text(L.Onboarding.hotkeyTitle)
                 .font(DS.Typography.largeTitle)
                 .foregroundColor(DS.Colors.text1)
                 .padding(.top, DS.Spacing.xl)
             
             // 副标题
-            Text("按住快捷键说话，松开完成输入")
+            Text(L.Onboarding.hotkeyDesc)
                 .font(DS.Typography.body)
                 .foregroundColor(DS.Colors.text2)
                 .padding(.top, DS.Spacing.sm)
@@ -99,7 +245,7 @@ struct Step1HotkeyView: View {
                 )
                 .frame(width: 120, height: 48)
                 
-                Text(isRecording ? "按下快捷键组合..." : "点击修改")
+                Text(isRecording ? L.Onboarding.hotkeyRecording : L.Onboarding.hotkeyHint)
                     .font(DS.Typography.caption)
                     .foregroundColor(DS.Colors.text3)
             }
@@ -108,13 +254,19 @@ struct Step1HotkeyView: View {
             Spacer()
             
             // 底部按钮
-            MinimalButton(title: "下一步", style: .primary, action: onNext)
-                .padding(.horizontal, DS.Spacing.xxl)
-                .padding(.bottom, DS.Spacing.xxl)
+            HStack(spacing: DS.Spacing.md) {
+                if let onBack = onBack {
+                    MinimalButton(title: L.Onboarding.back, style: .secondary, action: onBack)
+                }
+                MinimalButton(title: L.Onboarding.next, style: .primary, action: onNext)
+            }
+            .padding(.horizontal, DS.Spacing.xxl)
+            .padding(.bottom, DS.Spacing.xxl)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
+
 
 // MARK: - HotkeyRecorderView
 
@@ -255,134 +407,9 @@ class HotkeyTextField: NSTextField {
     }
 }
 
-// MARK: - Step 2: 输入模式
+// MARK: - Step 2: 权限
 
-struct Step2AutoModeView: View {
-    @ObservedObject var settings: AppSettings
-    var onNext: () -> Void
-    var onBack: () -> Void
-    
-    var body: some View {
-        VStack(spacing: 0) {
-            // Logo header
-            VStack(spacing: DS.Spacing.sm) {
-                GHOSTYPELogo()
-                    .frame(width: 152, height: 21)
-                
-                Text("Your Type of Spirit.")
-                    .font(DS.Typography.caption.italic())
-                    .foregroundColor(DS.Colors.text2)
-            }
-            .padding(.top, DS.Spacing.xl)
-            
-            Spacer()
-            
-            // 图标
-            Image(systemName: settings.autoStartOnFocus ? "text.cursor" : "hand.tap")
-                .font(.system(size: 48, weight: .thin))
-                .foregroundColor(DS.Colors.text1)
-            
-            // 标题
-            Text("输入模式")
-                .font(DS.Typography.largeTitle)
-                .foregroundColor(DS.Colors.text1)
-                .padding(.top, DS.Spacing.xl)
-            
-            // 副标题
-            Text("选择如何触发语音输入")
-                .font(DS.Typography.body)
-                .foregroundColor(DS.Colors.text2)
-                .padding(.top, DS.Spacing.sm)
-            
-            // 选项卡片
-            VStack(spacing: DS.Spacing.md) {
-                MinimalModeCard(
-                    icon: "hand.tap",
-                    title: "手动模式",
-                    subtitle: "按住快捷键时录音",
-                    isSelected: !settings.autoStartOnFocus
-                ) { settings.autoStartOnFocus = false }
-                
-                MinimalModeCard(
-                    icon: "text.cursor",
-                    title: "自动模式",
-                    subtitle: "聚焦输入框时自动录音",
-                    isSelected: settings.autoStartOnFocus
-                ) { settings.autoStartOnFocus = true }
-            }
-            .padding(.horizontal, DS.Spacing.xxl)
-            .padding(.top, DS.Spacing.xxl)
-            
-            Spacer()
-            
-            // 底部按钮
-            HStack(spacing: DS.Spacing.md) {
-                MinimalButton(title: "上一步", style: .secondary, action: onBack)
-                MinimalButton(title: "下一步", style: .primary, action: onNext)
-            }
-            .padding(.horizontal, DS.Spacing.xxl)
-            .padding(.bottom, DS.Spacing.xxl)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
-
-// MARK: - MinimalModeCard
-
-struct MinimalModeCard: View {
-    let icon: String
-    let title: String
-    let subtitle: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: DS.Spacing.md) {
-                // 图标
-                Image(systemName: icon)
-                    .font(.system(size: 16))
-                    .foregroundColor(DS.Colors.icon)
-                    .frame(width: 32, height: 32)
-                    .background(DS.Colors.highlight)
-                    .cornerRadius(DS.Layout.cornerRadius)
-                
-                // 文字
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(DS.Typography.body)
-                        .foregroundColor(DS.Colors.text1)
-                    Text(subtitle)
-                        .font(DS.Typography.caption)
-                        .foregroundColor(DS.Colors.text2)
-                }
-                
-                Spacer()
-                
-                // 选中指示
-                Circle()
-                    .fill(isSelected ? DS.Colors.text1 : Color.clear)
-                    .frame(width: 8, height: 8)
-                    .overlay(
-                        Circle()
-                            .stroke(isSelected ? DS.Colors.text1 : DS.Colors.border, lineWidth: 1)
-                    )
-            }
-            .padding(DS.Spacing.lg)
-            .background(DS.Colors.bg2)
-            .overlay(
-                RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
-                    .stroke(isSelected ? DS.Colors.text1 : DS.Colors.border, lineWidth: DS.Layout.borderWidth)
-            )
-            .cornerRadius(DS.Layout.cornerRadius)
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Step 3: 权限
-
-struct Step3PermissionsView: View {
+struct Step2PermissionsView: View {
     @ObservedObject var permissionManager: PermissionManager
     var onComplete: () -> Void
     var onBack: () -> Void
@@ -414,13 +441,13 @@ struct Step3PermissionsView: View {
                 .foregroundColor(DS.Colors.text1)
             
             // 标题
-            Text("授权权限")
+            Text(L.Onboarding.permTitle)
                 .font(DS.Typography.largeTitle)
                 .foregroundColor(DS.Colors.text1)
                 .padding(.top, DS.Spacing.xl)
             
             // 副标题
-            Text("需要以下权限才能正常工作")
+            Text(L.Onboarding.permDesc)
                 .font(DS.Typography.body)
                 .foregroundColor(DS.Colors.text2)
                 .padding(.top, DS.Spacing.sm)
@@ -429,8 +456,8 @@ struct Step3PermissionsView: View {
             VStack(spacing: DS.Spacing.md) {
                 MinimalPermissionCard(
                     icon: "hand.raised",
-                    title: "辅助功能",
-                    subtitle: "监听快捷键并插入文字",
+                    title: L.Onboarding.permAccessibility,
+                    subtitle: L.Onboarding.permAccessibilityDesc,
                     isGranted: permissionManager.isAccessibilityTrusted
                 ) {
                     let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
@@ -439,8 +466,8 @@ struct Step3PermissionsView: View {
                 
                 MinimalPermissionCard(
                     icon: "mic",
-                    title: "麦克风",
-                    subtitle: "录制语音进行识别",
+                    title: L.Onboarding.permMicrophone,
+                    subtitle: L.Onboarding.permMicrophoneDesc,
                     isGranted: permissionManager.isMicrophoneGranted
                 ) {
                     permissionManager.requestMicrophoneAccess()
@@ -453,9 +480,9 @@ struct Step3PermissionsView: View {
             
             // 底部按钮
             HStack(spacing: DS.Spacing.md) {
-                MinimalButton(title: "上一步", style: .secondary, action: onBack)
+                MinimalButton(title: L.Onboarding.back, style: .secondary, action: onBack)
                 MinimalButton(
-                    title: "开始使用",
+                    title: L.Onboarding.start,
                     style: .primary,
                     isDisabled: !allGranted,
                     action: onComplete
@@ -508,7 +535,7 @@ struct MinimalPermissionCard: View {
                 if isGranted {
                     StatusDot(status: .success, size: 8)
                 } else {
-                    Text("授权")
+                    Text(L.Onboarding.authorize)
                         .font(DS.Typography.caption)
                         .foregroundColor(DS.Colors.text1)
                         .padding(.horizontal, DS.Spacing.md)

@@ -99,11 +99,4 @@ enum PolishProfile: String, CaseIterable, Identifiable {
         case .creative: return "paintbrush"
         }
     }
-    
-    /// Block 4 Tone Prompt - 语气配置
-    /// 注意：这只是 Tone 部分，完整 Prompt 由 PromptBuilder 拼接
-    /// （Role + Block 1 + Block 2 + Block 3 + Tone）
-    var prompt: String {
-        return PromptTemplates.toneForProfile(self)
-    }
 }

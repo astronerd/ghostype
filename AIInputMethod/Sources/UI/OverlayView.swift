@@ -20,6 +20,9 @@ class OverlayStateManager: ObservableObject {
     func setCommitting(type: OverlayPhase.CommitType) {
         DispatchQueue.main.async { self.phase = .committing(type) }
     }
+    func setLoginRequired() {
+        DispatchQueue.main.async { self.phase = .loginRequired }
+    }
     func hide() {
         DispatchQueue.main.async { self.phase = nil }
     }
@@ -32,6 +35,7 @@ enum OverlayPhase: Equatable {
     case processing(InputMode)
     case result(ResultInfo)
     case committing(CommitType)
+    case loginRequired
     
     struct ResultInfo: Equatable {
         let mode: InputMode
@@ -309,7 +313,7 @@ struct OverlayView: View {
         case .recording(let mode), .processing(let mode): return ModeColors.glowColor(for: mode)
         case .result(let info): return ModeColors.glowColor(for: info.mode)
         case .committing(.memoSaved): return ModeColors.memoOrange
-        case .committing(.textInput), .none: return ModeColors.defaultBlue
+        case .committing(.textInput), .loginRequired, .none: return ModeColors.defaultBlue
         }
     }
     
@@ -358,6 +362,8 @@ struct OverlayView: View {
             case .translate: return "正在翻译…"
             case .memo: return "正在保存…"
             }
+        case .loginRequired:
+            return L.Auth.loginRequired
         default:
             break
         }
@@ -406,7 +412,7 @@ struct GlowRingView: View {
                 breathingGlow
             case .processing:
                 orbitingGlow
-            case .result, .committing, .none:
+            case .result, .committing, .loginRequired, .none:
                 staticGlow
             }
         }

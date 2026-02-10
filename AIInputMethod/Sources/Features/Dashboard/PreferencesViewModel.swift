@@ -90,16 +90,6 @@ class PreferencesViewModel {
         }
     }
     
-    /// 润色 Prompt
-    var polishPrompt: String {
-        get { AppSettings.shared.polishPrompt }
-        set { 
-            if !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                AppSettings.shared.polishPrompt = newValue 
-            }
-        }
-    }
-    
     /// 翻译语言选项
     var translateLanguage: TranslateLanguage {
         get { AppSettings.shared.translateLanguage }
@@ -245,7 +235,7 @@ class PreferencesViewModel {
         AppSettings.shared.translateModifier = translateModifier
         AppSettings.shared.memoModifier = memoModifier
         AppSettings.shared.translateLanguage = translateLanguage
-        AppSettings.shared.autoEnterApps = []
+        AppSettings.shared.autoEnterApps = [:]
         
         loadAutoEnterApps()
     }
@@ -289,15 +279,16 @@ class PreferencesViewModel {
     // MARK: - Auto Enter Apps
     
     func loadAutoEnterApps() {
-        let bundleIds = AppSettings.shared.autoEnterApps
-        autoEnterApps = bundleIds.compactMap { bundleId in
+        let appDict = AppSettings.shared.autoEnterApps
+        autoEnterApps = appDict.map { (bundleId, methodRaw) in
+            let method = SendMethod(rawValue: methodRaw) ?? .enter
             if let appPath = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleId) {
                 let appName = FileManager.default.displayName(atPath: appPath.path)
                 let icon = NSWorkspace.shared.icon(forFile: appPath.path)
-                return AutoEnterApp(bundleId: bundleId, name: appName, icon: icon)
+                return AutoEnterApp(bundleId: bundleId, name: appName, icon: icon, sendMethod: method)
             }
-            return AutoEnterApp(bundleId: bundleId, name: bundleId, icon: nil)
-        }
+            return AutoEnterApp(bundleId: bundleId, name: bundleId, icon: nil, sendMethod: method)
+        }.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
     
     func addAutoEnterApp(bundleId: String) {
@@ -307,6 +298,11 @@ class PreferencesViewModel {
     
     func removeAutoEnterApp(bundleId: String) {
         AppSettings.shared.removeAutoEnterApp(bundleId)
+        loadAutoEnterApps()
+    }
+    
+    func updateSendMethod(bundleId: String, method: SendMethod) {
+        AppSettings.shared.updateAutoEnterApp(bundleId, method: method)
         loadAutoEnterApps()
     }
     
@@ -396,4 +392,5 @@ struct AutoEnterApp: Identifiable {
     let bundleId: String
     let name: String
     let icon: NSImage?
+    var sendMethod: SendMethod
 }

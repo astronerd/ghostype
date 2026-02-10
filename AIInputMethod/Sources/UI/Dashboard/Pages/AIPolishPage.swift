@@ -18,6 +18,7 @@ struct AIPolishPage: View {
     @State private var editingProfile: CustomProfile? = nil
     @State private var editorName = ""
     @State private var editorPrompt = ""
+    @State private var editingTriggerWord = ""
     
     var body: some View {
         ScrollView {
@@ -111,9 +112,12 @@ struct AIPolishPage: View {
                     .foregroundColor(DS.Colors.text3)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
+                    .frame(height: 24, alignment: .top)
             }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 12)
             .frame(maxWidth: .infinity)
-            .frame(height: 80)
+            .frame(minHeight: 100)
             .background(isSelected ? DS.Colors.highlight : DS.Colors.bg1)
             .cornerRadius(DS.Layout.cornerRadius + 2)
             .overlay(
@@ -156,9 +160,12 @@ struct AIPolishPage: View {
                     }
                     .buttonStyle(.plain)
                 }
+                .frame(height: 24, alignment: .top)
             }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 12)
             .frame(maxWidth: .infinity)
-            .frame(height: 80)
+            .frame(minHeight: 100)
             .background(isSelected ? DS.Colors.highlight : DS.Colors.bg1)
             .cornerRadius(DS.Layout.cornerRadius + 2)
             .overlay(
@@ -182,8 +189,10 @@ struct AIPolishPage: View {
                     .font(DS.Typography.caption)
                     .foregroundColor(DS.Colors.text3)
             }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 12)
             .frame(maxWidth: .infinity)
-            .frame(height: 80)
+            .frame(minHeight: 100)
             .background(DS.Colors.bg1)
             .cornerRadius(DS.Layout.cornerRadius + 2)
             .overlay(
@@ -457,18 +466,26 @@ struct AIPolishPage: View {
                 Text(L.AIPolish.examples)
                     .font(DS.Typography.caption)
                     .foregroundColor(DS.Colors.text3)
+                Spacer()
             }
-            VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-                exampleRow(input: "耿直的耿", output: "耿")
-                exampleRow(input: "找一个恶魔的emoji", output: "😈")
-                exampleRow(input: "换行", output: "换行符")
-                exampleRow(input: "版权符号", output: "©")
+            VStack(alignment: .leading, spacing: DS.Spacing.md) {
+                exampleBlock(
+                    input: "那个，额，就是那个我觉得这个方案吧，对，这个方案还是改一改吧",
+                    output: "我觉得这个方案还是得改一下"
+                )
+                exampleBlock(
+                    input: "so um I think we should probably like revisit the budget yeah",
+                    output: "I think we should revisit the budget"
+                )
+                exampleBlock(
+                    input: "我今天出门看见一个小狗 加个小狗的emoji 然后我想摸摸它但是它跑了 哭脸表情",
+                    output: "我今天出门看见一个小狗🐶然后我想摸摸它但是它跑了😭"
+                )
             }
         }
         .padding(.horizontal, DS.Spacing.lg)
         .padding(.vertical, DS.Spacing.md)
         .padding(.leading, 44)
-        .background(DS.Colors.highlight.opacity(0.5))
     }
     
     private var triggerCommandsRow: some View {
@@ -500,46 +517,69 @@ struct AIPolishPage: View {
                     .foregroundColor(DS.Colors.text2)
             }
             Spacer()
-            TextField("Ghost", text: Binding(
-                get: { viewModel.triggerWord },
-                set: { viewModel.triggerWord = $0 }
-            ))
-            .textFieldStyle(.roundedBorder)
-            .frame(width: 100)
+            HStack(spacing: DS.Spacing.xs) {
+                TextField("Ghost", text: $editingTriggerWord)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 100)
+                
+                if editingTriggerWord != viewModel.triggerWord {
+                    Button(action: {
+                        let trimmed = editingTriggerWord.trimmingCharacters(in: .whitespacesAndNewlines)
+                        if !trimmed.isEmpty {
+                            viewModel.triggerWord = trimmed
+                            editingTriggerWord = trimmed
+                        } else {
+                            editingTriggerWord = viewModel.triggerWord
+                        }
+                    }) {
+                        Text(L.Common.ok)
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text1)
+                            .padding(.horizontal, DS.Spacing.sm)
+                            .padding(.vertical, DS.Spacing.xs)
+                            .background(DS.Colors.accent.opacity(0.2))
+                            .cornerRadius(DS.Layout.cornerRadius)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
         .padding(.horizontal, DS.Spacing.lg)
         .padding(.vertical, DS.Spacing.md)
+        .onAppear { editingTriggerWord = viewModel.triggerWord }
     }
     
     private var triggerCommandsExamples: some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+        let displayWord = editingTriggerWord.isEmpty ? viewModel.triggerWord : editingTriggerWord
+        let title = String(format: L.AIPolish.triggerExamplesTitle, displayWord)
+        return VStack(alignment: .leading, spacing: DS.Spacing.sm) {
             HStack(spacing: DS.Spacing.md) {
                 Image(systemName: "lightbulb")
                     .font(.system(size: 12))
                     .foregroundColor(DS.Colors.text3)
-                Text("示例（使用唤醒词「\(viewModel.triggerWord)」）")
+                Text(title)
                     .font(DS.Typography.caption)
                     .foregroundColor(DS.Colors.text3)
+                Spacer()
             }
-            VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-                exampleRow(
-                    input: "今天天气真好 \(viewModel.triggerWord) 翻译成英文",
-                    output: "The weather is really nice today"
+            VStack(alignment: .leading, spacing: DS.Spacing.md) {
+                exampleBlock(
+                    input: "审核Q3报告、更新官网文案、给Acme发票、约设计团队一对一 \(displayWord) 做成待办清单",
+                    output: "- [ ] 审核 Q3 报告\n- [ ] 更新官网文案\n- [ ] 给 Acme Corp 发送发票\n- [ ] 约设计团队一对一会议"
                 )
-                exampleRow(
-                    input: "这是一段文字 \(viewModel.triggerWord) 改成正式语气",
-                    output: "此为一段文字"
+                exampleBlock(
+                    input: "hey this deadline isn't gonna work for us \(displayWord) recipient is my VP, keep it professional",
+                    output: "Hi Michael, I wanted to flag a concern regarding the current timeline. Given the scope, it may be worth discussing an adjusted deadline to ensure quality."
                 )
-                exampleRow(
-                    input: "会议在下周一 \(viewModel.triggerWord) 加上提醒",
-                    output: "会议在下周一 ⏰"
+                exampleBlock(
+                    input: "张处这个不太行 \(displayWord) 对方是个体制内处长给我改改",
+                    output: "张处，关于此事，经综合评估，实施层面确实存在一些客观困难，可能需要从长计议。"
                 )
             }
         }
         .padding(.horizontal, DS.Spacing.lg)
         .padding(.vertical, DS.Spacing.md)
         .padding(.leading, 44)
-        .background(DS.Colors.highlight.opacity(0.5))
     }
     
     private func exampleRow(input: String, output: String) -> some View {
@@ -553,6 +593,29 @@ struct AIPolishPage: View {
             Text(output)
                 .font(DS.Typography.caption)
                 .foregroundColor(DS.Colors.text1)
+        }
+    }
+    
+    private func exampleBlock(input: String, output: String) -> some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+            HStack(alignment: .top, spacing: DS.Spacing.xs) {
+                Text("→")
+                    .font(DS.Typography.caption)
+                    .foregroundColor(DS.Colors.text3)
+                Text(input)
+                    .font(DS.Typography.caption)
+                    .foregroundColor(DS.Colors.text2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            HStack(alignment: .top, spacing: DS.Spacing.xs) {
+                Text("←")
+                    .font(DS.Typography.caption)
+                    .foregroundColor(DS.Colors.accent)
+                Text(output)
+                    .font(DS.Typography.caption)
+                    .foregroundColor(DS.Colors.text1)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 }

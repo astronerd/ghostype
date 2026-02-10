@@ -1,6 +1,25 @@
 import SwiftUI
 import AppKit
 
+// MARK: - Send Method
+
+/// 自动发送的按键方式
+enum SendMethod: String, CaseIterable, Identifiable, Codable {
+    case enter = "enter"
+    case cmdEnter = "cmdEnter"
+    case shiftEnter = "shiftEnter"
+    
+    var id: String { rawValue }
+    
+    var displayName: String {
+        switch self {
+        case .enter: return "Enter"
+        case .cmdEnter: return "⌘ Enter"
+        case .shiftEnter: return "⇧ Enter"
+        }
+    }
+}
+
 // MARK: - App Settings
 
 /// 全局应用设置
@@ -88,13 +107,6 @@ class AppSettings: ObservableObject {
         didSet { saveToUserDefaults() }
     }
     
-    // MARK: - AI Prompt 设置
-    
-    /// 润色 Prompt（只保留润色的自定义 Prompt）
-    @Published var polishPrompt: String {
-        didSet { saveToUserDefaults() }
-    }
-    
     /// 翻译语言选项（中英互译、中日互译）
     @Published var translateLanguage: TranslateLanguage {
         didSet { saveToUserDefaults() }
@@ -136,8 +148,8 @@ class AppSettings: ObservableObject {
         didSet { saveToUserDefaults() }
     }
     
-    /// 自动回车的应用 Bundle ID 列表
-    @Published var autoEnterApps: [String] {
+    /// 自动回车的应用配置 [BundleID: SendMethod rawValue]
+    @Published var autoEnterApps: [String: String] {
         didSet { saveToUserDefaults() }
     }
     
@@ -151,14 +163,6 @@ class AppSettings: ObservableObject {
             LocalizationManager.shared.currentLanguage = appLanguage
         }
     }
-    
-    // MARK: - 默认 Prompts
-    
-    /// 默认润色 Prompt（简单调用路径使用）
-    /// 完整的 polishWithProfile 路径使用 PromptBuilder 拼接
-    static let defaultPolishPrompt = PromptTemplates.roleDefinition
-        + "\n\n" + PromptTemplates.block1
-        + "\n\n" + PromptTemplates.Tone.standard
     
     // MARK: - UserDefaults Keys
     
@@ -177,7 +181,6 @@ class AppSettings: ObservableObject {
         static let enableInSentencePatterns = "enableInSentencePatterns"
         static let enableTriggerCommands = "enableTriggerCommands"
         static let triggerWord = "triggerWord"
-        static let polishPrompt = "polishPrompt"
         static let translateLanguage = "translateLanguage"
         static let autoStartOnFocus = "autoStartOnFocus"
         static let launchAtLogin = "launchAtLogin"
@@ -269,9 +272,6 @@ class AppSettings: ObservableObject {
         
         triggerWord = defaults.string(forKey: Keys.triggerWord) ?? "Ghost"
         
-        // 加载润色 Prompt
-        polishPrompt = defaults.string(forKey: Keys.polishPrompt) ?? Self.defaultPolishPrompt
-        
         // 加载翻译语言选项
         if let savedLanguage = defaults.string(forKey: Keys.translateLanguage),
            let language = TranslateLanguage(rawValue: savedLanguage) {
@@ -291,7 +291,18 @@ class AppSettings: ObservableObject {
         
         // 加载自动回车设置（默认关闭）
         enableAutoEnter = defaults.bool(forKey: Keys.enableAutoEnter)
-        autoEnterApps = defaults.stringArray(forKey: Keys.autoEnterApps) ?? []
+        if let dict = defaults.dictionary(forKey: Keys.autoEnterApps) as? [String: String] {
+            autoEnterApps = dict
+        } else if let oldArray = defaults.stringArray(forKey: Keys.autoEnterApps) {
+            // 兼容旧版 [String] 格式，迁移为 [String: String]，默认 enter
+            var migrated: [String: String] = [:]
+            for bundleId in oldArray {
+                migrated[bundleId] = SendMethod.enter.rawValue
+            }
+            autoEnterApps = migrated
+        } else {
+            autoEnterApps = [:]
+        }
         
         // 加载语言设置（默认跟随系统）
         if let savedLanguage = defaults.string(forKey: Keys.appLanguage),
@@ -323,7 +334,6 @@ class AppSettings: ObservableObject {
         defaults.set(enableInSentencePatterns, forKey: Keys.enableInSentencePatterns)
         defaults.set(enableTriggerCommands, forKey: Keys.enableTriggerCommands)
         defaults.set(triggerWord, forKey: Keys.triggerWord)
-        defaults.set(polishPrompt, forKey: Keys.polishPrompt)
         defaults.set(translateLanguage.rawValue, forKey: Keys.translateLanguage)
         defaults.set(autoStartOnFocus, forKey: Keys.autoStartOnFocus)
         defaults.set(launchAtLogin, forKey: Keys.launchAtLogin)
@@ -331,16 +341,11 @@ class AppSettings: ObservableObject {
         defaults.set(hapticFeedback, forKey: Keys.hapticFeedback)
         defaults.set(enableContactsHotwords, forKey: Keys.enableContactsHotwords)
         defaults.set(enableAutoEnter, forKey: Keys.enableAutoEnter)
-        defaults.set(autoEnterApps, forKey: Keys.autoEnterApps)
+        defaults.set(autoEnterApps as [String: String], forKey: Keys.autoEnterApps)
         defaults.set(appLanguage.rawValue, forKey: Keys.appLanguage)
     }
     
     // MARK: - Reset
-    
-    /// 重置润色 Prompt 为默认值
-    func resetPrompts() {
-        polishPrompt = Self.defaultPolishPrompt
-    }
     
     /// 重置快捷键为默认值
     func resetHotkeys() {
@@ -380,18 +385,31 @@ class AppSettings: ObservableObject {
     /// 检查当前应用是否需要自动回车
     func shouldAutoEnter(for bundleId: String?) -> Bool {
         guard enableAutoEnter, let bundleId = bundleId else { return false }
-        return autoEnterApps.contains(bundleId)
+        return autoEnterApps[bundleId] != nil
     }
     
-    /// 添加自动回车应用
-    func addAutoEnterApp(_ bundleId: String) {
-        if !autoEnterApps.contains(bundleId) {
-            autoEnterApps.append(bundleId)
+    /// 获取应用的发送方式
+    func sendMethod(for bundleId: String?) -> SendMethod {
+        guard let bundleId = bundleId,
+              let raw = autoEnterApps[bundleId],
+              let method = SendMethod(rawValue: raw) else {
+            return .enter
         }
+        return method
+    }
+    
+    /// 添加自动回车应用（默认 enter）
+    func addAutoEnterApp(_ bundleId: String, method: SendMethod = .enter) {
+        autoEnterApps[bundleId] = method.rawValue
+    }
+    
+    /// 更新应用的发送方式
+    func updateAutoEnterApp(_ bundleId: String, method: SendMethod) {
+        autoEnterApps[bundleId] = method.rawValue
     }
     
     /// 移除自动回车应用
     func removeAutoEnterApp(_ bundleId: String) {
-        autoEnterApps.removeAll { $0 == bundleId }
+        autoEnterApps.removeValue(forKey: bundleId)
     }
 }

@@ -19,6 +19,7 @@ struct SidebarView: View {
     var isEnabled: Bool
     var deviceId: String
     var quotaPercentage: Double
+    @ObservedObject private var authManager = AuthManager.shared
     
     // MARK: - Body
     
@@ -37,7 +38,14 @@ struct SidebarView: View {
         }
         .frame(maxHeight: .infinity)
         .background(DS.Colors.bg2)
-        .opacity(isEnabled ? 1.0 : 0.5)
+        .onChange(of: authManager.isLoggedIn) { _, isLoggedIn in
+            // 未登录时自动切换到 AccountPage
+            if !isLoggedIn && selectedItem.requiresAuth {
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    selectedItem = .account
+                }
+            }
+        }
     }
     
     // MARK: - Header Section
@@ -59,17 +67,21 @@ struct SidebarView: View {
     // MARK: - Navigation Section
     
     private var navigationSection: some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-            // 导航项
-            ForEach(NavItem.allCases) { item in
-                SidebarNavItem(
-                    item: item,
-                    isSelected: selectedItem == item,
-                    isEnabled: isEnabled
-                ) {
-                    if isEnabled {
-                        withAnimation(.easeInOut(duration: 0.15)) {
-                            selectedItem = item
+        VStack(alignment: .leading, spacing: DS.Spacing.lg) {
+            ForEach(Array(NavItem.groups.enumerated()), id: \.offset) { _, group in
+                VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                    ForEach(group) { item in
+                        let itemEnabled = isEnabled && (!item.requiresAuth || authManager.isLoggedIn)
+                        SidebarNavItem(
+                            item: item,
+                            isSelected: selectedItem == item,
+                            isEnabled: itemEnabled
+                        ) {
+                            if itemEnabled {
+                                withAnimation(.easeInOut(duration: 0.15)) {
+                                    selectedItem = item
+                                }
+                            }
                         }
                     }
                 }
@@ -100,7 +112,7 @@ struct SidebarView: View {
             // 额度进度
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 HStack {
-                    Text("本月额度")
+                    Text(L.Quota.monthlyQuota)
                         .font(DS.Typography.caption)
                         .foregroundColor(DS.Colors.text2)
                     Spacer()
@@ -160,6 +172,7 @@ struct SidebarNavItem: View {
         }
         .buttonStyle(.plain)
         .disabled(!isEnabled)
+        .opacity(isEnabled ? 1.0 : 0.4)
         .onHover { hovering in
             isHovered = hovering
         }
