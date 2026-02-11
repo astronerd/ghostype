@@ -66,6 +66,18 @@ for svg in Sources/Resources/*.svg; do
     fi
 done
 
+# PNG resource files (CRT frame, etc.)
+for png in Sources/Resources/*.png; do
+    if [ -f "$png" ]; then
+        basename_png=$(basename "$png")
+        # Skip files already copied above
+        if [ "$basename_png" != "MenuBarIcon.png" ] && [ "$basename_png" != "GhostIcon.png" ]; then
+            cp "$png" "$APP_BUNDLE/Contents/Resources/"
+            echo "✅ PNG copied: $basename_png"
+        fi
+    fi
+done
+
 # Info.plist
 cat <<EOF > "$APP_BUNDLE/Contents/Info.plist"
 <?xml version="1.0" encoding="UTF-8"?>

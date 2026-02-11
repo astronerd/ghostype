@@ -327,6 +327,9 @@ class IncubatorViewModel {
         } catch {
             isError = true
             errorMessage = error.localizedDescription
+            // 失败时也关闭纸条，避免卡住
+            showReceiptSlip = false
+            currentChallenge = nil
             print("[IncubatorViewModel] ⚠️ submitAnswer failed: \(error.localizedDescription)")
         }
         

@@ -96,7 +96,7 @@ struct PieChartView: View {
                     .font(DS.Typography.title)
                     .foregroundColor(DS.Colors.text1)
                 
-                Text("应用")
+                Text(L.Overview.apps)
                     .font(DS.Typography.caption)
                     .foregroundColor(DS.Colors.text2)
             }
@@ -143,7 +143,7 @@ struct PieChartView: View {
                 .font(.system(size: 28))
                 .foregroundColor(DS.Colors.text3)
             
-            Text("暂无数据")
+            Text(L.Overview.noData)
                 .font(DS.Typography.body)
                 .foregroundColor(DS.Colors.text2)
         }

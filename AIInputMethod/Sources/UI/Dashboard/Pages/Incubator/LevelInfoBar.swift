@@ -2,8 +2,8 @@
 //  LevelInfoBar.swift
 //  AIInputMethod
 //
-//  等级信息栏 - 显示等级、进度条和同步率
-//  位于 CRT_Container 上方
+//  等级信息栏 - RPG 像素风格，显示在 CRT 屏幕内部上方
+//  口袋妖怪黄风格：实心黑底 + 双层像素边框（外亮绿 → 黑间隔 → 内暗绿）
 //
 //  Validates: Requirements 2.5
 //
@@ -21,33 +21,62 @@ struct LevelInfoBar: View {
     /// 同步率百分比 (10~100)
     let syncRate: Int
     
+    // 像素边框线宽（与 RPGDialogView 一致）
+    private static let borderWidth: CGFloat = 2
+    
     var body: some View {
-        HStack(spacing: DS.Spacing.sm) {
+        HStack(spacing: 6) {
             // 等级标签
             Text("Lv.\(level)")
-                .font(DS.Typography.mono(14, weight: .bold))
-                .foregroundColor(DS.Colors.text1)
+                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                .foregroundColor(Color.green.opacity(0.9))
             
-            // 进度条
+            // 像素风格进度条
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    // 背景轨道
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(DS.Colors.bg2)
+                    // 背景轨道（暗绿边框）
+                    Rectangle()
+                        .fill(Color.green.opacity(0.15))
                     
-                    // 填充进度
-                    RoundedRectangle(cornerRadius: 2)
+                    // 填充进度（亮绿）
+                    Rectangle()
                         .fill(Color.green.opacity(0.6))
                         .frame(width: geo.size.width * min(max(progressFraction, 0), 1))
                 }
             }
-            .frame(height: 6)
+            .frame(height: 4)
             
             // 同步率
-            Text("\(L.Incubator.syncRate): \(syncRate)%")
-                .font(DS.Typography.mono(11, weight: .regular))
-                .foregroundColor(DS.Colors.text2)
+            Text("\(syncRate)%")
+                .font(.system(size: 9, weight: .medium, design: .monospaced))
+                .foregroundColor(Color.green.opacity(0.7))
         }
-        .frame(width: 640)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background(pixelBorderBackground)
+    }
+    
+    /// 口袋妖怪黄风格像素边框（与 RPGDialogView 一致）
+    private var pixelBorderBackground: some View {
+        ZStack {
+            // 外层边框（亮绿）
+            Rectangle()
+                .fill(Color.green.opacity(0.7))
+            
+            // 内层黑色间隔
+            Rectangle()
+                .fill(Color.black)
+                .padding(Self.borderWidth)
+            
+            // 内层边框（暗绿）
+            Rectangle()
+                .fill(Color.green.opacity(0.35))
+                .padding(Self.borderWidth + 1)
+            
+            // 实心黑底
+            Rectangle()
+                .fill(Color.black)
+                .padding(Self.borderWidth + 1 + Self.borderWidth)
+        }
     }
 }

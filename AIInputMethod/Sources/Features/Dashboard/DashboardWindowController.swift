@@ -109,22 +109,20 @@ class DashboardWindowController {
         UserDefaults.standard.set(frameDict, forKey: Self.windowFrameKey)
     }
     
-    /// 从 UserDefaults 恢复窗口位置和尺寸
-    /// Requirement 12.2: Dashboard window SHALL remember its last position and size
+    /// 从 UserDefaults 恢复窗口位置（尺寸始终使用默认值）
+    /// Requirement 12.2: Dashboard window SHALL remember its last position
     func restoreWindowFrame() {
         guard let window = window else { return }
         
+        // 始终使用默认尺寸
+        let width = Self.defaultSize.width
+        let height = Self.defaultSize.height
+        
         if let frameDict = UserDefaults.standard.dictionary(forKey: Self.windowFrameKey) as? [String: CGFloat],
            let x = frameDict["x"],
-           let y = frameDict["y"],
-           let width = frameDict["width"],
-           let height = frameDict["height"] {
+           let y = frameDict["y"] {
             
-            // 确保尺寸不小于最小尺寸
-            let restoredWidth = max(width, Self.minimumSize.width)
-            let restoredHeight = max(height, Self.minimumSize.height)
-            
-            let frame = NSRect(x: x, y: y, width: restoredWidth, height: restoredHeight)
+            let frame = NSRect(x: x, y: y, width: width, height: height)
             
             // 确保窗口在可见屏幕范围内
             if isFrameOnScreen(frame) {

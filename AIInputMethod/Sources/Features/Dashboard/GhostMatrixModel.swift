@@ -41,6 +41,10 @@ class GhostMatrixModel {
     /// Validates: Requirements 5.1
     private(set) var ghostMask: [Bool]
     
+    /// Ghost 黑边掩码：ghostMask 膨胀后的区域（包含 ghostMask + 边框）
+    /// 背景像素不在此区域内出现，形成黑色轮廓
+    private(set) var ghostZone: [Bool]
+    
     /// 当前级别的点亮序列（Fisher-Yates 洗牌后的索引数组）
     /// 长度为 19,200，包含 0..<19200 的随机排列
     /// Validates: Requirements 5.2
@@ -53,10 +57,14 @@ class GhostMatrixModel {
     init() {
         // 初始化为空数组，稍后加载
         self.ghostMask = [Bool](repeating: false, count: Self.totalPixels)
+        self.ghostZone = [Bool](repeating: false, count: Self.totalPixels)
         self.activationOrder = []
         
         // 加载 Ghost Logo 掩码
         loadMaskFromSVG()
+        
+        // 计算 Ghost 黑边区域（ghostMask 膨胀 3px）
+        computeGhostZone(radius: 3)
         
         // 尝试从 UserDefaults 恢复 activationOrder
         if !loadActivationOrder() {
@@ -66,11 +74,9 @@ class GhostMatrixModel {
     }
     
     /// 用于测试的初始化方法
-    /// - Parameters:
-    ///   - ghostMask: 自定义的 Ghost Logo 掩码
-    ///   - activationOrder: 自定义的点亮序列
     init(ghostMask: [Bool], activationOrder: [Int]) {
         self.ghostMask = ghostMask
+        self.ghostZone = ghostMask // 测试时 zone = mask
         self.activationOrder = activationOrder
     }
     
@@ -116,10 +122,21 @@ class GhostMatrixModel {
         NSColor.black.setFill()
         NSRect(x: 0, y: 0, width: CGFloat(Self.cols), height: CGFloat(Self.rows)).fill()
         
-        // 将 SVG 缩放绘制到 160×120
-        let targetSize = NSSize(width: Self.cols, height: Self.rows)
+        // 保持 SVG 原始比例（aspectFit），缩小后居中绘制到 160×120
+        // Ghost 缩放到画布高度的 60%，避免填满整个屏幕显得太大
+        let svgW = image.size.width
+        let svgH = image.size.height
+        let canvasW = CGFloat(Self.cols)
+        let canvasH = CGFloat(Self.rows)
+        let ghostScale: CGFloat = 0.6  // Ghost 占画布高度的 60%
+        let fitScale = min(canvasW / svgW, canvasH / svgH) * ghostScale
+        let drawW = svgW * fitScale
+        let drawH = svgH * fitScale
+        let offsetX = (canvasW - drawW) / 2
+        let offsetY = (canvasH - drawH) / 2
+        
         image.draw(
-            in: NSRect(origin: .zero, size: targetSize),
+            in: NSRect(x: offsetX, y: offsetY, width: drawW, height: drawH),
             from: NSRect(origin: .zero, size: image.size),
             operation: .sourceOver,
             fraction: 1.0
@@ -150,6 +167,49 @@ class GhostMatrixModel {
         // 统计 Ghost Logo 像素数量
         let ghostPixelCount = mask.filter { $0 }.count
         print("[GhostMatrixModel] ✅ Loaded ghostMask from SVG, ghost pixels: \(ghostPixelCount)")
+    }
+    
+    // MARK: - Ghost Zone (Dilated Mask for Black Border)
+    
+    /// 计算 Ghost 黑边区域：将 ghostMask 膨胀 radius 像素
+    /// ghostZone = ghostMask + 周围 radius 像素的边框区域
+    /// 背景像素不在 ghostZone 内出现，形成黑色轮廓效果
+    func computeGhostZone(radius: Int) {
+        var zone = [Bool](repeating: false, count: Self.totalPixels)
+        
+        for row in 0..<Self.rows {
+            for col in 0..<Self.cols {
+                let index = row * Self.cols + col
+                if ghostMask[index] {
+                    // ghostMask 本身的像素一定在 zone 内
+                    zone[index] = true
+                    continue
+                }
+                
+                // 检查周围 radius 范围内是否有 ghostMask 像素
+                var found = false
+                let rMin = max(0, row - radius)
+                let rMax = min(Self.rows - 1, row + radius)
+                let cMin = max(0, col - radius)
+                let cMax = min(Self.cols - 1, col + radius)
+                
+                outer: for r in rMin...rMax {
+                    for c in cMin...cMax {
+                        let neighborIdx = r * Self.cols + c
+                        if ghostMask[neighborIdx] {
+                            found = true
+                            break outer
+                        }
+                    }
+                }
+                
+                zone[index] = found
+            }
+        }
+        
+        ghostZone = zone
+        let borderPixels = zone.filter { $0 }.count - ghostMask.filter { $0 }.count
+        print("[GhostMatrixModel] ✅ Computed ghostZone (radius=\(radius)), border pixels: \(borderPixels)")
     }
     
     // MARK: - Shuffle Algorithm
@@ -183,24 +243,74 @@ class GhostMatrixModel {
     
     // MARK: - Active Pixels Calculation
     
+    /// ghostZone 外的 80×60 背景格子总数
+    /// 一个 80×60 格子对应 4 个 160×120 子像素
+    /// 格子被跳过的条件：4 个子像素中任意一个在 ghostZone 内
+    var visibleBgCellCount: Int {
+        var count = 0
+        for bgRow in 0..<(Self.rows / 2) {
+            for bgCol in 0..<(Self.cols / 2) {
+                let baseRow = bgRow * 2
+                let baseCol = bgCol * 2
+                var inZone = false
+                for dr in 0..<2 {
+                    for dc in 0..<2 {
+                        let idx = (baseRow + dr) * Self.cols + (baseCol + dc)
+                        if idx < ghostZone.count, ghostZone[idx] {
+                            inZone = true
+                        }
+                    }
+                }
+                if !inZone { count += 1 }
+            }
+        }
+        return count
+    }
+    
     /// 根据当前字数计算需要点亮的像素索引集合
-    /// 每字点亮约 2 个像素（wordCount × 19200 / 10000）
+    /// 用 80×60 可渲染格子数做分母（与 DotMatrixView 渲染逻辑一致）
+    /// 每个格子选一个代表像素放入结果集
     /// - Parameter wordCount: 当前等级内的字数 (0...10000)
-    /// - Returns: 需要点亮的像素索引集合
+    /// - Returns: 需要点亮的像素索引集合（160×120 坐标系）
     /// Validates: Requirements 5.3
     func getActivePixels(wordCount: Int) -> Set<Int> {
-        // 计算需要点亮的像素数量
-        // 公式：pixelCount = wordCount * 19200 / 10000
-        // 约每字点亮 1.92 个像素
-        let count = min(wordCount * Self.totalPixels / 10_000, Self.totalPixels)
+        let totalCells = visibleBgCellCount
+        guard totalCells > 0 else { return Set() }
         
-        // 确保 count 不超过 activationOrder 的长度
-        guard count > 0, !activationOrder.isEmpty else {
-            return Set()
+        // wordCount 从 0~10000 映射到 0~totalCells 个格子
+        let targetCells = min(wordCount * totalCells / 10_000, totalCells)
+        guard targetCells > 0, !activationOrder.isEmpty else { return Set() }
+        
+        // 把 activationOrder（160×120 索引）映射到 80×60 格子
+        // 每个格子只需要第一个命中的像素
+        var litCells = Set<Int>()  // 80×60 格子索引
+        var result = Set<Int>()    // 160×120 像素索引
+        litCells.reserveCapacity(targetCells)
+        result.reserveCapacity(targetCells)
+        
+        let bgCols = Self.cols / 2  // 80
+        
+        for pixelIndex in activationOrder {
+            // 跳过 ghostZone 内的像素
+            if pixelIndex < ghostZone.count, ghostZone[pixelIndex] { continue }
+            
+            // 算出所属的 80×60 格子
+            let row160 = pixelIndex / Self.cols
+            let col160 = pixelIndex % Self.cols
+            let bgRow = row160 / 2
+            let bgCol = col160 / 2
+            let cellIndex = bgRow * bgCols + bgCol
+            
+            // 这个格子已经亮了就跳过
+            if litCells.contains(cellIndex) { continue }
+            
+            litCells.insert(cellIndex)
+            result.insert(pixelIndex)
+            
+            if litCells.count >= targetCells { break }
         }
         
-        let actualCount = min(count, activationOrder.count)
-        return Set(activationOrder.prefix(actualCount))
+        return result
     }
     
     // MARK: - Pixel Query

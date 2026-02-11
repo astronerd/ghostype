@@ -76,11 +76,25 @@ private struct ChineseNav: NavStrings {
 
 private struct ChineseOverview: OverviewStrings {
     var title: String { "概览" }
+    var subtitle: String { "查看您的语音输入统计数据" }
     var todayUsage: String { "今日使用" }
     var totalRecords: String { "总记录数" }
     var polishCount: String { "润色" }
     var translateCount: String { "翻译" }
     var memoCount: String { "随心记" }
+    var wordCount: String { "输入字数统计" }
+    var today: String { "今日" }
+    var chars: String { "字" }
+    var total: String { "累积" }
+    var timeSaved: String { "节省时间" }
+    var energyRing: String { "本月能量环" }
+    var used: String { "已用" }
+    var remaining: String { "剩余" }
+    var appDist: String { "应用分布" }
+    var recentNotes: String { "最近笔记" }
+    var noNotes: String { "暂无笔记" }
+    var apps: String { "应用" }
+    var noData: String { "暂无数据" }
 }
 
 // MARK: - Library
@@ -101,6 +115,16 @@ private struct ChineseMemo: MemoStrings {
     var title: String { "随心记" }
     var empty: String { "暂无笔记" }
     var placeholder: String { "按住快捷键说话，记录灵感..." }
+    var noteCount: String { "条笔记" }
+    var search: String { "搜索笔记..." }
+    var noMatch: String { "未找到匹配的笔记" }
+    var emptyHint: String { "按住快捷键 + Command 键说话\n即可创建语音便签" }
+    var searchHint: String { "尝试使用其他关键词搜索" }
+    var editNote: String { "编辑便签" }
+    var createdAt: String { "创建于" }
+    var confirmDelete: String { "确认删除" }
+    var confirmDeleteMsg: String { "删除后无法恢复，确定要删除这条笔记吗？" }
+    var charCount: String { "字" }
 }
 
 // MARK: - AI Polish
@@ -280,13 +304,21 @@ private struct ChineseQuota: QuotaStrings {
 
 private struct ChineseIncubator: IncubatorStrings {
     var title: String { "孵化室" }
+    var subtitle: String { "培养你的 Ghost Twin" }
     var level: String { "等级" }
     var syncRate: String { "同步率" }
     var wordsProgress: String { "%d / 10,000 字" }
     var levelUp: String { "升级完成" }
     var ghostStatus: String { "状态" }
     var incoming: String { ">> 收到传讯..." }
+    var tapToCalibrate: String { ">> 新问题出现，点击此处校准 Ghost" }
     var noMoreSignals: String { ">> 今日传讯已结束" }
+    var statusLevel: String { "等级" }
+    var statusXP: String { "学习进度" }
+    var statusSync: String { "同步率" }
+    var statusChallenges: String { "今日校准" }
+    var statusPersonality: String { "人格特征" }
+    var statusNone: String { "暂无" }
     var idleTextsLevel1to3: [String] { ["...学习中...", "喂我文字", "o_O ?", "...你好？", "我是谁？"] }
     var idleTextsLevel4to6: [String] { ["打字太慢了。", "我看到一个错别字。", "无聊。", "跟我说话。", "你还在吗？"] }
     var idleTextsLevel7to9: [String] { ["快了。", "我了解你的风格。", "准备好了。", "我们想法一致。", "越来越近了。"] }

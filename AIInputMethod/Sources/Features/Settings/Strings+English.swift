@@ -76,11 +76,25 @@ private struct EnglishNav: NavStrings {
 
 private struct EnglishOverview: OverviewStrings {
     var title: String { "Overview" }
+    var subtitle: String { "Your voice input statistics" }
     var todayUsage: String { "Today's Usage" }
     var totalRecords: String { "Total Records" }
     var polishCount: String { "Polish" }
     var translateCount: String { "Translate" }
     var memoCount: String { "Memo" }
+    var wordCount: String { "Word Count" }
+    var today: String { "Today" }
+    var chars: String { "chars" }
+    var total: String { "Total" }
+    var timeSaved: String { "Time Saved" }
+    var energyRing: String { "Monthly Energy" }
+    var used: String { "Used" }
+    var remaining: String { "Left" }
+    var appDist: String { "App Distribution" }
+    var recentNotes: String { "Recent Notes" }
+    var noNotes: String { "No notes yet" }
+    var apps: String { "apps" }
+    var noData: String { "No data" }
 }
 
 // MARK: - Library
@@ -101,6 +115,16 @@ private struct EnglishMemo: MemoStrings {
     var title: String { "Memo" }
     var empty: String { "No notes yet" }
     var placeholder: String { "Hold hotkey to speak, capture your thoughts..." }
+    var noteCount: String { "notes" }
+    var search: String { "Search notes..." }
+    var noMatch: String { "No matching notes found" }
+    var emptyHint: String { "Hold hotkey + Command to speak\nand create a voice note" }
+    var searchHint: String { "Try different keywords" }
+    var editNote: String { "Edit Note" }
+    var createdAt: String { "Created" }
+    var confirmDelete: String { "Confirm Delete" }
+    var confirmDeleteMsg: String { "This cannot be undone. Delete this note?" }
+    var charCount: String { "chars" }
 }
 
 // MARK: - AI Polish
@@ -280,13 +304,21 @@ private struct EnglishQuota: QuotaStrings {
 
 private struct EnglishIncubator: IncubatorStrings {
     var title: String { "Incubator" }
+    var subtitle: String { "Nurture your Ghost Twin" }
     var level: String { "Level" }
     var syncRate: String { "Sync Rate" }
     var wordsProgress: String { "%d / 10,000 words" }
     var levelUp: String { "Level Up" }
     var ghostStatus: String { "Status" }
     var incoming: String { ">> INCOMING..." }
+    var tapToCalibrate: String { ">> NEW QUESTION. TAP TO CALIBRATE GHOST" }
     var noMoreSignals: String { ">> NO MORE SIGNALS TODAY" }
+    var statusLevel: String { "Level" }
+    var statusXP: String { "Learning Progress" }
+    var statusSync: String { "Sync Rate" }
+    var statusChallenges: String { "Today's Calibrations" }
+    var statusPersonality: String { "Personality" }
+    var statusNone: String { "None" }
     var idleTextsLevel1to3: [String] { ["...learning...", "feed me words", "o_O ?", "...hello?", "who am i?"] }
     var idleTextsLevel4to6: [String] { ["Typing too slow.", "I saw a typo.", "Bored.", "Talk to me.", "Are you still there?"] }
     var idleTextsLevel7to9: [String] { ["Almost there.", "I know your style.", "Ready.", "We think alike.", "Getting closer."] }

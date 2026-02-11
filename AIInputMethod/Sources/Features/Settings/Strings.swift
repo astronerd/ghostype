@@ -63,8 +63,16 @@ enum L {
         static var wordsProgress: String { current.incubator.wordsProgress }
         static var levelUp: String { current.incubator.levelUp }
         static var ghostStatus: String { current.incubator.ghostStatus }
+        static var subtitle: String { current.incubator.subtitle }
         static var incoming: String { current.incubator.incoming }
+        static var tapToCalibrate: String { current.incubator.tapToCalibrate }
         static var noMoreSignals: String { current.incubator.noMoreSignals }
+        static var statusLevel: String { current.incubator.statusLevel }
+        static var statusXP: String { current.incubator.statusXP }
+        static var statusSync: String { current.incubator.statusSync }
+        static var statusChallenges: String { current.incubator.statusChallenges }
+        static var statusPersonality: String { current.incubator.statusPersonality }
+        static var statusNone: String { current.incubator.statusNone }
         static var idleTextsLevel1to3: [String] { current.incubator.idleTextsLevel1to3 }
         static var idleTextsLevel4to6: [String] { current.incubator.idleTextsLevel4to6 }
         static var idleTextsLevel7to9: [String] { current.incubator.idleTextsLevel7to9 }
@@ -85,11 +93,25 @@ enum L {
     // MARK: - Overview Page / 概览页
     enum Overview {
         static var title: String { current.overview.title }
+        static var subtitle: String { current.overview.subtitle }
         static var todayUsage: String { current.overview.todayUsage }
         static var totalRecords: String { current.overview.totalRecords }
         static var polishCount: String { current.overview.polishCount }
         static var translateCount: String { current.overview.translateCount }
         static var memoCount: String { current.overview.memoCount }
+        static var wordCount: String { current.overview.wordCount }
+        static var today: String { current.overview.today }
+        static var chars: String { current.overview.chars }
+        static var total: String { current.overview.total }
+        static var timeSaved: String { current.overview.timeSaved }
+        static var energyRing: String { current.overview.energyRing }
+        static var used: String { current.overview.used }
+        static var remaining: String { current.overview.remaining }
+        static var appDist: String { current.overview.appDist }
+        static var recentNotes: String { current.overview.recentNotes }
+        static var noNotes: String { current.overview.noNotes }
+        static var apps: String { current.overview.apps }
+        static var noData: String { current.overview.noData }
     }
     
     // MARK: - Library Page / 记录库页
@@ -108,6 +130,16 @@ enum L {
         static var title: String { current.memo.title }
         static var empty: String { current.memo.empty }
         static var placeholder: String { current.memo.placeholder }
+        static var noteCount: String { current.memo.noteCount }
+        static var search: String { current.memo.search }
+        static var noMatch: String { current.memo.noMatch }
+        static var emptyHint: String { current.memo.emptyHint }
+        static var searchHint: String { current.memo.searchHint }
+        static var editNote: String { current.memo.editNote }
+        static var createdAt: String { current.memo.createdAt }
+        static var confirmDelete: String { current.memo.confirmDelete }
+        static var confirmDeleteMsg: String { current.memo.confirmDeleteMsg }
+        static var charCount: String { current.memo.charCount }
     }
     
     // MARK: - AI Polish Page / AI润色页
@@ -353,11 +385,25 @@ protocol NavStrings {
 
 protocol OverviewStrings {
     var title: String { get }
+    var subtitle: String { get }
     var todayUsage: String { get }
     var totalRecords: String { get }
     var polishCount: String { get }
     var translateCount: String { get }
     var memoCount: String { get }
+    var wordCount: String { get }
+    var today: String { get }
+    var chars: String { get }
+    var total: String { get }
+    var timeSaved: String { get }
+    var energyRing: String { get }
+    var used: String { get }
+    var remaining: String { get }
+    var appDist: String { get }
+    var recentNotes: String { get }
+    var noNotes: String { get }
+    var apps: String { get }
+    var noData: String { get }
 }
 
 protocol LibraryStrings {
@@ -374,6 +420,16 @@ protocol MemoStrings {
     var title: String { get }
     var empty: String { get }
     var placeholder: String { get }
+    var noteCount: String { get }
+    var search: String { get }
+    var noMatch: String { get }
+    var emptyHint: String { get }
+    var searchHint: String { get }
+    var editNote: String { get }
+    var createdAt: String { get }
+    var confirmDelete: String { get }
+    var confirmDeleteMsg: String { get }
+    var charCount: String { get }
 }
 
 protocol AIPolishStrings {
@@ -535,13 +591,21 @@ protocol QuotaStrings {
 
 protocol IncubatorStrings {
     var title: String { get }
+    var subtitle: String { get }
     var level: String { get }
     var syncRate: String { get }
     var wordsProgress: String { get }
     var levelUp: String { get }
     var ghostStatus: String { get }
     var incoming: String { get }
+    var tapToCalibrate: String { get }
     var noMoreSignals: String { get }
+    var statusLevel: String { get }
+    var statusXP: String { get }
+    var statusSync: String { get }
+    var statusChallenges: String { get }
+    var statusPersonality: String { get }
+    var statusNone: String { get }
     var idleTextsLevel1to3: [String] { get }
     var idleTextsLevel4to6: [String] { get }
     var idleTextsLevel7to9: [String] { get }

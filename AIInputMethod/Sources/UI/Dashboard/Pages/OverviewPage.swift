@@ -45,11 +45,11 @@ struct OverviewPage: View {
     
     private var headerView: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-            Text("概览")
+            Text(L.Overview.title)
                 .font(DS.Typography.largeTitle)
                 .foregroundColor(DS.Colors.text1)
             
-            Text("查看您的语音输入统计数据")
+            Text(L.Overview.subtitle)
                 .font(DS.Typography.body)
                 .foregroundColor(DS.Colors.text2)
         }
@@ -82,18 +82,18 @@ struct OverviewPage: View {
     // MARK: - Today Stats Card
     
     private var todayStatsCard: some View {
-        MinimalBentoCard(title: "输入字数统计", icon: "character.cursor.ibeam") {
+        MinimalBentoCard(title: L.Overview.wordCount, icon: "character.cursor.ibeam") {
             VStack(alignment: .leading, spacing: 12) {
                 // 今日字数 - 大字号
                 HStack(alignment: .lastTextBaseline) {
-                    Text("今日")
+                    Text(L.Overview.today)
                         .font(DS.Typography.caption)
                         .foregroundColor(DS.Colors.text2)
                     Spacer()
                     Text("\(todayStats.characterCount)")
                         .font(DS.Typography.ui(32, weight: .medium))
                         .foregroundColor(DS.Colors.text1)
-                    Text("字")
+                    Text(L.Overview.chars)
                         .font(DS.Typography.caption)
                         .foregroundColor(DS.Colors.text2)
                 }
@@ -102,11 +102,11 @@ struct OverviewPage: View {
                 
                 // 累积字数
                 HStack {
-                    Text("累积")
+                    Text(L.Overview.total)
                         .font(DS.Typography.caption)
                         .foregroundColor(DS.Colors.text2)
                     Spacer()
-                    Text("\(todayStats.totalCharacterCount) 字")
+                    Text("\(todayStats.totalCharacterCount) \(L.Overview.chars)")
                         .font(DS.Typography.body)
                         .foregroundColor(DS.Colors.text1)
                 }
@@ -115,7 +115,7 @@ struct OverviewPage: View {
                 
                 // 节省时间
                 HStack {
-                    Text("节省时间")
+                    Text(L.Overview.timeSaved)
                         .font(DS.Typography.caption)
                         .foregroundColor(DS.Colors.text2)
                     Spacer()
@@ -133,14 +133,14 @@ struct OverviewPage: View {
     // MARK: - Energy Ring Card
     
     private var energyRingCard: some View {
-        MinimalBentoCard(title: "本月能量环", icon: "circle.circle") {
+        MinimalBentoCard(title: L.Overview.energyRing, icon: "circle.circle") {
             VStack(spacing: DS.Spacing.sm) {
                 EnergyRingView(usedPercentage: quotaInfo.usedPercentage)
                     .frame(width: 70, height: 70)
                 
                 HStack(spacing: DS.Spacing.xl) {
-                    quotaDetailItem(label: "已用", value: quotaInfo.formattedUsedTime)
-                    quotaDetailItem(label: "剩余", value: quotaInfo.formattedRemainingTime)
+                    quotaDetailItem(label: L.Overview.used, value: quotaInfo.formattedUsedTime)
+                    quotaDetailItem(label: L.Overview.remaining, value: quotaInfo.formattedRemainingTime)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -164,7 +164,7 @@ struct OverviewPage: View {
     // MARK: - App Distribution Card
     
     private var appDistributionCard: some View {
-        MinimalBentoCard(title: "应用分布", icon: "chart.pie") {
+        MinimalBentoCard(title: L.Overview.appDist, icon: "chart.pie") {
             PieChartView(data: appDistribution, showLegend: true)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -175,7 +175,7 @@ struct OverviewPage: View {
     // MARK: - Recent Notes Card
     
     private var recentNotesCard: some View {
-        MinimalBentoCard(title: "最近笔记", icon: "note.text") {
+        MinimalBentoCard(title: L.Overview.recentNotes, icon: "note.text") {
             if recentNotes.isEmpty {
                 emptyNotesView
             } else {
@@ -201,7 +201,7 @@ struct OverviewPage: View {
                 .font(.system(size: 28))
                 .foregroundColor(DS.Colors.text3)
             
-            Text("暂无笔记")
+            Text(L.Overview.noNotes)
                 .font(DS.Typography.body)
                 .foregroundColor(DS.Colors.text2)
         }
@@ -225,7 +225,7 @@ struct OverviewPage: View {
     private func formatTimestamp(_ date: Date) -> String {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
-        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.locale = LocalizationManager.shared.currentLanguage == .chinese ? Locale(identifier: "zh_CN") : Locale(identifier: "en_US")
         return formatter.localizedString(for: date, relativeTo: Date())
     }
 }

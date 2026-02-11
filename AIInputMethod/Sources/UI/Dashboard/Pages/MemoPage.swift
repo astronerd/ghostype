@@ -72,7 +72,7 @@ struct MemoPage: View {
                         HStack {
                             Spacer()
                             ProgressView().scaleEffect(0.7)
-                            Text("加载中...")
+                            Text(L.Common.loading)
                                 .font(DS.Typography.caption)
                                 .foregroundColor(DS.Colors.text2)
                             Spacer()
@@ -90,14 +90,14 @@ struct MemoPage: View {
     private var memoHeader: some View {
         HStack {
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-                Text("随心记")
+                Text(L.Memo.title)
                     .font(DS.Typography.largeTitle)
                     .foregroundColor(DS.Colors.text1)
                 
                 HStack(spacing: DS.Spacing.xs) {
                     Image(systemName: "note.text")
                         .font(.system(size: 12))
-                    Text("\(memos.count) 条笔记")
+                    Text("\(memos.count) \(L.Memo.noteCount)")
                         .font(DS.Typography.caption)
                 }
                 .foregroundColor(DS.Colors.text2)
@@ -111,7 +111,7 @@ struct MemoPage: View {
                     .font(.system(size: 13))
                     .foregroundColor(DS.Colors.icon)
                 
-                TextField("搜索笔记...", text: $searchText)
+                TextField(L.Memo.search, text: $searchText)
                     .textFieldStyle(.plain)
                     .font(DS.Typography.body)
                 
@@ -145,11 +145,11 @@ struct MemoPage: View {
                 .font(.system(size: 48))
                 .foregroundColor(DS.Colors.text3)
             
-            Text(searchText.isEmpty ? "暂无笔记" : "未找到匹配的笔记")
+            Text(searchText.isEmpty ? L.Memo.empty : L.Memo.noMatch)
                 .font(DS.Typography.body)
                 .foregroundColor(DS.Colors.text2)
             
-            Text(searchText.isEmpty ? "按住快捷键 + Command 键说话\n即可创建语音便签" : "尝试使用其他关键词搜索")
+            Text(searchText.isEmpty ? L.Memo.emptyHint : L.Memo.searchHint)
                 .font(DS.Typography.caption)
                 .foregroundColor(DS.Colors.text3)
                 .multilineTextAlignment(.center)
@@ -311,20 +311,20 @@ struct MemoDetailSheet: View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                Button("取消") { onCancel() }
+                Button(L.Common.cancel) { onCancel() }
                     .buttonStyle(.plain)
                     .font(DS.Typography.body)
                     .foregroundColor(DS.Colors.text2)
                 
                 Spacer()
                 
-                Text("编辑便签")
+                Text(L.Memo.editNote)
                     .font(DS.Typography.title)
                     .foregroundColor(DS.Colors.text1)
                 
                 Spacer()
                 
-                Button("保存") { onSave(editedContent) }
+                Button(L.Common.save) { onSave(editedContent) }
                     .buttonStyle(.plain)
                     .font(DS.Typography.body)
                     .foregroundColor(isEmpty ? DS.Colors.text3 : DS.Colors.text1)
@@ -347,7 +347,7 @@ struct MemoDetailSheet: View {
             // Footer
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("创建于")
+                    Text(L.Memo.createdAt)
                         .font(DS.Typography.caption)
                         .foregroundColor(DS.Colors.text3)
                     Text(formatDate(memo.timestamp))
@@ -357,7 +357,7 @@ struct MemoDetailSheet: View {
                 
                 Spacer()
                 
-                Text("\(editedContent.count) 字")
+                Text("\(editedContent.count) \(L.Memo.charCount)")
                     .font(DS.Typography.caption)
                     .foregroundColor(DS.Colors.text2)
                     .padding(.trailing, DS.Spacing.lg)
@@ -366,7 +366,7 @@ struct MemoDetailSheet: View {
                     HStack(spacing: DS.Spacing.xs) {
                         Image(systemName: "trash")
                             .font(.system(size: 11))
-                        Text("删除")
+                        Text(L.Common.delete)
                             .font(DS.Typography.caption)
                     }
                     .foregroundColor(DS.Colors.statusError)
@@ -378,17 +378,21 @@ struct MemoDetailSheet: View {
         }
         .frame(width: 450, height: 350)
         .background(DS.Colors.bg1)
-        .alert("确认删除", isPresented: $showDeleteConfirmation) {
-            Button("取消", role: .cancel) { }
-            Button("删除", role: .destructive) { onDelete() }
+        .alert(L.Memo.confirmDelete, isPresented: $showDeleteConfirmation) {
+            Button(L.Common.cancel, role: .cancel) { }
+            Button(L.Common.delete, role: .destructive) { onDelete() }
         } message: {
-            Text("删除后无法恢复，确定要删除这条笔记吗？")
+            Text(L.Memo.confirmDeleteMsg)
         }
     }
     
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy年MM月dd日 HH:mm"
+        if LocalizationManager.shared.currentLanguage == .chinese {
+            formatter.dateFormat = "yyyy年MM月dd日 HH:mm"
+        } else {
+            formatter.dateFormat = "MMM d, yyyy HH:mm"
+        }
         return formatter.string(from: date)
     }
 }
