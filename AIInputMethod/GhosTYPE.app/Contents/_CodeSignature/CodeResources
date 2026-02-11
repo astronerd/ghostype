@@ -8,6 +8,14 @@
 		<data>
 		KRtbCmZpnglWq6wfPOzUYRN1KBw=
 		</data>
+		<key>Resources/AppIcon.png</key>
+		<data>
+		x325FQIrJEh/caMNVZ/56Gh0HVg=
+		</data>
+		<key>Resources/CRTFrame.png</key>
+		<data>
+		SUV3s8sGzvJsLkWGH7UNwBh8LSo=
+		</data>
 		<key>Resources/GhosTYPELogo.svg</key>
 		<data>
 		Zhhbb7fB4U32XWeVBcnEM3CYqzM=
@@ -44,6 +52,20 @@
 			<key>hash2</key>
 			<data>
 			kjkiWJ6+CivuhRL4cEiDl5OTJ3y51IdIX6opMy6iV8o=
+			</data>
+		</dict>
+		<key>Resources/AppIcon.png</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			9eHBIXzjf81PnQ1/9cXI0RgR29ze3IKG0a5OoGkPjcU=
+			</data>
+		</dict>
+		<key>Resources/CRTFrame.png</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			XN9YowGFsLHKkLXyAQ8KvC/nVjfAP8Y90BTWDoBjNPY=
 			</data>
 		</dict>
 		<key>Resources/GhosTYPELogo.svg</key>

@@ -97,12 +97,13 @@ struct IncubatorPage: View {
             ghostTwinStatusSection
                 .padding(.horizontal, 24)
             
-            // CRT 容器居中
+            // CRT 容器居中，下移 64px
             HStack {
                 Spacer()
                 crtContainer
                 Spacer()
             }
+            .padding(.top, 64)
             
             Spacer(minLength: 0)
         }
