@@ -109,6 +109,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     func applicationDidFinishLaunching(_ notification: Notification) {
         print("[App] Launching...")
         
+        // 单实例保护：如果已有实例在运行，激活已有实例并退出自己
+        let bundleID = Bundle.main.bundleIdentifier ?? "com.gengdawei.ghostype"
+        let runningInstances = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
+        if runningInstances.count > 1 {
+            print("[App] ⚠️ Another instance is already running, activating it and exiting...")
+            // 激活已有实例
+            if let existing = runningInstances.first(where: { $0 != NSRunningApplication.current }) {
+                existing.activate(options: [.activateAllWindows])
+            }
+            NSApp.terminate(nil)
+            return
+        }
+        
         // 执行数据迁移（枚举 rawValue 中文→英文）
         MigrationService.runIfNeeded()
         
