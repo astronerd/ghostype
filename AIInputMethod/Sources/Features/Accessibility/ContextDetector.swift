@@ -31,7 +31,12 @@ class ContextDetector {
             return .noInput
         }
 
-        let axElement = element as! AXUIElement
+        // CFTypeRef → AXUIElement 安全转换（避免崩溃）
+        let axElement = element as! AXUIElement  // AXUIElementCopyAttributeValue 返回的一定是 AXUIElement
+        // 但为了安全，用 CFGetTypeID 验证
+        guard CFGetTypeID(axElement) == AXUIElementGetTypeID() else {
+            return .noInput
+        }
         let isEditable = checkIfEditable(element: axElement)
         let selectedText = getSelectedText(element: axElement)
 
