@@ -34,6 +34,15 @@ else
     exit 1
 fi
 
+# Copy Sparkle.framework
+mkdir -p "$APP_BUNDLE/Contents/Frameworks"
+if [ -d "Frameworks/Sparkle.framework" ]; then
+    cp -R "Frameworks/Sparkle.framework" "$APP_BUNDLE/Contents/Frameworks/"
+    echo "✅ Sparkle.framework copied."
+else
+    echo "⚠️ Sparkle.framework not found in Frameworks/, skipping."
+fi
+
 # App Icon - 使用现有的 AppIcon.iconset 文件夹
 if [ -d "AppIcon.iconset" ]; then
     iconutil -c icns "AppIcon.iconset" -o "$APP_BUNDLE/Contents/Resources/AppIcon.icns" 2>/dev/null
@@ -95,7 +104,7 @@ cat <<EOF > "$APP_BUNDLE/Contents/Info.plist"
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
+    <string>0.1.0</string>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>NSHighResolutionCapable</key>
@@ -119,6 +128,12 @@ cat <<EOF > "$APP_BUNDLE/Contents/Info.plist"
             </array>
         </dict>
     </array>
+    <key>SUFeedURL</key>
+    <string>https://raw.githubusercontent.com/astronerd/ghostype/main/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>8MGfJ7NMeozRnAzggep3bI3Yi4deZgOzyFJ9AtVRUOo=</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
 </dict>
 </plist>
 EOF

@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import Sparkle
 
 @main
 struct AIInputMethodApp: App {
@@ -63,6 +64,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     var dashboardController: DashboardWindowController { DashboardWindowController.shared }
     var testWindow: NSWindow?
     
+    // Sparkle 自动更新
+    var updaterController: SPUStandardUpdaterController!
+    
     // Ghost Morph: Skill 路由器和上下文检测器
     var skillRouter = SkillRouter()
     var contextDetector = ContextDetector()
@@ -125,6 +129,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         // 执行数据迁移（枚举 rawValue 中文→英文）
         MigrationService.runIfNeeded()
         
+        // 初始化 Sparkle 自动更新
+        updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+        print("[App] ✅ Sparkle updater initialized")
+        
         // 🔥 先订阅登录/登出通知，确保 Onboarding 期间登录也能正确更新状态
         setupAuthNotifications()
         
@@ -150,7 +158,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         print("[App] Voice input enabled: \(isVoiceInputEnabled) (logged in: \(AuthManager.shared.isLoggedIn))")
         
         // 检查是否需要显示 onboarding
-        let onboardingRequiredVersion = "1.1"
+        let onboardingRequiredVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.1"
         let lastOnboardingVersion = UserDefaults.standard.string(forKey: "lastOnboardingVersion") ?? "0.0"
         let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
         
@@ -712,6 +720,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         dashboardItem.image = NSImage(systemSymbolName: "square.grid.2x2", accessibilityDescription: nil)
         menu.addItem(dashboardItem)
         
+        let checkUpdateItem = NSMenuItem(title: "检查更新...", action: #selector(checkForUpdates), keyEquivalent: "u")
+        checkUpdateItem.image = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: nil)
+        menu.addItem(checkUpdateItem)
+        
         menu.addItem(NSMenuItem.separator())
         
         let accessibilityItem = NSMenuItem(
@@ -762,6 +774,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     
     @objc func showDashboard() {
         dashboardController.show()
+    }
+    
+    @objc func checkForUpdates() {
+        updaterController.checkForUpdates(nil)
     }
     
     @objc func openAccessibilitySettings() {

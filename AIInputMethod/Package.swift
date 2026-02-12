@@ -14,7 +14,13 @@ let package = Package(
         .executableTarget(
             name: "AIInputMethod",
             dependencies: [],
-            path: "Sources"
+            path: "Sources",
+            swiftSettings: [
+                .unsafeFlags(["-F", "Frameworks"])
+            ],
+            linkerSettings: [
+                .unsafeFlags(["-F", "Frameworks", "-framework", "Sparkle", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])
+            ]
         ),
         .testTarget(
             name: "AIInputMethodTests",
