@@ -18,6 +18,8 @@ struct EnglishStrings: StringsTable {
     var auth: AuthStrings { EnglishAuth() }
     var quota: QuotaStrings { EnglishQuota() }
     var incubator: IncubatorStrings { EnglishIncubator() }
+    var floatingCard: FloatingCardStrings { EnglishFloatingCard() }
+    var skill: SkillStrings { EnglishSkill() }
 }
 
 // MARK: - Onboarding
@@ -66,6 +68,7 @@ private struct EnglishNav: NavStrings {
     var account: String { "Account" }
     var overview: String { "Overview" }
     var incubator: String { "Incubator" }
+    var skills: String { "Skills" }
     var library: String { "Library" }
     var memo: String { "Memo" }
     var aiPolish: String { "AI Polish" }
@@ -323,4 +326,39 @@ private struct EnglishIncubator: IncubatorStrings {
     var idleTextsLevel4to6: [String] { ["Typing too slow.", "I saw a typo.", "Bored.", "Talk to me.", "Are you still there?"] }
     var idleTextsLevel7to9: [String] { ["Almost there.", "I know your style.", "Ready.", "We think alike.", "Getting closer."] }
     var idleTextsLevel10: [String] { ["I am you.", "Ready whenever.", "Let me talk for you.", "We are one.", "Your ghost is complete."] }
+}
+
+
+// MARK: - Floating Card
+
+private struct EnglishFloatingCard: FloatingCardStrings {
+    var copy: String { "Copy" }
+    var share: String { "Share" }
+}
+
+// MARK: - Skill
+
+private struct EnglishSkill: SkillStrings {
+    var title: String { "Skills" }
+    var subtitle: String { "Manage your AI skills" }
+    var addSkill: String { "Add Skill" }
+    var editSkill: String { "Edit Skill" }
+    var deleteSkill: String { "Delete Skill" }
+    var cannotDeleteBuiltin: String { "Built-in skills cannot be deleted" }
+    var keyConflict: String { "Key Conflict" }
+    var unboundKey: String { "Unbound" }
+    var bindKey: String { "Bind Key" }
+    var pressKey: String { "Press a modifier key..." }
+    var promptTemplate: String { "Prompt Template" }
+    var skillName: String { "Skill Name" }
+    var skillDescription: String { "Description" }
+    var skillIcon: String { "Icon" }
+    var builtin: String { "Built-in" }
+    var custom: String { "Custom" }
+    var confirmDelete: String { "Confirm Delete" }
+    var confirmDeleteMsg: String { "This cannot be undone. Delete this skill?" }
+    var createSkill: String { "Create Skill" }
+    var namePlaceholder: String { "e.g. Email Assistant" }
+    var descPlaceholder: String { "Describe what this skill does" }
+    var promptPlaceholder: String { "Enter AI prompt template..." }
 }

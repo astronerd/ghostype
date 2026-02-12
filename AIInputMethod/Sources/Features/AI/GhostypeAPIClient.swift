@@ -252,3 +252,39 @@ extension GhostypeAPIClient {
     }
 }
 
+
+// MARK: - Ghost Morph Skill API Extension
+
+extension GhostypeAPIClient {
+
+    /// Ghost Command：用户说出指令，AI 直接生成内容
+    /// 使用固定 prompt，通过 /api/v1/llm/chat 端点
+    func ghostCommand(text: String) async throws -> String {
+        let body = GhostypeRequest(
+            mode: "polish",
+            message: text,
+            profile: "custom",
+            custom_prompt: "你是一个万能助手。用户会用语音告诉你一个任务，请直接完成任务并输出结果。不要解释你在做什么，直接给出结果。"
+        )
+
+        let url = URL(string: "\(apiBaseURL)/api/v1/llm/chat")!
+        var request = try buildRequest(url: url, method: "POST", timeout: llmTimeout)
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let response: GhostypeResponse = try await performRequest(request, retryOn500: true)
+        return response.text
+    }
+
+    /// Ghost Twin Chat：以用户口吻和语言习惯回复
+    /// 使用独立的 Ghost Twin 端点（不同于 /api/v1/llm/chat）
+    func ghostTwinChat(text: String) async throws -> String {
+        let url = URL(string: "\(apiBaseURL)/api/v1/ghost-twin/chat")!
+        var request = try buildRequest(url: url, method: "POST", timeout: llmTimeout)
+
+        let body: [String: Any] = ["message": text]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let response: GhostypeResponse = try await performRequest(request, retryOn500: true)
+        return response.text
+    }
+}

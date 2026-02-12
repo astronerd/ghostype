@@ -49,6 +49,7 @@ enum L {
         static var account: String { current.nav.account }
         static var overview: String { current.nav.overview }
         static var incubator: String { current.nav.incubator }
+        static var skills: String { current.nav.skills }
         static var library: String { current.nav.library }
         static var memo: String { current.nav.memo }
         static var aiPolish: String { current.nav.aiPolish }
@@ -307,6 +308,38 @@ enum L {
         static var expired: String { current.quota.expired }
     }
     
+    // MARK: - Floating Card / 悬浮卡片
+    enum FloatingCard {
+        static var copy: String { current.floatingCard.copy }
+        static var share: String { current.floatingCard.share }
+    }
+
+    // MARK: - Skill / 技能
+    enum Skill {
+        static var title: String { current.skill.title }
+        static var subtitle: String { current.skill.subtitle }
+        static var addSkill: String { current.skill.addSkill }
+        static var editSkill: String { current.skill.editSkill }
+        static var deleteSkill: String { current.skill.deleteSkill }
+        static var cannotDeleteBuiltin: String { current.skill.cannotDeleteBuiltin }
+        static var keyConflict: String { current.skill.keyConflict }
+        static var unboundKey: String { current.skill.unboundKey }
+        static var bindKey: String { current.skill.bindKey }
+        static var pressKey: String { current.skill.pressKey }
+        static var promptTemplate: String { current.skill.promptTemplate }
+        static var skillName: String { current.skill.skillName }
+        static var skillDescription: String { current.skill.skillDescription }
+        static var skillIcon: String { current.skill.skillIcon }
+        static var builtin: String { current.skill.builtin }
+        static var custom: String { current.skill.custom }
+        static var confirmDelete: String { current.skill.confirmDelete }
+        static var confirmDeleteMsg: String { current.skill.confirmDeleteMsg }
+        static var createSkill: String { current.skill.createSkill }
+        static var namePlaceholder: String { current.skill.namePlaceholder }
+        static var descPlaceholder: String { current.skill.descPlaceholder }
+        static var promptPlaceholder: String { current.skill.promptPlaceholder }
+    }
+
     // MARK: - Private Implementation
     
     private static var current: StringsTable {
@@ -335,6 +368,8 @@ protocol StringsTable {
     var auth: AuthStrings { get }
     var quota: QuotaStrings { get }
     var incubator: IncubatorStrings { get }
+    var floatingCard: FloatingCardStrings { get }
+    var skill: SkillStrings { get }
 }
 
 protocol OnboardingStrings {
@@ -377,6 +412,7 @@ protocol NavStrings {
     var account: String { get }
     var overview: String { get }
     var incubator: String { get }
+    var skills: String { get }
     var library: String { get }
     var memo: String { get }
     var aiPolish: String { get }
@@ -610,4 +646,34 @@ protocol IncubatorStrings {
     var idleTextsLevel4to6: [String] { get }
     var idleTextsLevel7to9: [String] { get }
     var idleTextsLevel10: [String] { get }
+}
+
+protocol FloatingCardStrings {
+    var copy: String { get }
+    var share: String { get }
+}
+
+protocol SkillStrings {
+    var title: String { get }
+    var subtitle: String { get }
+    var addSkill: String { get }
+    var editSkill: String { get }
+    var deleteSkill: String { get }
+    var cannotDeleteBuiltin: String { get }
+    var keyConflict: String { get }
+    var unboundKey: String { get }
+    var bindKey: String { get }
+    var pressKey: String { get }
+    var promptTemplate: String { get }
+    var skillName: String { get }
+    var skillDescription: String { get }
+    var skillIcon: String { get }
+    var builtin: String { get }
+    var custom: String { get }
+    var confirmDelete: String { get }
+    var confirmDeleteMsg: String { get }
+    var createSkill: String { get }
+    var namePlaceholder: String { get }
+    var descPlaceholder: String { get }
+    var promptPlaceholder: String { get }
 }

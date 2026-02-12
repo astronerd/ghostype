@@ -18,6 +18,8 @@ struct ChineseStrings: StringsTable {
     var auth: AuthStrings { ChineseAuth() }
     var quota: QuotaStrings { ChineseQuota() }
     var incubator: IncubatorStrings { ChineseIncubator() }
+    var floatingCard: FloatingCardStrings { ChineseFloatingCard() }
+    var skill: SkillStrings { ChineseSkill() }
 }
 
 // MARK: - Onboarding
@@ -66,6 +68,7 @@ private struct ChineseNav: NavStrings {
     var account: String { "账号" }
     var overview: String { "概览" }
     var incubator: String { "孵化室" }
+    var skills: String { "技能" }
     var library: String { "记录库" }
     var memo: String { "随心记" }
     var aiPolish: String { "AI 润色" }
@@ -323,4 +326,39 @@ private struct ChineseIncubator: IncubatorStrings {
     var idleTextsLevel4to6: [String] { ["打字太慢了。", "我看到一个错别字。", "无聊。", "跟我说话。", "你还在吗？"] }
     var idleTextsLevel7to9: [String] { ["快了。", "我了解你的风格。", "准备好了。", "我们想法一致。", "越来越近了。"] }
     var idleTextsLevel10: [String] { ["我就是你。", "随时准备好。", "让我替你说话。", "我们是一体的。", "你的分身已完成。"] }
+}
+
+
+// MARK: - Floating Card
+
+private struct ChineseFloatingCard: FloatingCardStrings {
+    var copy: String { "复制" }
+    var share: String { "分享" }
+}
+
+// MARK: - Skill
+
+private struct ChineseSkill: SkillStrings {
+    var title: String { "技能" }
+    var subtitle: String { "管理你的 AI 技能" }
+    var addSkill: String { "添加技能" }
+    var editSkill: String { "编辑技能" }
+    var deleteSkill: String { "删除技能" }
+    var cannotDeleteBuiltin: String { "内置技能不可删除" }
+    var keyConflict: String { "按键冲突" }
+    var unboundKey: String { "未绑定" }
+    var bindKey: String { "绑定按键" }
+    var pressKey: String { "按下修饰键..." }
+    var promptTemplate: String { "提示词模板" }
+    var skillName: String { "技能名称" }
+    var skillDescription: String { "技能描述" }
+    var skillIcon: String { "图标" }
+    var builtin: String { "内置" }
+    var custom: String { "自定义" }
+    var confirmDelete: String { "确认删除" }
+    var confirmDeleteMsg: String { "删除后无法恢复，确定要删除这个技能吗？" }
+    var createSkill: String { "创建技能" }
+    var namePlaceholder: String { "例如：邮件助手" }
+    var descPlaceholder: String { "描述这个技能的功能" }
+    var promptPlaceholder: String { "输入 AI 提示词模板..." }
 }

@@ -63,13 +63,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     var dashboardController: DashboardWindowController { DashboardWindowController.shared }
     var testWindow: NSWindow?
     
+    // Ghost Morph: Skill 路由器和上下文检测器
+    var skillRouter = SkillRouter()
+    var contextDetector = ContextDetector()
+    
     @Published var currentMode: InputMode = .polish
+    @Published var currentSkill: SkillModel? = nil
     @Published var isVoiceInputEnabled: Bool = false
     private var currentRawText: String = ""
     private var cancellables = Set<AnyCancellable>()
     
     // 等待最终结果的状态
-    private var pendingMode: InputMode?
+    private var pendingSkill: SkillModel?
     private var waitingForFinalResult = false
     
     // MARK: - URL Scheme Handling
@@ -132,13 +137,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         print("[App] Voice input enabled: \(isVoiceInputEnabled) (logged in: \(AuthManager.shared.isLoggedIn))")
         
         // 检查是否需要显示 onboarding
-        // onboardingRequiredVersion: 需要强制显示 onboarding 的最低版本
-        // 只有当用户的 lastOnboardingVersion 低于这个版本时才显示
-        let onboardingRequiredVersion = "1.1"  // 需要重新 onboarding 的版本，后续更新如不需要可保持不变
+        let onboardingRequiredVersion = "1.1"
         let lastOnboardingVersion = UserDefaults.standard.string(forKey: "lastOnboardingVersion") ?? "0.0"
         let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
         
-        // 比较版本号
         let needsOnboarding = !hasCompletedOnboarding || lastOnboardingVersion.compare(onboardingRequiredVersion, options: .numeric) == .orderedAscending
         
         if !needsOnboarding {
@@ -152,13 +154,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     
     func showPermissionWindow() {
         onboardingController.show(permissionManager: permissionManager) { [weak self] in
-            // 标记 onboarding 已完成，并记录版本号
             let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
             UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
             UserDefaults.standard.set(currentVersion, forKey: "lastOnboardingVersion")
             self?.startApp()
             
-            // Onboarding 完成后自动打开 Dashboard
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 DashboardWindowController.shared.show()
             }
@@ -167,8 +167,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     
     // MARK: - Auth Notifications
     
-    /// 订阅登录/登出通知
-    /// 必须在 Onboarding 之前调用，确保 Onboarding 期间登录也能正确更新状态
     func setupAuthNotifications() {
         NotificationCenter.default.publisher(for: .userDidLogin)
             .receive(on: DispatchQueue.main)
@@ -176,9 +174,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 guard let self = self else { return }
                 self.isVoiceInputEnabled = true
                 print("[App] ✅ User logged in, voice input enabled")
-                // 重新获取 ASR 凭证
                 Task { try? await self.speechService.fetchCredentials() }
-                // 刷新额度
                 Task { await QuotaManager.shared.refresh() }
             }
             .store(in: &cancellables)
@@ -198,6 +194,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     func startApp() {
         print("[App] ========== STARTING APP ==========")
         
+        // 🔥 Ghost Morph: 初始化 Skill 系统
+        SkillMigrationService.migrateIfNeeded()
+        SkillManager.shared.ensureBuiltinSkills()
+        SkillManager.shared.loadAllSkills()
+        FileLogger.log("[App] Skill system initialized, \(SkillManager.shared.skills.count) skills loaded")
+        
         setupMenuBar()
         setupOverlayWindow()
         hideOverlay()
@@ -215,11 +217,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             self.currentRawText = text
             
             // 如果正在等待最终结果，立即处理
-            if self.waitingForFinalResult, let mode = self.pendingMode {
+            if self.waitingForFinalResult, let skill = self.pendingSkill {
                 FileLogger.log("[Speech] Processing immediately after final result")
                 self.waitingForFinalResult = false
-                self.pendingMode = nil
-                self.processWithMode(mode)
+                self.pendingSkill = nil
+                self.processWithSkill(skill, speechText: text)
+            } else if self.waitingForFinalResult {
+                // pendingSkill == nil 表示默认润色
+                FileLogger.log("[Speech] Processing immediately after final result (default polish)")
+                self.waitingForFinalResult = false
+                self.pendingSkill = nil
+                self.processWithSkill(nil, speechText: text)
             }
         }
         
@@ -253,56 +261,57 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             }
             
             print("[Hotkey] ========== DOWN ==========")
-            print("[Hotkey] Starting recording, mode: \(self.hotkeyManager.currentMode.displayName)")
-            self.currentMode = self.hotkeyManager.currentMode
+            let skill = self.hotkeyManager.currentSkill
+            let skillName = skill?.name ?? "润色"
+            print("[Hotkey] Starting recording, skill: \(skillName)")
+            self.currentSkill = skill
             self.currentRawText = ""
             self.waitingForFinalResult = false
-            self.pendingMode = nil
+            self.pendingSkill = nil
             self.showOverlayNearCursor()
             self.speechService.startRecording()
             
-            // 设置录音状态
-            OverlayStateManager.shared.setRecording(mode: self.currentMode)
+            // 设置录音状态（使用 Skill 信息）
+            OverlayStateManager.shared.setRecording(skill: skill)
         }
         
-        hotkeyManager.onModeChanged = { [weak self] mode in
+        hotkeyManager.onSkillChanged = { [weak self] skill in
             guard let self = self else { return }
-            print("[Hotkey] Mode changed to: \(mode.displayName)")
-            self.currentMode = mode
+            let skillName = skill?.name ?? "润色"
+            print("[Hotkey] Skill changed to: \(skillName)")
+            self.currentSkill = skill
             
-            // 更新录音状态的模式
-            OverlayStateManager.shared.setRecording(mode: mode)
+            // 更新录音状态
+            OverlayStateManager.shared.setRecording(skill: skill)
         }
         
-        hotkeyManager.onHotkeyUp = { [weak self] mode in
+        hotkeyManager.onHotkeyUp = { [weak self] skill in
             guard let self = self else { return }
             print("[Hotkey] ========== UP ==========")
-            print("[Hotkey] Stopping recording, final mode: \(mode.displayName)")
+            let skillName = skill?.name ?? "润色"
+            print("[Hotkey] Stopping recording, final skill: \(skillName)")
             self.speechService.stopRecording()
             
             // 设置处理状态
-            OverlayStateManager.shared.setProcessing(mode: mode)
+            OverlayStateManager.shared.setProcessing(skill: skill)
             
             // 🔥 等待二遍识别完成后再处理
-            // 如果已经有最终结果（短音频可能已经返回），直接处理
-            // 否则设置等待状态，等 onFinalResult 回调
             if !self.currentRawText.isEmpty {
                 FileLogger.log("[Hotkey] Final result already available, processing now")
-                self.processWithMode(mode)
+                self.processWithSkill(skill, speechText: self.currentRawText)
             } else {
                 FileLogger.log("[Hotkey] Waiting for final result (二遍识别)...")
                 self.waitingForFinalResult = true
-                self.pendingMode = mode
+                self.pendingSkill = skill
                 
                 // 超时保护：最多等 3 秒
                 DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
                     guard let self = self, self.waitingForFinalResult else { return }
                     FileLogger.log("[Hotkey] ⚠️ Timeout waiting for final result")
                     self.waitingForFinalResult = false
-                    if let mode = self.pendingMode {
-                        self.pendingMode = nil
-                        self.processWithMode(mode)
-                    }
+                    let pendingSkill = self.pendingSkill
+                    self.pendingSkill = nil
+                    self.processWithSkill(pendingSkill, speechText: self.currentRawText)
                 }
             }
         }
@@ -312,7 +321,97 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         print("[App] Hotkey manager started")
     }
     
-    // MARK: - AI Processing
+    // MARK: - AI Processing (Skill-based)
+    
+    /// 通过 Skill 系统处理语音文本
+    /// nil skill = 默认润色行为
+    func processWithSkill(_ skill: SkillModel?, speechText: String) {
+        let text = speechText.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        guard !text.isEmpty else {
+            FileLogger.log("[Process] Empty text, skipping")
+            hideOverlay()
+            return
+        }
+        
+        // nil skill = 默认润色，走原有 processWithMode(.polish) 逻辑
+        guard let skill = skill else {
+            FileLogger.log("[Process] No skill (default polish)")
+            processWithMode(.polish)
+            return
+        }
+        
+        let skillName = skill.name
+        FileLogger.log("[Process] Processing with skill: \(skillName), type: \(skill.skillType.rawValue)")
+        FileLogger.log("[Process] Raw text: \(text)")
+        
+        // Memo 特殊处理：直接保存，不走 SkillRouter
+        if skill.skillType == .memo {
+            processMemo(text)
+            return
+        }
+        
+        // 通过 SkillRouter 执行
+        Task { @MainActor in
+            await self.skillRouter.execute(
+                skill: skill,
+                speechText: text,
+                onDirectOutput: { [weak self] result in
+                    guard let self = self else { return }
+                    self.insertTextAtCursor(result)
+                    self.saveUsageRecord(content: result, category: self.categoryForSkill(skill))
+                    Task { await QuotaManager.shared.reportAndRefresh(characters: result.count) }
+                    NotificationCenter.default.post(name: .ghostTwinStatusShouldRefresh, object: nil)
+                    OverlayStateManager.shared.setCommitting(type: .textInput)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        self.hideOverlay()
+                    }
+                },
+                onRewrite: { [weak self] result in
+                    guard let self = self else { return }
+                    // Rewrite: 替换选中文字（目前用 insertTextAtCursor 实现）
+                    self.insertTextAtCursor(result)
+                    self.saveUsageRecord(content: result, category: self.categoryForSkill(skill))
+                    Task { await QuotaManager.shared.reportAndRefresh(characters: result.count) }
+                    NotificationCenter.default.post(name: .ghostTwinStatusShouldRefresh, object: nil)
+                    OverlayStateManager.shared.setCommitting(type: .textInput)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        self.hideOverlay()
+                    }
+                },
+                onFloatingCard: { [weak self] result, speechText, skill in
+                    guard let self = self else { return }
+                    self.hideOverlay()
+                    FloatingResultCardController.shared.show(
+                        skill: skill,
+                        speechText: speechText,
+                        result: result,
+                        near: nil
+                    )
+                },
+                onError: { [weak self] error, behavior in
+                    guard let self = self else { return }
+                    FileLogger.log("[Process] Skill error: \(error.localizedDescription)")
+                    // 错误已在 SkillRouter 内部处理（回退原文或显示错误卡片）
+                    OverlayStateManager.shared.setCommitting(type: .textInput)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        self.hideOverlay()
+                    }
+                }
+            )
+        }
+    }
+    
+    /// Skill 类型 → RecordCategory 映射
+    private func categoryForSkill(_ skill: SkillModel) -> RecordCategory {
+        switch skill.skillType {
+        case .polish, .ghostCommand, .ghostTwin, .custom: return .polish
+        case .translate: return .translate
+        case .memo: return .memo
+        }
+    }
+    
+    // MARK: - AI Processing (Legacy - backward compatible)
     
     func processWithMode(_ mode: InputMode) {
         let text = currentRawText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -330,13 +429,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         switch mode {
         case .polish:
             if AppSettings.shared.enableAIPolish {
-                // 阈值判断在 processPolish() 内部处理
                 processPolish(text)
             } else {
                 FileLogger.log("[Process] AI Polish OFF, inserting raw text")
                 insertTextAtCursor(text)
                 saveUsageRecord(content: text, category: .polish)
-                // 上报用量并刷新能量环
                 Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
                 OverlayStateManager.shared.setCommitting(type: .textInput)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
@@ -357,14 +454,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         
         let settings = AppSettings.shared
         
-        // Requirements 4.4: 短文本跳过 AI 处理，直接返回原文
         let polishThreshold = settings.polishThreshold
         if text.count < polishThreshold {
             print("[Polish] Text too short (\(text.count) < \(polishThreshold)), skipping AI")
             FileLogger.log("[Polish] Text too short (\(text.count) < \(polishThreshold)), returning original")
             insertTextAtCursor(text)
             saveUsageRecord(content: text, category: .polish)
-            // 上报用量并刷新能量环
             Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
             OverlayStateManager.shared.setCommitting(type: .textInput)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
@@ -373,16 +468,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             return
         }
         
-        // Requirements 4.5: 检测当前活跃应用的 BundleID
         let currentBundleId = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
         FileLogger.log("[Polish] Current app BundleID: \(currentBundleId ?? "nil")")
         
-        // 获取当前应用对应的 Profile（支持预设 + 自定义风格）
         let viewModel = AIPolishViewModel()
         let resolved = viewModel.resolveProfile(for: currentBundleId)
         FileLogger.log("[Polish] Using profile: \(resolved.profile.rawValue), customPrompt: \(resolved.customPrompt != nil)")
         
-        // Requirements 4.1, 4.2: 调用 GhostypeAPIClient.polish()
         Task { @MainActor in
             do {
                 let polishedText = try await GhostypeAPIClient.shared.polish(
@@ -396,12 +488,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 print("[Polish] Success: \(polishedText)")
                 self.insertTextAtCursor(polishedText)
                 self.saveUsageRecord(content: polishedText, category: .polish)
-                // 上报用量并刷新能量环
                 Task { await QuotaManager.shared.reportAndRefresh(characters: polishedText.count) }
-                // 🔥 通知 Ghost Twin 刷新状态（Validates: Requirements 7.6）
                 NotificationCenter.default.post(name: .ghostTwinStatusShouldRefresh, object: nil)
             } catch {
-                // Requirements 6.7: 错误时回退插入原文
                 print("[Polish] Error: \(error.localizedDescription)")
                 FileLogger.log("[Polish] API error: \(error.localizedDescription), falling back to original text")
                 self.insertTextAtCursor(text)
@@ -428,12 +517,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 print("[Translate] Success: \(translatedText)")
                 self.insertTextAtCursor(translatedText)
                 self.saveUsageRecord(content: translatedText, category: .translate)
-                // 上报用量并刷新能量环
                 Task { await QuotaManager.shared.reportAndRefresh(characters: translatedText.count) }
-                // 🔥 通知 Ghost Twin 刷新状态（Validates: Requirements 7.6）
                 NotificationCenter.default.post(name: .ghostTwinStatusShouldRefresh, object: nil)
             } catch {
-                // Requirements 6.7: 错误时回退插入原文
                 print("[Translate] Error: \(error.localizedDescription)")
                 FileLogger.log("[Translate] API error: \(error.localizedDescription), falling back to original text")
                 self.insertTextAtCursor(text)
@@ -451,7 +537,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         
         self.saveUsageRecord(content: text, category: .memo)
         FileLogger.log("[Memo] Saved to notes")
-        // 上报用量并刷新能量环
         Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
         
         OverlayStateManager.shared.setCommitting(type: .memoSaved)
@@ -497,7 +582,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             return
         }
         
-        // 获取当前前台应用的 bundleId，用于判断是否需要自动回车
         let frontAppBundleId = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
         let shouldAutoEnter = AppSettings.shared.shouldAutoEnter(for: frontAppBundleId)
         let sendMethod = AppSettings.shared.sendMethod(for: frontAppBundleId)
@@ -526,7 +610,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 }
                 print("[Insert] Paste done")
                 
-                // 自动回车功能
                 if shouldAutoEnter {
                     self?.sendKey(method: sendMethod)
                 }
@@ -536,10 +619,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         }
     }
     
-    /// 根据配置的发送方式模拟按键
-    /// - enter: key code 36
-    /// - cmd+enter: key code 36 + command
-    /// - shift+enter: key code 36 + shift
     private func sendKey(method: SendMethod) {
         print("[Insert] Sending \(method.displayName) via osascript...")
         

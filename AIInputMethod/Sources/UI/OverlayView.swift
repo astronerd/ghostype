@@ -1,6 +1,28 @@
 import SwiftUI
 import AppKit
 
+// MARK: - Skill Info (for Overlay display)
+
+/// Overlay 显示用的 Skill 信息
+/// 可以从 SkillModel 或 InputMode 创建
+struct OverlaySkillInfo: Equatable {
+    let name: String
+    let color: Color
+    
+    /// 从 SkillModel 创建（nil = 默认润色）
+    static func from(skill: SkillModel?) -> OverlaySkillInfo {
+        guard let skill = skill else {
+            return OverlaySkillInfo(name: "润色", color: ModeColors.polishGreen)
+        }
+        return OverlaySkillInfo(name: skill.name, color: skill.swiftUIColor)
+    }
+    
+    /// 从 InputMode 创建（向后兼容）
+    static func from(mode: InputMode) -> OverlaySkillInfo {
+        return OverlaySkillInfo(name: mode.displayName, color: ModeColors.glowColor(for: mode))
+    }
+}
+
 // MARK: - OverlayStateManager 单例
 
 class OverlayStateManager: ObservableObject {
@@ -8,14 +30,28 @@ class OverlayStateManager: ObservableObject {
     @Published var phase: OverlayPhase?
     private init() {}
     
+    // Skill-based API (new)
+    func setRecording(skill: SkillModel?) {
+        let info = OverlaySkillInfo.from(skill: skill)
+        DispatchQueue.main.async { self.phase = .recording(info) }
+    }
+    func setProcessing(skill: SkillModel?) {
+        let info = OverlaySkillInfo.from(skill: skill)
+        DispatchQueue.main.async { self.phase = .processing(info) }
+    }
+    
+    // InputMode-based API (backward compatible)
     func setRecording(mode: InputMode) {
-        DispatchQueue.main.async { self.phase = .recording(mode) }
+        let info = OverlaySkillInfo.from(mode: mode)
+        DispatchQueue.main.async { self.phase = .recording(info) }
     }
     func setProcessing(mode: InputMode) {
-        DispatchQueue.main.async { self.phase = .processing(mode) }
+        let info = OverlaySkillInfo.from(mode: mode)
+        DispatchQueue.main.async { self.phase = .processing(info) }
     }
     func setResult(mode: InputMode, text: String) {
-        DispatchQueue.main.async { self.phase = .result(OverlayPhase.ResultInfo(mode: mode, text: text)) }
+        let info = OverlaySkillInfo.from(mode: mode)
+        DispatchQueue.main.async { self.phase = .result(OverlayPhase.ResultInfo(skillInfo: info, text: text)) }
     }
     func setCommitting(type: OverlayPhase.CommitType) {
         DispatchQueue.main.async { self.phase = .committing(type) }
@@ -31,14 +67,14 @@ class OverlayStateManager: ObservableObject {
 // MARK: - 动画状态枚举
 
 enum OverlayPhase: Equatable {
-    case recording(InputMode)
-    case processing(InputMode)
+    case recording(OverlaySkillInfo)
+    case processing(OverlaySkillInfo)
     case result(ResultInfo)
     case committing(CommitType)
     case loginRequired
     
     struct ResultInfo: Equatable {
-        let mode: InputMode
+        let skillInfo: OverlaySkillInfo
         let text: String
     }
     enum CommitType: Equatable {
@@ -132,12 +168,13 @@ struct GlowConfig {
 // MARK: - 结果 Badge
 
 enum ResultBadge {
-    case polished, translated, saved
+    case polished, translated, saved, custom(String, Color)
     var text: String {
         switch self {
         case .polished: return "已润色"
         case .translated: return "已翻译"
         case .saved: return "已保存"
+        case .custom(let name, _): return name
         }
     }
     var color: Color {
@@ -145,6 +182,7 @@ enum ResultBadge {
         case .polished: return ModeColors.polishGreen
         case .translated: return ModeColors.translatePurple
         case .saved: return ModeColors.memoOrange
+        case .custom(_, let color): return color
         }
     }
     static func from(mode: InputMode) -> ResultBadge {
@@ -153,6 +191,9 @@ enum ResultBadge {
         case .translate: return .translated
         case .memo: return .saved
         }
+    }
+    static func from(skillInfo: OverlaySkillInfo) -> ResultBadge {
+        return .custom(skillInfo.name, skillInfo.color)
     }
 }
 
@@ -310,8 +351,8 @@ struct OverlayView: View {
     
     private var currentModeColor: Color {
         switch stateManager.phase {
-        case .recording(let mode), .processing(let mode): return ModeColors.glowColor(for: mode)
-        case .result(let info): return ModeColors.glowColor(for: info.mode)
+        case .recording(let info), .processing(let info): return info.color
+        case .result(let info): return info.skillInfo.color
         case .committing(.memoSaved): return ModeColors.memoOrange
         case .committing(.textInput), .loginRequired, .none: return ModeColors.defaultBlue
         }
@@ -319,7 +360,7 @@ struct OverlayView: View {
     
     private var currentResultBadge: ResultBadge? {
         switch stateManager.phase {
-        case .result(let info): return ResultBadge.from(mode: info.mode)
+        case .result(let info): return ResultBadge.from(skillInfo: info.skillInfo)
         case .committing(.memoSaved): return .saved
         default: return nil
         }
@@ -356,12 +397,9 @@ struct OverlayView: View {
     private var displayText: String {
         // 处理中显示对应文案
         switch stateManager.phase {
-        case .processing(let mode):
-            switch mode {
-            case .polish: return "正在润色…"
-            case .translate: return "正在翻译…"
-            case .memo: return "正在保存…"
-            }
+        case .processing(let info):
+            // 根据 Skill 名称显示处理文案
+            return "正在\(info.name)…"
         case .loginRequired:
             return L.Auth.loginRequired
         default:
@@ -375,6 +413,7 @@ struct OverlayView: View {
         return text
     }
 }
+
 
 // MARK: - 闪烁光标
 

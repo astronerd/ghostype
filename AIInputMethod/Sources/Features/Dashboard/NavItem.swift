@@ -8,6 +8,7 @@ enum NavItem: String, CaseIterable, Identifiable {
     case account
     case overview
     case incubator
+    case skills
     case memo
     case library
     case aiPolish
@@ -23,6 +24,8 @@ enum NavItem: String, CaseIterable, Identifiable {
             return "chart.bar.fill"
         case .incubator:
             return "flask.fill"
+        case .skills:
+            return "sparkles"
         case .memo:
             return "note.text"
         case .library:
@@ -43,6 +46,8 @@ enum NavItem: String, CaseIterable, Identifiable {
             return L.Nav.overview
         case .incubator:
             return L.Nav.incubator
+        case .skills:
+            return L.Nav.skills
         case .memo:
             return L.Nav.memo
         case .library:
@@ -58,7 +63,7 @@ enum NavItem: String, CaseIterable, Identifiable {
     static var groups: [[NavItem]] {
         [
             [.account, .overview, .incubator],
-            [.memo, .library],
+            [.skills, .memo, .library],
             [.aiPolish, .preferences]
         ]
     }
@@ -67,7 +72,7 @@ enum NavItem: String, CaseIterable, Identifiable {
     var requiresAuth: Bool {
         switch self {
         case .account, .preferences: return false
-        case .overview, .memo, .library, .aiPolish, .incubator: return true
+        case .overview, .memo, .library, .aiPolish, .incubator, .skills: return true
         }
     }
     

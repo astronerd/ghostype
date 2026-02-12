@@ -15,19 +15,19 @@ class HotkeyManager {
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     
-    // MARK: - Callbacks
+    // MARK: - Callbacks (Skill-based)
     
     var onHotkeyDown: (() -> Void)?
-    var onHotkeyUp: ((InputMode) -> Void)?
-    var onModeChanged: ((InputMode) -> Void)?
+    var onHotkeyUp: ((SkillModel?) -> Void)?
+    var onSkillChanged: ((SkillModel?) -> Void)?
     
     // MARK: - State
     
     private var isHotkeyPressed = false
-    private(set) var currentMode: InputMode = .polish
+    private(set) var currentSkill: SkillModel? = nil
     
-    /// 模式粘连：记录最后一次非默认模式的时间
-    private var lastNonDefaultModeTime: Date?
+    /// 模式粘连：记录最后一次非默认 Skill 的时间
+    private var lastNonDefaultSkillTime: Date?
     /// 粘连延迟时间（毫秒）
     private let stickyDelayMs: Double = 500
     
@@ -110,7 +110,7 @@ class HotkeyManager {
         pendingModifierDown = nil
         pendingModifiers = []
     }
-    
+
     // MARK: - Event Handling
     
     private func handleEvent(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
@@ -151,10 +151,11 @@ class HotkeyManager {
                     guard !self.isHotkeyPressed else { return }
                     
                     self.isHotkeyPressed = true
-                    self.currentMode = self.getModeFromModifiers(self.pendingModifiers)
-                    self.lastNonDefaultModeTime = nil
+                    self.currentSkill = self.getSkillFromModifiers(self.pendingModifiers)
+                    self.lastNonDefaultSkillTime = nil
                     self.pendingModifiers = []
-                    FileLogger.log("[Hotkey] ✅ DOWN (after \(self.modifierDebounceMs)ms debounce), mode: \(self.currentMode.displayName)")
+                    let skillName = self.currentSkill?.name ?? "润色"
+                    FileLogger.log("[Hotkey] ✅ DOWN (after \(self.modifierDebounceMs)ms debounce), skill: \(skillName)")
                     self.onHotkeyDown?()
                 }
                 pendingModifierDown = workItem
@@ -175,25 +176,27 @@ class HotkeyManager {
                 // 情况B: 已经在录音中 → 正常结束
                 if isHotkeyPressed {
                     isHotkeyPressed = false
-                    let finalMode = getStickyMode()
-                    FileLogger.log("[Hotkey] ✅ UP, final mode: \(finalMode.displayName)")
-                    DispatchQueue.main.async { self.onHotkeyUp?(finalMode) }
-                    currentMode = .polish
-                    lastNonDefaultModeTime = nil
+                    let finalSkill = getStickySkill()
+                    let skillName = finalSkill?.name ?? "润色"
+                    FileLogger.log("[Hotkey] ✅ UP, final skill: \(skillName)")
+                    DispatchQueue.main.async { self.onHotkeyUp?(finalSkill) }
+                    currentSkill = nil
+                    lastNonDefaultSkillTime = nil
                     return nil
                 }
             }
             
-            // 录音中，其他修饰键变化 → 检测模式切换
+            // 录音中，其他修饰键变化 → 检测 Skill 切换
             if isHotkeyPressed {
-                let newMode = getModeFromModifiers(modifiers)
-                if newMode != .polish {
-                    lastNonDefaultModeTime = Date()
+                let newSkill = getSkillFromModifiers(modifiers)
+                if newSkill != nil {
+                    lastNonDefaultSkillTime = Date()
                 }
-                if newMode != currentMode {
-                    currentMode = newMode
-                    FileLogger.log("[Hotkey] 🔄 Mode: \(newMode.displayName)")
-                    DispatchQueue.main.async { self.onModeChanged?(newMode) }
+                if newSkill?.id != currentSkill?.id {
+                    currentSkill = newSkill
+                    let skillName = newSkill?.name ?? "润色"
+                    FileLogger.log("[Hotkey] 🔄 Skill: \(skillName)")
+                    DispatchQueue.main.async { self.onSkillChanged?(newSkill) }
                 }
             }
             
@@ -227,40 +230,44 @@ class HotkeyManager {
         
         if type == .keyDown && keyCode == targetKeyCode && hasRequiredModifiers && !isHotkeyPressed {
             isHotkeyPressed = true
-            currentMode = getModeFromModifiers(modifiers)
-            lastNonDefaultModeTime = nil
-            FileLogger.log("[Hotkey] ✅ DOWN: key=\(keyCode), mode: \(currentMode.displayName)")
+            currentSkill = getSkillFromModifiers(modifiers)
+            lastNonDefaultSkillTime = nil
+            let skillName = currentSkill?.name ?? "润色"
+            FileLogger.log("[Hotkey] ✅ DOWN: key=\(keyCode), skill: \(skillName)")
             DispatchQueue.main.async { self.onHotkeyDown?() }
             return nil
         }
         
         if type == .keyUp && keyCode == targetKeyCode && isHotkeyPressed {
             isHotkeyPressed = false
-            let finalMode = getStickyMode()
-            FileLogger.log("[Hotkey] ✅ UP: key=\(keyCode), mode: \(finalMode.displayName)")
-            DispatchQueue.main.async { self.onHotkeyUp?(finalMode) }
-            currentMode = .polish
-            lastNonDefaultModeTime = nil
+            let finalSkill = getStickySkill()
+            let skillName = finalSkill?.name ?? "润色"
+            FileLogger.log("[Hotkey] ✅ UP: key=\(keyCode), skill: \(skillName)")
+            DispatchQueue.main.async { self.onHotkeyUp?(finalSkill) }
+            currentSkill = nil
+            lastNonDefaultSkillTime = nil
             return nil
         }
         
         if type == .flagsChanged && isHotkeyPressed {
             if !hasRequiredModifiers {
                 isHotkeyPressed = false
-                let finalMode = getStickyMode()
-                FileLogger.log("[Hotkey] ✅ Modifier released, UP, mode: \(finalMode.displayName)")
-                DispatchQueue.main.async { self.onHotkeyUp?(finalMode) }
-                currentMode = .polish
-                lastNonDefaultModeTime = nil
+                let finalSkill = getStickySkill()
+                let skillName = finalSkill?.name ?? "润色"
+                FileLogger.log("[Hotkey] ✅ Modifier released, UP, skill: \(skillName)")
+                DispatchQueue.main.async { self.onHotkeyUp?(finalSkill) }
+                currentSkill = nil
+                lastNonDefaultSkillTime = nil
             } else {
-                let newMode = getModeFromModifiers(modifiers)
-                if newMode != .polish {
-                    lastNonDefaultModeTime = Date()
+                let newSkill = getSkillFromModifiers(modifiers)
+                if newSkill != nil {
+                    lastNonDefaultSkillTime = Date()
                 }
-                if newMode != currentMode {
-                    currentMode = newMode
-                    FileLogger.log("[Hotkey] 🔄 Mode: \(newMode.displayName)")
-                    DispatchQueue.main.async { self.onModeChanged?(newMode) }
+                if newSkill?.id != currentSkill?.id {
+                    currentSkill = newSkill
+                    let skillName = newSkill?.name ?? "润色"
+                    FileLogger.log("[Hotkey] 🔄 Skill: \(skillName)")
+                    DispatchQueue.main.async { self.onSkillChanged?(newSkill) }
                 }
             }
         }
@@ -268,28 +275,33 @@ class HotkeyManager {
         return Unmanaged.passRetained(event)
     }
     
-    /// 获取粘连模式：如果在延迟时间内曾经是非默认模式，则保持该模式
-    private func getStickyMode() -> InputMode {
-        if currentMode != .polish {
-            FileLogger.log("[Hotkey] Sticky: current mode is \(currentMode.displayName)")
-            return currentMode
+    /// 获取粘连 Skill：如果在延迟时间内曾经是非默认 Skill，则保持该 Skill
+    private func getStickySkill() -> SkillModel? {
+        if currentSkill != nil {
+            let skillName = currentSkill?.name ?? "润色"
+            FileLogger.log("[Hotkey] Sticky: current skill is \(skillName)")
+            return currentSkill
         }
         
-        if let lastTime = lastNonDefaultModeTime {
+        if let lastTime = lastNonDefaultSkillTime {
             let elapsed = Date().timeIntervalSince(lastTime) * 1000
             FileLogger.log("[Hotkey] Sticky: elapsed=\(elapsed)ms, delay=\(stickyDelayMs)ms")
             if elapsed < stickyDelayMs {
-                FileLogger.log("[Hotkey] Sticky: within delay, keeping non-default mode")
+                FileLogger.log("[Hotkey] Sticky: within delay, keeping non-default skill")
             }
         }
         
-        return currentMode
+        return currentSkill
     }
     
-    private func getModeFromModifiers(_ modifiers: NSEvent.ModifierFlags) -> InputMode {
+    /// 通过修饰键查询 SkillManager 获取对应 Skill
+    /// nil = 默认润色行为
+    private func getSkillFromModifiers(_ modifiers: NSEvent.ModifierFlags) -> SkillModel? {
         var extraModifiers = modifiers
         extraModifiers.remove(targetModifiers)
-        return AppSettings.shared.modeFromModifiers(extraModifiers)
+        
+        // 通过 SkillManager 查询修饰键绑定
+        return SkillManager.shared.skillForModifiers(extraModifiers)
     }
     
     private func isModifierKeyPressed(keyCode: UInt16, modifiers: NSEvent.ModifierFlags) -> Bool {
