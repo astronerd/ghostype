@@ -9,35 +9,7 @@
 import XCTest
 import Foundation
 
-// MARK: - Lightweight Property-Based Testing Helper
-
-/// A simple property-based testing engine that generates random inputs
-/// and checks that a property holds for all of them.
-/// Inspired by QuickCheck/SwiftCheck but self-contained.
-private struct PropertyTest {
-    
-    /// Run a property test with the given number of iterations.
-    /// - Parameters:
-    ///   - name: Description of the property being tested
-    ///   - iterations: Number of random inputs to test (default 100)
-    ///   - property: A closure that returns true if the property holds
-    /// - Throws: XCTFail if any iteration fails
-    static func verify(
-        _ name: String,
-        iterations: Int = 100,
-        file: StaticString = #file,
-        line: UInt = #line,
-        property: () throws -> Bool
-    ) rethrows {
-        for i in 0..<iterations {
-            let result = try property()
-            if !result {
-                XCTFail("Property '\(name)' failed on iteration \(i + 1)", file: file, line: line)
-                return
-            }
-        }
-    }
-}
+// Uses shared PropertyTest from AuthManagerPropertyTests.swift
 
 // MARK: - Test Copies of Models (Equatable)
 

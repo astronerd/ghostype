@@ -2,7 +2,7 @@
 //  AccountPage.swift
 //  AIInputMethod
 //
-//  账号页面 - 登录/注册 + 用户信息 + 额度
+//  账号页面 - 登录/注册 + 用户信息 + 额度 + 订阅状态
 //
 
 import SwiftUI
@@ -47,7 +47,6 @@ struct AccountPage: View {
     
     private var loggedOutView: some View {
         VStack(spacing: DS.Spacing.xl) {
-            // 欢迎卡片
             VStack(spacing: DS.Spacing.lg) {
                 Image(systemName: "person.circle")
                     .font(.system(size: 48, weight: .thin))
@@ -65,7 +64,6 @@ struct AccountPage: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, DS.Spacing.xxl)
             
-            // 登录/注册按钮
             VStack(spacing: DS.Spacing.md) {
                 Button(action: { authManager.openLogin() }) {
                     Text(L.Account.login)
@@ -96,7 +94,6 @@ struct AccountPage: View {
             .frame(maxWidth: 280)
             .frame(maxWidth: .infinity)
             
-            // 设备 ID 提示
             HStack(spacing: DS.Spacing.sm) {
                 Image(systemName: "info.circle")
                     .font(.system(size: 11))
@@ -121,9 +118,13 @@ struct AccountPage: View {
                             .foregroundColor(DS.Colors.text2)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(L.Account.loggedIn)
-                                .font(DS.Typography.body)
-                                .foregroundColor(DS.Colors.text1)
+                            HStack(spacing: DS.Spacing.sm) {
+                                Text(L.Account.loggedIn)
+                                    .font(DS.Typography.body)
+                                    .foregroundColor(DS.Colors.text1)
+                                
+                                UserTierBadge(tier: quotaManager.userTier)
+                            }
                             
                             HStack(spacing: DS.Spacing.xs) {
                                 Image(systemName: "desktopcomputer")
@@ -152,60 +153,223 @@ struct AccountPage: View {
                 }
             }
             
+            // 订阅信息卡片
+            MinimalSettingsSection(title: L.Account.subscription, icon: "creditcard") {
+                subscriptionInfoView
+            }
+            
             // 额度信息卡片
             MinimalSettingsSection(title: L.Account.quota, icon: "chart.bar") {
-                VStack(spacing: DS.Spacing.md) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(L.Account.plan)
-                                .font(DS.Typography.caption)
-                                .foregroundColor(DS.Colors.text2)
-                            Text(quotaManager.plan.isEmpty ? "Free" : quotaManager.plan)
-                                .font(DS.Typography.body)
-                                .foregroundColor(DS.Colors.text1)
-                        }
-                        
-                        Spacer()
-                        
-                        VStack(alignment: .trailing, spacing: 2) {
-                            Text(L.Account.used)
-                                .font(DS.Typography.caption)
-                                .foregroundColor(DS.Colors.text2)
-                            Text(quotaManager.formattedUsed)
-                                .font(DS.Typography.body)
-                                .foregroundColor(DS.Colors.text1)
-                        }
+                quotaInfoView
+            }
+        }
+    }
+
+    // MARK: - Subscription Info
+    
+    private var subscriptionInfoView: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                switch quotaManager.userTier {
+                case .lifetimeVip:
+                    Text(L.Account.lifetimeVipPlan)
+                        .font(DS.Typography.body)
+                        .foregroundColor(DS.Colors.text1)
+                    Text(L.Account.permanent)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text2)
+                case .pro:
+                    Text(L.Account.proPlan)
+                        .font(DS.Typography.body)
+                        .foregroundColor(DS.Colors.text1)
+                    if let endDate = quotaManager.currentPeriodEnd {
+                        Text("\(L.Account.expiresAt) \(formatDate(endDate))")
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text2)
                     }
-                    
-                    // 进度条
-                    if !quotaManager.isUnlimited {
-                        GeometryReader { geo in
-                            ZStack(alignment: .leading) {
-                                Rectangle()
-                                    .fill(DS.Colors.border)
-                                    .frame(height: 4)
-                                    .cornerRadius(2)
-                                
-                                Rectangle()
-                                    .fill(quotaManager.usedPercentage > 0.9 ? DS.Colors.statusWarning : DS.Colors.text1)
-                                    .frame(width: geo.size.width * min(quotaManager.usedPercentage, 1.0), height: 4)
-                                    .cornerRadius(2)
-                            }
-                        }
-                        .frame(height: 4)
-                    }
-                    
-                    if !quotaManager.formattedResetTime.isEmpty {
-                        HStack {
-                            Spacer()
-                            Text(quotaManager.formattedResetTime)
-                                .font(DS.Typography.caption)
-                                .foregroundColor(DS.Colors.text3)
-                        }
+                case .free:
+                    Text(L.Account.freePlan)
+                        .font(DS.Typography.body)
+                        .foregroundColor(DS.Colors.text1)
+                }
+            }
+            
+            Spacer()
+            
+            switch quotaManager.userTier {
+            case .lifetimeVip:
+                Text(L.Account.activated)
+                    .font(DS.Typography.caption)
+                    .foregroundColor(DS.Colors.text3)
+                    .padding(.horizontal, DS.Spacing.md)
+                    .padding(.vertical, DS.Spacing.xs)
+                    .background(DS.Colors.highlight)
+                    .cornerRadius(DS.Layout.cornerRadius)
+            case .pro:
+                Button(action: { openManageSubscription() }) {
+                    Text(L.Account.manageSubscription)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text1)
+                        .padding(.horizontal, DS.Spacing.md)
+                        .padding(.vertical, DS.Spacing.xs)
+                        .background(DS.Colors.highlight)
+                        .cornerRadius(DS.Layout.cornerRadius)
+                }
+                .buttonStyle(.plain)
+            case .free:
+                Button(action: { openUpgrade() }) {
+                    Text(L.Account.upgradePro)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, DS.Spacing.md)
+                        .padding(.vertical, DS.Spacing.xs)
+                        .background(Color.purple.opacity(0.8))
+                        .cornerRadius(DS.Layout.cornerRadius)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(DS.Spacing.lg)
+    }
+    
+    // MARK: - Quota Info
+    
+    private var quotaInfoView: some View {
+        VStack(spacing: DS.Spacing.md) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L.Account.plan)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text2)
+                    Text(planDisplayName)
+                        .font(DS.Typography.body)
+                        .foregroundColor(DS.Colors.text1)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(L.Account.used)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text2)
+                    Text(quotaManager.formattedUsed)
+                        .font(DS.Typography.body)
+                        .foregroundColor(DS.Colors.text1)
+                }
+            }
+            
+            if !quotaManager.isUnlimited {
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Rectangle()
+                            .fill(DS.Colors.border)
+                            .frame(height: 4)
+                            .cornerRadius(2)
+                        
+                        Rectangle()
+                            .fill(quotaManager.usedPercentage > 0.9 ? DS.Colors.statusWarning : DS.Colors.text1)
+                            .frame(width: geo.size.width * min(quotaManager.usedPercentage, 1.0), height: 4)
+                            .cornerRadius(2)
                     }
                 }
-                .padding(DS.Spacing.lg)
+                .frame(height: 4)
             }
+            
+            if !quotaManager.formattedResetTime.isEmpty {
+                HStack {
+                    Spacer()
+                    Text(quotaManager.formattedResetTime)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text3)
+                }
+            }
+        }
+        .padding(DS.Spacing.lg)
+    }
+    
+    // MARK: - Helpers
+    
+    private var planDisplayName: String {
+        switch quotaManager.userTier {
+        case .lifetimeVip: return L.Account.lifetimeVipPlan
+        case .pro: return L.Account.proPlan
+        case .free: return L.Account.freePlan
+        }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
+    }
+    
+    private func openManageSubscription() {
+        #if DEBUG
+        let url = URL(string: "http://localhost:3000/pricing")!
+        #else
+        let url = URL(string: "https://ghostype.com/pricing")!
+        #endif
+        NSWorkspace.shared.open(url)
+    }
+    
+    private func openUpgrade() {
+        #if DEBUG
+        let url = URL(string: "http://localhost:3000/pricing")!
+        #else
+        let url = URL(string: "https://ghostype.com/pricing")!
+        #endif
+        NSWorkspace.shared.open(url)
+    }
+}
+
+// MARK: - User Tier Badge
+
+struct UserTierBadge: View {
+    let tier: QuotaManager.UserTier
+    @State private var animationPhase: CGFloat = 0
+    
+    var body: some View {
+        switch tier {
+        case .free:
+            EmptyView()
+        case .pro:
+            Text("PRO")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(.purple)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.purple.opacity(0.15))
+                .cornerRadius(10)
+        case .lifetimeVip:
+            Text(L.Account.lifetimeVipBadge)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 2)
+                .background(
+                    LinearGradient(
+                        colors: [
+                            Color(hex: "#f472b6"),
+                            Color(hex: "#a78bfa"),
+                            Color(hex: "#60a5fa"),
+                            Color(hex: "#a78bfa"),
+                            Color(hex: "#f472b6")
+                        ],
+                        startPoint: UnitPoint(x: animationPhase - 1, y: 0.5),
+                        endPoint: UnitPoint(x: animationPhase + 1, y: 0.5)
+                    )
+                )
+                .cornerRadius(10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color(hex: "#a78bfa").opacity(0.4), lineWidth: 0.5)
+                )
+                .shadow(color: Color(hex: "#a78bfa").opacity(0.5), radius: 4, x: 0, y: 0)
+                .onAppear {
+                    withAnimation(.linear(duration: 4).repeatForever(autoreverses: false)) {
+                        animationPhase = 2
+                    }
+                }
         }
     }
 }

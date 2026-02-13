@@ -2,7 +2,7 @@ import SwiftUI
 import AVFoundation
 
 struct PermissionWindowView: View {
-    @ObservedObject var permissionManager: PermissionManager
+    var permissionManager: PermissionManager
     var onAllGranted: () -> Void
     
     var body: some View {

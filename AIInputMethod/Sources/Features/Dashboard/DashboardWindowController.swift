@@ -11,11 +11,11 @@ class DashboardWindowController {
     /// Dashboard 窗口实例
     var window: NSWindow?
     
-    /// 窗口最小尺寸 (Requirement 3.6: 900x600pt)
-    static let minimumSize = NSSize(width: 900, height: 600)
+    /// 窗口最小尺寸
+    static let minimumSize = AppConstants.Window.dashboardMinSize
     
     /// 窗口默认尺寸
-    static let defaultSize = NSSize(width: 1000, height: 700)
+    static let defaultSize = AppConstants.Window.dashboardDefaultSize
     
     /// UserDefaults key for window frame persistence
     private static let windowFrameKey = "dashboardWindowFrame"

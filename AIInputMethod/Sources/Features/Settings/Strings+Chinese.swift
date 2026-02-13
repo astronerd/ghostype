@@ -19,6 +19,7 @@ struct ChineseStrings: StringsTable {
     var quota: QuotaStrings { ChineseQuota() }
     var incubator: IncubatorStrings { ChineseIncubator() }
     var floatingCard: FloatingCardStrings { ChineseFloatingCard() }
+    var banner: BannerStrings { ChineseBanner() }
     var skill: SkillStrings { ChineseSkill() }
 }
 
@@ -60,6 +61,16 @@ private struct ChineseAccount: AccountStrings {
     var quota: String { "使用额度" }
     var plan: String { "当前方案" }
     var used: String { "已使用" }
+    var freePlan: String { "免费版" }
+    var proPlan: String { "Pro" }
+    var lifetimeVipPlan: String { "挚友终身 VIP" }
+    var lifetimeVipBadge: String { "挚友 ✨" }
+    var permanent: String { "永久 ∞" }
+    var upgradePro: String { "升级 Pro" }
+    var manageSubscription: String { "管理订阅" }
+    var expiresAt: String { "到期" }
+    var activated: String { "已激活" }
+    var subscription: String { "订阅信息" }
 }
 
 // MARK: - Navigation
@@ -261,9 +272,15 @@ private struct ChineseAppPicker: AppPickerStrings {
 private struct ChineseTranslate: TranslateStrings {
     var chineseEnglish: String { "中英互译" }
     var chineseJapanese: String { "中日互译" }
+    var chineseKorean: String { "中韩互译" }
+    var chineseFrench: String { "中法互译" }
+    var chineseGerman: String { "中德互译" }
+    var chineseSpanish: String { "中西互译" }
+    var chineseRussian: String { "中俄互译" }
+    var englishJapanese: String { "英日互译" }
+    var englishKorean: String { "英韩互译" }
     var auto: String { "自动检测" }
 }
-
 // MARK: - Profile
 
 private struct ChineseProfile: ProfileStrings {
@@ -334,6 +351,16 @@ private struct ChineseIncubator: IncubatorStrings {
 private struct ChineseFloatingCard: FloatingCardStrings {
     var copy: String { "复制" }
     var share: String { "分享" }
+    var hotkeyConflict: String { "⚠️ 当前修饰键与 macOS 系统快捷键冲突，无法自动上屏。请在「技能」页面更换其他修饰键。" }
+}
+
+// MARK: - Banner
+
+private struct ChineseBanner: BannerStrings {
+    var permissionTitle: String { "权限需要更新" }
+    var permissionMissing: String { "缺少权限" }
+    var grantAccessibility: String { "授权辅助功能" }
+    var grantMicrophone: String { "授权麦克风" }
 }
 
 // MARK: - Skill
@@ -361,4 +388,15 @@ private struct ChineseSkill: SkillStrings {
     var namePlaceholder: String { "例如：邮件助手" }
     var descPlaceholder: String { "描述这个技能的功能" }
     var promptPlaceholder: String { "输入 AI 提示词模板..." }
+    var skillColor: String { "技能颜色" }
+    var translateLanguage: String { "翻译语言" }
+    var searchEmoji: String { "搜索 Emoji..." }
+    var sourceLang: String { "源语言" }
+    var targetLang: String { "目标语言" }
+    var autoDetect: String { "自动检测" }
+    var hexPlaceholder: String { "#RRGGBB" }
+    var generatingPrompt: String { "正在生成指令…" }
+    var skillInstruction: String { "指令" }
+    var instructionPlaceholder: String { "描述这个 Skill 要做什么，AI 会自动生成完整的执行指令" }
+    var hotkeyConflictNote: String { "⚠️ 以下按键与 macOS 系统快捷键冲突，绑定后可能无法自动上屏：F（前进一词）、B（后退一词）、D（向前删除）、W（删除前一词）、A（行首）、E（行尾）、H（退格）、K（删除至行尾）、N（下一行）、P（上一行）" }
 }

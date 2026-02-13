@@ -39,7 +39,24 @@ class QuotaManager {
     /// 是否为终身 VIP
     private(set) var isLifetimeVip: Bool
 
+    /// 订阅到期时间（Lifetime VIP 为 nil）
+    private(set) var currentPeriodEnd: Date?
+
     // MARK: - Computed Properties
+
+    /// 用户等级
+    enum UserTier {
+        case free
+        case pro
+        case lifetimeVip
+    }
+
+    /// 当前用户等级
+    var userTier: UserTier {
+        if isLifetimeVip { return .lifetimeVip }
+        if plan == "pro" { return .pro }
+        return .free
+    }
 
     /// 额度是否无限制（limit == -1）
     /// Validates: Requirements 7.3
@@ -104,6 +121,7 @@ class QuotaManager {
         self.resetAt = nil
         self.plan = "free"
         self.isLifetimeVip = false
+        self.currentPeriodEnd = nil
     }
 
     /// 用于测试的内部初始化方法
@@ -125,6 +143,7 @@ class QuotaManager {
         self.resetAt = resetAt
         self.plan = plan
         self.isLifetimeVip = isLifetimeVip
+        self.currentPeriodEnd = nil
     }
 
     // MARK: - Public Methods
@@ -175,6 +194,13 @@ class QuotaManager {
 
         // 解析 ISO 8601 格式的 reset_at 时间
         self.resetAt = Self.parseISO8601(response.usage.reset_at)
+
+        // 解析订阅到期时间
+        if let endStr = response.subscription.current_period_end {
+            self.currentPeriodEnd = Self.parseISO8601(endStr)
+        } else {
+            self.currentPeriodEnd = nil
+        }
     }
 
     // MARK: - Private Helpers

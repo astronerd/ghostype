@@ -20,6 +20,9 @@ struct DashboardView: View {
     @State private var showPermissionBanner = false
     @ObservedObject private var localization = LocalizationManager.shared
     
+    /// 权限轮询定时器
+    @State private var permissionPollTimer: Timer?
+    
     // MARK: - Body
     
     var body: some View {
@@ -30,7 +33,8 @@ struct DashboardView: View {
                     isAccessibilityGranted: permissionManager.isAccessibilityTrusted,
                     isMicrophoneGranted: permissionManager.isMicrophoneGranted,
                     onDismiss: { showPermissionBanner = false },
-                    onOpenSettings: openPermissionSettings
+                    onRequestAccessibility: requestAccessibility,
+                    onRequestMicrophone: requestMicrophone
                 )
                 .transition(.move(edge: .top).combined(with: .opacity))
             }
@@ -58,26 +62,50 @@ struct DashboardView: View {
         .onAppear {
             checkPermissions()
         }
+        .onDisappear {
+            permissionManager.stopPolling()
+        }
     }
     
     // MARK: - Permission Check
     
     private func checkPermissions() {
-        permissionManager.checkAccessibilityStatus()
-        permissionManager.checkMicrophoneStatus()
+        permissionManager.refreshAll()
         
         if !permissionManager.isAccessibilityTrusted || !permissionManager.isMicrophoneGranted {
             withAnimation(.easeInOut(duration: 0.3)) {
                 showPermissionBanner = true
             }
+            // 开始轮询，权限全部授予后自动隐藏 banner 并重启 hotkey
+            permissionManager.startPolling {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    showPermissionBanner = false
+                }
+                // 权限授予后通知 AppDelegate 重启 hotkey event tap
+                NotificationCenter.default.post(name: .permissionsDidChange, object: nil)
+            }
         }
     }
     
-    private func openPermissionSettings() {
-        if !permissionManager.isAccessibilityTrusted {
-            NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
-        } else if !permissionManager.isMicrophoneGranted {
-            NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone")!)
+    private func requestAccessibility() {
+        permissionManager.promptForAccessibility()
+        // 开始轮询等待用户在系统设置中授权
+        permissionManager.startPolling {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                showPermissionBanner = false
+            }
+            NotificationCenter.default.post(name: .permissionsDidChange, object: nil)
+        }
+    }
+    
+    private func requestMicrophone() {
+        permissionManager.requestMicrophoneAccess()
+        // 开始轮询等待用户授权
+        permissionManager.startPolling {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                showPermissionBanner = false
+            }
+            NotificationCenter.default.post(name: .permissionsDidChange, object: nil)
         }
     }
     
@@ -117,7 +145,8 @@ struct PermissionReminderBanner: View {
     let isAccessibilityGranted: Bool
     let isMicrophoneGranted: Bool
     let onDismiss: () -> Void
-    let onOpenSettings: () -> Void
+    let onRequestAccessibility: () -> Void
+    let onRequestMicrophone: () -> Void
     
     var body: some View {
         HStack(spacing: DS.Spacing.md) {
@@ -126,7 +155,7 @@ struct PermissionReminderBanner: View {
                 .foregroundColor(DS.Colors.statusWarning)
             
             VStack(alignment: .leading, spacing: 2) {
-                Text("权限需要更新")
+                Text(L.Banner.permissionTitle)
                     .font(DS.Typography.body)
                     .foregroundColor(DS.Colors.text1)
                 
@@ -137,16 +166,32 @@ struct PermissionReminderBanner: View {
             
             Spacer()
             
-            Button(action: onOpenSettings) {
-                Text("打开设置")
-                    .font(DS.Typography.caption)
-                    .foregroundColor(DS.Colors.text1)
-                    .padding(.horizontal, DS.Spacing.md)
-                    .padding(.vertical, DS.Spacing.sm)
-                    .background(DS.Colors.highlight)
-                    .cornerRadius(DS.Layout.cornerRadius)
+            // 按缺失权限分别显示按钮
+            if !isAccessibilityGranted {
+                Button(action: onRequestAccessibility) {
+                    Text(L.Banner.grantAccessibility)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text1)
+                        .padding(.horizontal, DS.Spacing.md)
+                        .padding(.vertical, DS.Spacing.sm)
+                        .background(DS.Colors.highlight)
+                        .cornerRadius(DS.Layout.cornerRadius)
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
+            
+            if !isMicrophoneGranted {
+                Button(action: onRequestMicrophone) {
+                    Text(L.Banner.grantMicrophone)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text1)
+                        .padding(.horizontal, DS.Spacing.md)
+                        .padding(.vertical, DS.Spacing.sm)
+                        .background(DS.Colors.highlight)
+                        .cornerRadius(DS.Layout.cornerRadius)
+                }
+                .buttonStyle(.plain)
+            }
             
             Button(action: onDismiss) {
                 Image(systemName: "xmark")
@@ -168,9 +213,9 @@ struct PermissionReminderBanner: View {
     
     private var permissionMessage: String {
         var missing: [String] = []
-        if !isAccessibilityGranted { missing.append("辅助功能") }
-        if !isMicrophoneGranted { missing.append("麦克风") }
-        return "缺少 \(missing.joined(separator: "、")) 权限"
+        if !isAccessibilityGranted { missing.append(L.Prefs.accessibility) }
+        if !isMicrophoneGranted { missing.append(L.Prefs.microphone) }
+        return "\(L.Banner.permissionMissing): \(missing.joined(separator: "、"))"
     }
 }
 

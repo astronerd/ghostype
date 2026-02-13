@@ -28,8 +28,6 @@ struct PreferencesPage: View {
                 languageSettingsSection
                 permissionsSection
                 hotkeySettingsSection
-                modeModifiersSection
-                translateLanguageSection
                 contactsHotwordsSection
                 autoEnterSection
                 aiEngineSection
@@ -140,8 +138,10 @@ struct PreferencesPage: View {
                     icon: "hand.raised",
                     isGranted: viewModel.permissionManager.isAccessibilityTrusted,
                     onRequest: {
-                        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-                        _ = AXIsProcessTrustedWithOptions(options)
+                        viewModel.permissionManager.promptForAccessibility()
+                        viewModel.permissionManager.startPolling {
+                            NotificationCenter.default.post(name: .permissionsDidChange, object: nil)
+                        }
                     }
                 )
                 
@@ -155,6 +155,9 @@ struct PreferencesPage: View {
                     isGranted: viewModel.permissionManager.isMicrophoneGranted,
                     onRequest: {
                         viewModel.permissionManager.requestMicrophoneAccess()
+                        viewModel.permissionManager.startPolling {
+                            NotificationCenter.default.post(name: .permissionsDidChange, object: nil)
+                        }
                     }
                 )
                 
@@ -164,8 +167,7 @@ struct PreferencesPage: View {
                 HStack {
                     Spacer()
                     Button(action: {
-                        viewModel.permissionManager.checkAccessibilityStatus()
-                        viewModel.permissionManager.checkMicrophoneStatus()
+                        viewModel.permissionManager.refreshAll()
                     }) {
                         Label(L.Prefs.refreshStatus, systemImage: "arrow.clockwise")
                             .font(DS.Typography.caption)
@@ -263,99 +265,6 @@ struct PreferencesPage: View {
                 .padding(.horizontal, DS.Spacing.lg)
                 .padding(.bottom, DS.Spacing.md)
             }
-        }
-    }
-
-    // MARK: - Mode Modifiers Section
-    
-    private var modeModifiersSection: some View {
-        MinimalSettingsSection(title: L.Prefs.modeModifiers, icon: "keyboard.badge.ellipsis") {
-            VStack(spacing: 0) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(L.Prefs.translateMode)
-                            .font(DS.Typography.body)
-                            .foregroundColor(DS.Colors.text1)
-                        Text(L.Prefs.translateModeDesc)
-                            .font(DS.Typography.caption)
-                            .foregroundColor(DS.Colors.text2)
-                    }
-                    Spacer()
-                    ModifierKeyPicker(
-                        title: "",
-                        selectedModifier: Binding(
-                            get: { viewModel.translateModifier },
-                            set: { viewModel.translateModifier = $0 }
-                        ),
-                        excludedModifier: viewModel.memoModifier
-                    )
-                    .frame(width: 100)
-                }
-                .padding(DS.Spacing.lg)
-                
-                MinimalDivider()
-                    .padding(.horizontal, DS.Spacing.lg)
-                
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(L.Prefs.memoMode)
-                            .font(DS.Typography.body)
-                            .foregroundColor(DS.Colors.text1)
-                        Text(L.Prefs.memoModeDesc)
-                            .font(DS.Typography.caption)
-                            .foregroundColor(DS.Colors.text2)
-                    }
-                    Spacer()
-                    ModifierKeyPicker(
-                        title: "",
-                        selectedModifier: Binding(
-                            get: { viewModel.memoModifier },
-                            set: { viewModel.memoModifier = $0 }
-                        ),
-                        excludedModifier: viewModel.translateModifier
-                    )
-                    .frame(width: 100)
-                }
-                .padding(DS.Spacing.lg)
-            }
-        }
-    }
-
-    // MARK: - Translate Language Section
-    
-    private var translateLanguageSection: some View {
-        MinimalSettingsSection(title: L.Prefs.translateSettings, icon: "globe") {
-            HStack(spacing: DS.Spacing.md) {
-                Image(systemName: "globe")
-                    .font(.system(size: 14))
-                    .foregroundColor(DS.Colors.icon)
-                    .frame(width: 28, height: 28)
-                    .background(DS.Colors.highlight)
-                    .cornerRadius(DS.Layout.cornerRadius)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(L.Prefs.translateLanguage)
-                        .font(DS.Typography.body)
-                        .foregroundColor(DS.Colors.text1)
-                    Text(L.Prefs.translateLanguageDesc)
-                        .font(DS.Typography.caption)
-                        .foregroundColor(DS.Colors.text2)
-                }
-                
-                Spacer()
-                
-                Picker("", selection: Binding(
-                    get: { viewModel.translateLanguage },
-                    set: { viewModel.translateLanguage = $0 }
-                )) {
-                    ForEach(TranslateLanguage.allCases, id: \.self) { language in
-                        Text(language.displayName).tag(language)
-                    }
-                }
-                .pickerStyle(.menu)
-                .frame(width: 120)
-            }
-            .padding(DS.Spacing.lg)
         }
     }
 

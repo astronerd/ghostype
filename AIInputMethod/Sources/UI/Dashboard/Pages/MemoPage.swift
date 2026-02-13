@@ -220,7 +220,7 @@ struct MemoCard: View {
             
             // 底部：时间 + 操作按钮
             HStack {
-                Text(formatDate(memo.timestamp))
+                Text(formatDate(memo.value(forKey: "timestamp") as? Date))
                     .font(DS.Typography.caption)
                     .foregroundColor(DS.Colors.text2)
                 
@@ -273,7 +273,8 @@ struct MemoCard: View {
         .onHover { hovering in isHovered = hovering }
     }
     
-    private func formatDate(_ date: Date) -> String {
+    private func formatDate(_ date: Date?) -> String {
+        guard let date = date else { return "--" }
         let formatter = DateFormatter()
         formatter.dateFormat = "MM/dd HH:mm"
         return formatter.string(from: date)

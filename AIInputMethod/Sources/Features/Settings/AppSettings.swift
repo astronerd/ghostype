@@ -231,7 +231,7 @@ class AppSettings: ObservableObject {
         
         // 加载润色阈值（默认 20 字符）
         let savedThreshold = defaults.integer(forKey: Keys.polishThreshold)
-        polishThreshold = savedThreshold > 0 ? savedThreshold : 20
+        polishThreshold = savedThreshold > 0 ? savedThreshold : AppConstants.AI.defaultPolishThreshold
         
         // 加载 AI 润色配置文件设置
         defaultProfile = defaults.string(forKey: Keys.defaultProfile) ?? PolishProfile.standard.rawValue

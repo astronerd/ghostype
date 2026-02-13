@@ -158,3 +158,19 @@ struct CalibrationAnswerResponse: Codable {
     let ghost_response: String              // Ghost 的俏皮反馈语
     let personality_tags_updated: [String]  // 更新后的人格特征标签
 }
+
+// MARK: - Skill Execute Request
+
+/// Skill 执行请求体
+/// 用于 POST /api/v1/skill/execute
+struct SkillExecuteRequest: Codable {
+    let system_prompt: String
+    let message: String
+    let context: ContextInfo
+
+    struct ContextInfo: Codable {
+        let type: String            // "direct_output" | "rewrite" | "explain" | "no_input"
+        let selected_text: String?
+    }
+}
+

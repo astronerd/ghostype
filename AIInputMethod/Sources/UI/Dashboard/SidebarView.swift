@@ -112,36 +112,54 @@ struct SidebarView: View {
                 Text(deviceId)
                     .font(DS.Typography.mono(10, weight: .regular))
                     .foregroundColor(DS.Colors.text2)
+                
+                Spacer()
+                
+                if authManager.isLoggedIn {
+                    UserTierBadge(tier: quotaManager.userTier)
+                }
             }
             .padding(.horizontal, DS.Spacing.lg)
             
-            // 额度进度
-            VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+            // 额度进度（无限制时不显示进度条）
+            if quotaManager.isUnlimited {
                 HStack {
                     Text(L.Quota.monthlyQuota)
                         .font(DS.Typography.caption)
                         .foregroundColor(DS.Colors.text2)
                     Spacer()
-                    Text("\(Int(quotaManager.usedPercentage * 100))%")
+                    Text(L.Quota.unlimited)
                         .font(DS.Typography.caption)
                         .foregroundColor(DS.Colors.text2)
                 }
-                
-                // 进度条
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Rectangle()
-                            .fill(DS.Colors.border)
-                            .frame(height: 3)
-                        
-                        Rectangle()
-                            .fill(quotaManager.usedPercentage > 0.9 ? DS.Colors.statusWarning : DS.Colors.text1)
-                            .frame(width: geo.size.width * min(quotaManager.usedPercentage, 1.0), height: 3)
+                .padding(.horizontal, DS.Spacing.lg)
+            } else {
+                VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                    HStack {
+                        Text(L.Quota.monthlyQuota)
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text2)
+                        Spacer()
+                        Text("\(Int(quotaManager.usedPercentage * 100))%")
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text2)
                     }
+                    
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Rectangle()
+                                .fill(DS.Colors.border)
+                                .frame(height: 3)
+                            
+                            Rectangle()
+                                .fill(quotaManager.usedPercentage > 0.9 ? DS.Colors.statusWarning : DS.Colors.text1)
+                                .frame(width: geo.size.width * min(quotaManager.usedPercentage, 1.0), height: 3)
+                        }
+                    }
+                    .frame(height: 3)
                 }
-                .frame(height: 3)
+                .padding(.horizontal, DS.Spacing.lg)
             }
-            .padding(.horizontal, DS.Spacing.lg)
         }
         .padding(.bottom, DS.Spacing.xl)
     }

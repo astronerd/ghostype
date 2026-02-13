@@ -8,18 +8,19 @@ import AppKit
 struct OverlaySkillInfo: Equatable {
     let name: String
     let color: Color
+    let emoji: String?  // skill 的 emoji 图标
     
     /// 从 SkillModel 创建（nil = 默认润色）
     static func from(skill: SkillModel?) -> OverlaySkillInfo {
         guard let skill = skill else {
-            return OverlaySkillInfo(name: "润色", color: ModeColors.polishGreen)
+            return OverlaySkillInfo(name: "润色", color: ModeColors.polishGreen, emoji: nil)
         }
-        return OverlaySkillInfo(name: skill.name, color: skill.swiftUIColor)
+        return OverlaySkillInfo(name: skill.name, color: skill.swiftUIColor, emoji: skill.icon)
     }
     
     /// 从 InputMode 创建（向后兼容）
     static func from(mode: InputMode) -> OverlaySkillInfo {
-        return OverlaySkillInfo(name: mode.displayName, color: ModeColors.glowColor(for: mode))
+        return OverlaySkillInfo(name: mode.displayName, color: ModeColors.glowColor(for: mode), emoji: nil)
     }
 }
 
@@ -296,7 +297,7 @@ struct OverlayView: View {
             }
             
             HStack(spacing: spacing) {
-                GhostIconView(isRecording: speechService.isRecording)
+                overlayIconView
                     .frame(width: iconSize, height: iconSize)
                 textArea
                 if let badge = currentResultBadge {
@@ -355,6 +356,23 @@ struct OverlayView: View {
         case .result(let info): return info.skillInfo.color
         case .committing(.memoSaved): return ModeColors.memoOrange
         case .committing(.textInput), .loginRequired, .none: return ModeColors.defaultBlue
+        }
+    }
+
+    private var currentEmoji: String? {
+        switch stateManager.phase {
+        case .recording(let info), .processing(let info): return info.emoji
+        case .result(let info): return info.skillInfo.emoji
+        default: return nil
+        }
+    }
+
+    @ViewBuilder
+    private var overlayIconView: some View {
+        if let emoji = currentEmoji {
+            EmojiIconView(emoji: emoji, isRecording: speechService.isRecording)
+        } else {
+            GhostIconView(isRecording: speechService.isRecording)
         }
     }
     
@@ -602,5 +620,34 @@ struct GhostIconView: View {
         let devPath = "/Users/gengdawei/ghostype/AIInputMethod/Sources/Resources/GhostIcon.png"
         if let image = NSImage(contentsOfFile: devPath) { return image }
         return NSImage(systemSymbolName: "waveform", accessibilityDescription: nil) ?? NSImage()
+    }
+}
+
+// MARK: - Emoji 图标（替代鬼魂图标）
+
+struct EmojiIconView: View {
+    let emoji: String
+    let isRecording: Bool
+    @State private var floatOffset: CGFloat = 0
+    
+    var body: some View {
+        Text(emoji)
+            .font(.system(size: 18))
+            .offset(y: floatOffset)
+            .onAppear { if isRecording { startAnimation() } }
+            .onChange(of: isRecording) { _, rec in
+                if rec { startAnimation() } else { stopAnimation() }
+            }
+    }
+    
+    private func startAnimation() {
+        floatOffset = -1.5
+        withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
+            floatOffset = 1.5
+        }
+    }
+    
+    private func stopAnimation() {
+        withAnimation(.easeOut(duration: 0.2)) { floatOffset = 0 }
     }
 }

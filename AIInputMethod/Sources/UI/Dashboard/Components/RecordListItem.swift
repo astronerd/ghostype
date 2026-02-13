@@ -31,12 +31,33 @@ struct RecordListItem: View {
             }
             
             Spacer(minLength: 0)
+
+            // Category badge
+            categoryBadge
         }
         .padding(DS.Spacing.md)
         .background(backgroundColor)
         .cornerRadius(DS.Layout.cornerRadius)
         .onHover { hovering in isHovered = hovering }
         .onDrag { createDragItemProvider() }
+    }
+
+    @ViewBuilder
+    private var categoryBadge: some View {
+        let cat = record.category
+        let (emoji, color): (String, Color) = {
+            switch cat {
+            case "polish": return ("✨", Color(hex: "#34C759"))
+            case "translate": return ("🌐", Color(hex: "#AF52DE"))
+            case "memo": return ("📝", Color(hex: "#FF9500"))
+            default: return ("⚡", Color(hex: "#007AFF"))
+            }
+        }()
+        Text(emoji)
+            .font(.system(size: 10))
+            .frame(width: 20, height: 20)
+            .background(color.opacity(0.15))
+            .cornerRadius(4)
     }
     
     @ViewBuilder

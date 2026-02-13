@@ -10,11 +10,11 @@ class SkillViewModel {
     var skills: [SkillModel] { SkillManager.shared.skills }
 
     var builtinSkills: [SkillModel] {
-        skills.filter { $0.isBuiltin }
+        skills.filter { $0.isBuiltin && !$0.isInternal }
     }
 
     var customSkills: [SkillModel] {
-        skills.filter { !$0.isBuiltin }
+        skills.filter { !$0.isBuiltin && !$0.isInternal }
     }
 
     // MARK: - Edit State
@@ -25,10 +25,12 @@ class SkillViewModel {
     // MARK: - Create State
 
     var isCreating = false
+    var isGenerating = false
     var newName = ""
     var newDescription = ""
-    var newIcon = "sparkles"
+    var newIcon = "✨"
     var newPrompt = ""
+    var newColorHex = "#5AC8FA"
 
     // MARK: - Key Binding State
 
@@ -53,31 +55,60 @@ class SkillViewModel {
     func startCreate() {
         newName = ""
         newDescription = ""
-        newIcon = "sparkles"
+        newIcon = "✨"
         newPrompt = ""
+        newColorHex = "#5AC8FA"
         isCreating = true
     }
 
     func confirmCreate() {
-        let skill = SkillModel(
-            id: UUID().uuidString,
-            name: newName.trimmingCharacters(in: .whitespacesAndNewlines),
-            description: newDescription.trimmingCharacters(in: .whitespacesAndNewlines),
-            icon: newIcon,
-            modifierKey: nil,
-            promptTemplate: newPrompt.trimmingCharacters(in: .whitespacesAndNewlines),
-            behaviorConfig: [:],
-            isBuiltin: false,
-            isEditable: true,
-            skillType: .custom
-        )
+        let trimmedName = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedDesc = newDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedPrompt = newPrompt.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        do {
-            try SkillManager.shared.createSkill(skill)
-            isCreating = false
-            errorMessage = nil
-        } catch {
-            errorMessage = error.localizedDescription
+        guard !trimmedName.isEmpty else { return }
+
+        isGenerating = true
+        errorMessage = nil
+
+        Task { @MainActor in
+            do {
+                // 用 AI 将用户指令生成为完整的 system prompt
+                let systemPrompt: String
+                if trimmedPrompt.isEmpty {
+                    // 没有用户指令，用 description 作为 fallback
+                    systemPrompt = trimmedDesc
+                } else {
+                    systemPrompt = try await SkillPromptGenerator.generate(
+                        skillName: trimmedName,
+                        skillDescription: trimmedDesc,
+                        userPrompt: trimmedPrompt
+                    )
+                }
+
+                let skill = SkillModel(
+                    id: UUID().uuidString,
+                    name: trimmedName,
+                    description: trimmedDesc,
+                    userPrompt: trimmedPrompt,
+                    systemPrompt: systemPrompt,
+                    allowedTools: ["provide_text"],
+                    config: [:],
+                    icon: newIcon,
+                    colorHex: newColorHex,
+                    modifierKey: nil,
+                    isBuiltin: false,
+                    isInternal: false
+                )
+
+                try SkillManager.shared.createSkill(skill)
+                isCreating = false
+                isGenerating = false
+                errorMessage = nil
+            } catch {
+                isGenerating = false
+                errorMessage = error.localizedDescription
+            }
         }
     }
 
@@ -87,22 +118,53 @@ class SkillViewModel {
 
     func startEdit(_ skill: SkillModel) {
         editingSkill = skill
+        originalUserPrompt = skill.userPrompt
         isEditing = true
     }
+
+    /// 编辑前保存的原始 userPrompt，用于判断是否需要重新生成
+    var originalUserPrompt: String = ""
 
     func saveEdit() {
         guard var skill = editingSkill else { return }
         skill.name = skill.name.trimmingCharacters(in: .whitespacesAndNewlines)
         skill.description = skill.description.trimmingCharacters(in: .whitespacesAndNewlines)
-        skill.promptTemplate = skill.promptTemplate.trimmingCharacters(in: .whitespacesAndNewlines)
+        skill.userPrompt = skill.userPrompt.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        do {
-            try SkillManager.shared.updateSkill(skill)
-            isEditing = false
-            editingSkill = nil
+        let userPromptChanged = skill.userPrompt != originalUserPrompt
+        let needsRegenerate = userPromptChanged && !skill.userPrompt.isEmpty && !skill.isBuiltin
+
+        if needsRegenerate {
+            isGenerating = true
             errorMessage = nil
-        } catch {
-            errorMessage = error.localizedDescription
+
+            Task { @MainActor in
+                do {
+                    let newSystemPrompt = try await SkillPromptGenerator.generate(
+                        skillName: skill.name,
+                        skillDescription: skill.description,
+                        userPrompt: skill.userPrompt
+                    )
+                    skill.systemPrompt = newSystemPrompt
+                    try SkillManager.shared.updateSkill(skill)
+                    isEditing = false
+                    editingSkill = nil
+                    isGenerating = false
+                    errorMessage = nil
+                } catch {
+                    isGenerating = false
+                    errorMessage = error.localizedDescription
+                }
+            }
+        } else {
+            do {
+                try SkillManager.shared.updateSkill(skill)
+                isEditing = false
+                editingSkill = nil
+                errorMessage = nil
+            } catch {
+                errorMessage = error.localizedDescription
+            }
         }
     }
 
@@ -178,5 +240,30 @@ class SkillViewModel {
     func cancelKeyBinding() {
         isBindingKey = false
         bindingSkillId = nil
+    }
+
+    // MARK: - Color
+
+    func updateColor(skillId: String, colorHex: String) {
+        do {
+            try SkillManager.shared.updateColor(skillId: skillId, colorHex: colorHex)
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    // MARK: - Translate Config
+
+    func updateTranslateConfig(skillId: String, sourceLanguage: String, targetLanguage: String) {
+        guard var skill = SkillManager.shared.skills.first(where: { $0.id == skillId }) else { return }
+        skill.config["source_language"] = sourceLanguage
+        skill.config["target_language"] = targetLanguage
+        do {
+            try SkillManager.shared.updateSkill(skill)
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 }

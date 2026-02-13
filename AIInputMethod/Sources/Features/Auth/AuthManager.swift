@@ -36,29 +36,11 @@ class AuthManager: ObservableObject {
     
     // MARK: - Configuration
     
-    /// Clerk 登录页 URL
-    /// 生产环境用 ghostype.com，开发环境用 localhost
-    private var signInURL: String {
-        let base = baseURL
-        let redirect = "/auth/callback?scheme=ghostype://auth"
-        let encoded = redirect.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? redirect
-        return "\(base)/sign-in?redirect_url=\(encoded)"
-    }
-    
-    private var signUpURL: String {
-        let base = baseURL
-        let redirect = "/auth/callback?scheme=ghostype://auth"
-        let encoded = redirect.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? redirect
-        return "\(base)/sign-up?redirect_url=\(encoded)"
-    }
-    
-    private var baseURL: String {
-        #if DEBUG
-        return "http://localhost:3000"
-        #else
-        return "https://www.ghostype.one"
-        #endif
-    }
+    /// 登录页 URL（从 AppConfig 统一读取）
+    private var signInURL: String { AppConfig.signInURL }
+
+    /// 注册页 URL（从 AppConfig 统一读取）
+    private var signUpURL: String { AppConfig.signUpURL }
     
     // MARK: - Init
     

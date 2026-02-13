@@ -4,13 +4,14 @@ import AppKit
 // MARK: - Floating Result Card View
 
 /// 悬浮结果卡片：在不可输入场景下展示 AI 输出
+/// 类似 iOS 截图效果，出现在屏幕角落，10 秒后自动消失
 struct FloatingResultCardView: View {
     let skillIcon: String
     let skillName: String
     let userSpeechText: String
     let aiResult: String
+    let debugInfo: String
     var onCopy: () -> Void
-    var onShare: () -> Void
     var onDismiss: () -> Void
 
     var body: some View {
@@ -25,8 +26,8 @@ struct FloatingResultCardView: View {
                     .foregroundColor(DS.Colors.text1)
                 Spacer()
                 Button(action: onDismiss) {
-                    Image(systemName: "xmark")
-                        .font(DS.Typography.caption)
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 16))
                         .foregroundColor(DS.Colors.text3)
                 }
                 .buttonStyle(.plain)
@@ -45,10 +46,41 @@ struct FloatingResultCardView: View {
                 .font(DS.Typography.body)
                 .foregroundColor(DS.Colors.text1)
                 .textSelection(.enabled)
-                .fixedSize(horizontal: false, vertical: true)
+                .lineLimit(6)
 
-            // 底部按钮
-            HStack(spacing: DS.Spacing.sm) {
+            // 调试信息（检测到快捷键冲突时显示友好提示）
+            if !debugInfo.isEmpty {
+                let isHotkeyConflict = debugInfo.contains("-25212")
+
+                VStack(alignment: .leading, spacing: 4) {
+                    if isHotkeyConflict {
+                        Text(L.FloatingCard.hotkeyConflict)
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.statusWarning)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } else {
+                        HStack(spacing: 4) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 11))
+                            Text("Debug")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .foregroundColor(DS.Colors.text2)
+
+                        Text(debugInfo)
+                            .font(.system(size: 11, design: .monospaced))
+                            .foregroundColor(DS.Colors.text2)
+                            .lineLimit(3)
+                    }
+                }
+                .padding(DS.Spacing.sm)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(isHotkeyConflict ? Color.yellow.opacity(0.1) : Color.orange.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+            }
+
+            // 底部按钮：复制 + 关闭
+            HStack(spacing: DS.Spacing.md) {
                 Spacer()
                 Button(action: onCopy) {
                     Label(L.FloatingCard.copy, systemImage: "doc.on.doc")
@@ -57,8 +89,8 @@ struct FloatingResultCardView: View {
                 .buttonStyle(.plain)
                 .foregroundColor(DS.Colors.text2)
 
-                Button(action: onShare) {
-                    Label(L.FloatingCard.share, systemImage: "square.and.arrow.up")
+                Button(action: onDismiss) {
+                    Label(L.Common.close, systemImage: "xmark")
                         .font(DS.Typography.caption)
                 }
                 .buttonStyle(.plain)
@@ -66,44 +98,75 @@ struct FloatingResultCardView: View {
             }
         }
         .padding(DS.Spacing.lg)
-        .frame(width: 320)
+        .frame(width: 300)
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(color: .black.opacity(0.2), radius: 12, x: 0, y: 4)
     }
 }
 
+// MARK: - Card Entry (for stacking)
+
+/// 单张卡片的数据 + 窗口引用
+private class CardEntry {
+    let id: UUID
+    let panel: NSPanel
+    var autoCloseTimer: DispatchWorkItem?
+    var escMonitor: Any?
+
+    init(id: UUID, panel: NSPanel) {
+        self.id = id
+        self.panel = panel
+    }
+
+    func cleanup() {
+        autoCloseTimer?.cancel()
+        autoCloseTimer = nil
+        if let monitor = escMonitor {
+            NSEvent.removeMonitor(monitor)
+            escMonitor = nil
+        }
+        panel.orderOut(nil)
+    }
+}
+
 // MARK: - Floating Result Card Controller
 
 /// 悬浮结果卡片窗口控制器
-/// 使用 NSPanel（nonactivatingPanel）实现，不抢焦点
+/// 支持多卡片堆叠，出现在屏幕右下角，10 秒后自动消失
 class FloatingResultCardController {
     static let shared = FloatingResultCardController()
 
-    private var panel: NSPanel?
+    private var cards: [CardEntry] = []
+    private let cardSpacing: CGFloat = 8
+    private let screenMargin: CGFloat = 16
+    private let autoCloseSeconds: TimeInterval = 10
 
-    /// 显示悬浮卡片
-    func show(skill: SkillModel, speechText: String, result: String, near: CGPoint?) {
-        dismiss()
+    /// 显示悬浮卡片（支持堆叠）
+    func show(skill: SkillModel, speechText: String, result: String, debugInfo: String = "", near: CGPoint?) {
+        let cardId = UUID()
+
+        let copyContent: String = {
+            var parts = [result]
+            if !debugInfo.isEmpty {
+                parts.append("\n---\nDebug:\n\(debugInfo)")
+            }
+            return parts.joined()
+        }()
 
         let view = FloatingResultCardView(
             skillIcon: skill.icon,
             skillName: skill.name,
             userSpeechText: speechText,
             aiResult: result,
+            debugInfo: debugInfo,
             onCopy: { [weak self] in
                 NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(result, forType: .string)
-                self?.dismiss()
-            },
-            onShare: { [weak self] in
-                let picker = NSSharingServicePicker(items: [result])
-                if let panel = self?.panel {
-                    picker.show(relativeTo: .zero, of: panel.contentView!, preferredEdge: .minY)
-                }
+                NSPasteboard.general.setString(copyContent, forType: .string)
+                self?.dismissCard(id: cardId)
             },
             onDismiss: { [weak self] in
-                self?.dismiss()
+                self?.dismissCard(id: cardId)
             }
         )
 
@@ -123,44 +186,116 @@ class FloatingResultCardController {
         panel.contentView = hostingView
         panel.isMovableByWindowBackground = true
 
-        // 定位
-        let origin = calculateOrigin(near: near, panelSize: hostingView.fittingSize)
-        panel.setFrameOrigin(origin)
+        let entry = CardEntry(id: cardId, panel: panel)
 
-        // Escape 关闭
-        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+        // Escape 关闭当前最上面的卡片
+        entry.escMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             if event.keyCode == 53 { // Escape
-                self?.dismiss()
+                self?.dismissCard(id: cardId)
                 return nil
             }
             return event
         }
 
+        cards.append(entry)
+        repositionAllCards()
         panel.orderFront(nil)
-        self.panel = panel
+
+        // 10 秒后自动消失
+        let autoClose = DispatchWorkItem { [weak self] in
+            self?.dismissCard(id: cardId)
+        }
+        entry.autoCloseTimer = autoClose
+        DispatchQueue.main.asyncAfter(deadline: .now() + autoCloseSeconds, execute: autoClose)
     }
 
-    /// 关闭卡片
-    func dismiss() {
-        panel?.orderOut(nil)
-        panel = nil
+    /// 显示纯文本卡片（不依赖 Skill，用于 insertTextAtCursor 的 noInput 回退）
+    func showText(text: String) {
+        let cardId = UUID()
+
+        let view = FloatingResultCardView(
+            skillIcon: "text.bubble",
+            skillName: "GHOSTYPE",
+            userSpeechText: "",
+            aiResult: text,
+            debugInfo: "",
+            onCopy: { [weak self] in
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(text, forType: .string)
+                self?.dismissCard(id: cardId)
+            },
+            onDismiss: { [weak self] in
+                self?.dismissCard(id: cardId)
+            }
+        )
+
+        let hostingView = NSHostingView(rootView: view)
+        hostingView.setFrameSize(hostingView.fittingSize)
+
+        let panel = NSPanel(
+            contentRect: NSRect(origin: .zero, size: hostingView.fittingSize),
+            styleMask: [.nonactivatingPanel, .fullSizeContentView],
+            backing: .buffered,
+            defer: false
+        )
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.hasShadow = true
+        panel.level = .floating
+        panel.contentView = hostingView
+        panel.isMovableByWindowBackground = true
+
+        let entry = CardEntry(id: cardId, panel: panel)
+
+        entry.escMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            if event.keyCode == 53 {
+                self?.dismissCard(id: cardId)
+                return nil
+            }
+            return event
+        }
+
+        cards.append(entry)
+        repositionAllCards()
+        panel.orderFront(nil)
+
+        let autoClose = DispatchWorkItem { [weak self] in
+            self?.dismissCard(id: cardId)
+        }
+        entry.autoCloseTimer = autoClose
+        DispatchQueue.main.asyncAfter(deadline: .now() + autoCloseSeconds, execute: autoClose)
     }
 
-    /// 计算卡片位置
-    private func calculateOrigin(near: CGPoint?, panelSize: NSSize) -> NSPoint {
-        if let point = near, let screen = NSScreen.main {
-            // 光标附近，向右下偏移
-            let x = min(point.x + 10, screen.frame.maxX - panelSize.width - 10)
-            let y = max(point.y - panelSize.height - 10, screen.frame.minY + 10)
-            return NSPoint(x: x, y: y)
-        }
+        /// 关闭指定卡片
+    func dismissCard(id: UUID) {
+        guard let index = cards.firstIndex(where: { $0.id == id }) else { return }
+        let entry = cards.remove(at: index)
+        entry.cleanup()
+        repositionAllCards()
+    }
 
-        // 无光标位置，屏幕居中
-        guard let screen = NSScreen.main else {
-            return NSPoint(x: 100, y: 100)
+    /// 关闭所有卡片
+    func dismissAll() {
+        for entry in cards {
+            entry.cleanup()
         }
-        let x = (screen.frame.width - panelSize.width) / 2 + screen.frame.origin.x
-        let y = (screen.frame.height - panelSize.height) / 2 + screen.frame.origin.y
-        return NSPoint(x: x, y: y)
+        cards.removeAll()
+    }
+
+    /// 重新排列所有卡片位置（从屏幕右下角向上堆叠）
+    private func repositionAllCards() {
+        guard let screen = NSScreen.main else { return }
+        let visibleFrame = screen.visibleFrame
+
+        var currentY = visibleFrame.minY + screenMargin
+
+        for entry in cards {
+            let panelSize = entry.panel.frame.size
+            let x = visibleFrame.maxX - panelSize.width - screenMargin
+            let y = currentY
+
+            entry.panel.setFrameOrigin(NSPoint(x: x, y: y))
+            currentY += panelSize.height + cardSpacing
+        }
     }
 }

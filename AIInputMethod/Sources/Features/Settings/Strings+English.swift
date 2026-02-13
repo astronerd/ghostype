@@ -19,6 +19,7 @@ struct EnglishStrings: StringsTable {
     var quota: QuotaStrings { EnglishQuota() }
     var incubator: IncubatorStrings { EnglishIncubator() }
     var floatingCard: FloatingCardStrings { EnglishFloatingCard() }
+    var banner: BannerStrings { EnglishBanner() }
     var skill: SkillStrings { EnglishSkill() }
 }
 
@@ -60,6 +61,16 @@ private struct EnglishAccount: AccountStrings {
     var quota: String { "Usage Quota" }
     var plan: String { "Current Plan" }
     var used: String { "Used" }
+    var freePlan: String { "Free" }
+    var proPlan: String { "Pro" }
+    var lifetimeVipPlan: String { "Lifetime VIP" }
+    var lifetimeVipBadge: String { "Best Friend ✨" }
+    var permanent: String { "Permanent ∞" }
+    var upgradePro: String { "Upgrade to Pro" }
+    var manageSubscription: String { "Manage Subscription" }
+    var expiresAt: String { "Expires" }
+    var activated: String { "Activated" }
+    var subscription: String { "Subscription" }
 }
 
 // MARK: - Navigation
@@ -261,9 +272,15 @@ private struct EnglishAppPicker: AppPickerStrings {
 private struct EnglishTranslate: TranslateStrings {
     var chineseEnglish: String { "Chinese ↔ English" }
     var chineseJapanese: String { "Chinese ↔ Japanese" }
+    var chineseKorean: String { "Chinese ↔ Korean" }
+    var chineseFrench: String { "Chinese ↔ French" }
+    var chineseGerman: String { "Chinese ↔ German" }
+    var chineseSpanish: String { "Chinese ↔ Spanish" }
+    var chineseRussian: String { "Chinese ↔ Russian" }
+    var englishJapanese: String { "English ↔ Japanese" }
+    var englishKorean: String { "English ↔ Korean" }
     var auto: String { "Auto Detect" }
 }
-
 // MARK: - Profile
 
 private struct EnglishProfile: ProfileStrings {
@@ -334,6 +351,16 @@ private struct EnglishIncubator: IncubatorStrings {
 private struct EnglishFloatingCard: FloatingCardStrings {
     var copy: String { "Copy" }
     var share: String { "Share" }
+    var hotkeyConflict: String { "⚠️ This modifier key conflicts with a macOS system shortcut and cannot auto-insert text. Please change the modifier key in Skills settings." }
+}
+
+// MARK: - Banner
+
+private struct EnglishBanner: BannerStrings {
+    var permissionTitle: String { "Permissions Required" }
+    var permissionMissing: String { "Missing permissions" }
+    var grantAccessibility: String { "Grant Accessibility" }
+    var grantMicrophone: String { "Grant Microphone" }
 }
 
 // MARK: - Skill
@@ -361,4 +388,15 @@ private struct EnglishSkill: SkillStrings {
     var namePlaceholder: String { "e.g. Email Assistant" }
     var descPlaceholder: String { "Describe what this skill does" }
     var promptPlaceholder: String { "Enter AI prompt template..." }
+    var skillColor: String { "Skill Color" }
+    var translateLanguage: String { "Translation Language" }
+    var searchEmoji: String { "Search Emoji..." }
+    var sourceLang: String { "Source" }
+    var targetLang: String { "Target" }
+    var autoDetect: String { "Auto Detect" }
+    var hexPlaceholder: String { "#RRGGBB" }
+    var generatingPrompt: String { "Generating instructions…" }
+    var skillInstruction: String { "Instruction" }
+    var instructionPlaceholder: String { "Describe what this Skill should do. AI will generate the full execution prompt." }
+    var hotkeyConflictNote: String { "⚠️ These keys conflict with macOS system shortcuts and may prevent auto-insert when bound: F (forward word), B (backward word), D (forward delete), W (delete word), A (line start), E (line end), H (backspace), K (kill line), N (next line), P (previous line)" }
 }

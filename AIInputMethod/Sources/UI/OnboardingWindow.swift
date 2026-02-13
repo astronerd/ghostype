@@ -13,7 +13,7 @@ import AppKit
 // MARK: - OnboardingWindow
 
 struct OnboardingWindow: View {
-    @ObservedObject var permissionManager: PermissionManager
+    var permissionManager: PermissionManager
     @ObservedObject var settings = AppSettings.shared
     @State private var currentStep = 0
     var onComplete: () -> Void
@@ -410,7 +410,7 @@ class HotkeyTextField: NSTextField {
 // MARK: - Step 2: 权限
 
 struct Step2PermissionsView: View {
-    @ObservedObject var permissionManager: PermissionManager
+    var permissionManager: PermissionManager
     var onComplete: () -> Void
     var onBack: () -> Void
     

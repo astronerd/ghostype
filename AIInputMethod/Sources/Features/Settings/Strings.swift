@@ -20,6 +20,16 @@ enum L {
         static var quota: String { current.account.quota }
         static var plan: String { current.account.plan }
         static var used: String { current.account.used }
+        static var freePlan: String { current.account.freePlan }
+        static var proPlan: String { current.account.proPlan }
+        static var lifetimeVipPlan: String { current.account.lifetimeVipPlan }
+        static var lifetimeVipBadge: String { current.account.lifetimeVipBadge }
+        static var permanent: String { current.account.permanent }
+        static var upgradePro: String { current.account.upgradePro }
+        static var manageSubscription: String { current.account.manageSubscription }
+        static var expiresAt: String { current.account.expiresAt }
+        static var activated: String { current.account.activated }
+        static var subscription: String { current.account.subscription }
     }
     
     // MARK: - Onboarding / 引导
@@ -269,6 +279,13 @@ enum L {
     enum Translate {
         static var chineseEnglish: String { current.translate.chineseEnglish }
         static var chineseJapanese: String { current.translate.chineseJapanese }
+        static var chineseKorean: String { current.translate.chineseKorean }
+        static var chineseFrench: String { current.translate.chineseFrench }
+        static var chineseGerman: String { current.translate.chineseGerman }
+        static var chineseSpanish: String { current.translate.chineseSpanish }
+        static var chineseRussian: String { current.translate.chineseRussian }
+        static var englishJapanese: String { current.translate.englishJapanese }
+        static var englishKorean: String { current.translate.englishKorean }
         static var auto: String { current.translate.auto }
     }
     
@@ -312,6 +329,15 @@ enum L {
     enum FloatingCard {
         static var copy: String { current.floatingCard.copy }
         static var share: String { current.floatingCard.share }
+        static var hotkeyConflict: String { current.floatingCard.hotkeyConflict }
+    }
+
+    // MARK: - Banner / 权限横幅
+    enum Banner {
+        static var permissionTitle: String { current.banner.permissionTitle }
+        static var permissionMissing: String { current.banner.permissionMissing }
+        static var grantAccessibility: String { current.banner.grantAccessibility }
+        static var grantMicrophone: String { current.banner.grantMicrophone }
     }
 
     // MARK: - Skill / 技能
@@ -338,6 +364,17 @@ enum L {
         static var namePlaceholder: String { current.skill.namePlaceholder }
         static var descPlaceholder: String { current.skill.descPlaceholder }
         static var promptPlaceholder: String { current.skill.promptPlaceholder }
+        static var skillColor: String { current.skill.skillColor }
+        static var translateLanguage: String { current.skill.translateLanguage }
+        static var searchEmoji: String { current.skill.searchEmoji }
+        static var sourceLang: String { current.skill.sourceLang }
+        static var targetLang: String { current.skill.targetLang }
+        static var autoDetect: String { current.skill.autoDetect }
+        static var hexPlaceholder: String { current.skill.hexPlaceholder }
+        static var generatingPrompt: String { current.skill.generatingPrompt }
+        static var skillInstruction: String { current.skill.skillInstruction }
+        static var instructionPlaceholder: String { current.skill.instructionPlaceholder }
+        static var hotkeyConflictNote: String { current.skill.hotkeyConflictNote }
     }
 
     // MARK: - Private Implementation
@@ -369,6 +406,7 @@ protocol StringsTable {
     var quota: QuotaStrings { get }
     var incubator: IncubatorStrings { get }
     var floatingCard: FloatingCardStrings { get }
+    var banner: BannerStrings { get }
     var skill: SkillStrings { get }
 }
 
@@ -406,6 +444,16 @@ protocol AccountStrings {
     var quota: String { get }
     var plan: String { get }
     var used: String { get }
+    var freePlan: String { get }
+    var proPlan: String { get }
+    var lifetimeVipPlan: String { get }
+    var lifetimeVipBadge: String { get }
+    var permanent: String { get }
+    var upgradePro: String { get }
+    var manageSubscription: String { get }
+    var expiresAt: String { get }
+    var activated: String { get }
+    var subscription: String { get }
 }
 
 protocol NavStrings {
@@ -596,6 +644,13 @@ protocol ProfileStrings {
 }
 
 protocol TranslateStrings {
+    var chineseKorean: String { get }
+    var chineseFrench: String { get }
+    var chineseGerman: String { get }
+    var chineseSpanish: String { get }
+    var chineseRussian: String { get }
+    var englishJapanese: String { get }
+    var englishKorean: String { get }
     var chineseEnglish: String { get }
     var chineseJapanese: String { get }
     var auto: String { get }
@@ -651,6 +706,14 @@ protocol IncubatorStrings {
 protocol FloatingCardStrings {
     var copy: String { get }
     var share: String { get }
+    var hotkeyConflict: String { get }
+}
+
+protocol BannerStrings {
+    var permissionTitle: String { get }
+    var permissionMissing: String { get }
+    var grantAccessibility: String { get }
+    var grantMicrophone: String { get }
 }
 
 protocol SkillStrings {
@@ -676,4 +739,15 @@ protocol SkillStrings {
     var namePlaceholder: String { get }
     var descPlaceholder: String { get }
     var promptPlaceholder: String { get }
+    var skillColor: String { get }
+    var translateLanguage: String { get }
+    var searchEmoji: String { get }
+    var sourceLang: String { get }
+    var targetLang: String { get }
+    var autoDetect: String { get }
+    var hexPlaceholder: String { get }
+    var generatingPrompt: String { get }
+    var skillInstruction: String { get }
+    var instructionPlaceholder: String { get }
+    var hotkeyConflictNote: String { get }
 }

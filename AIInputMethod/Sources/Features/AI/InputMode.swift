@@ -3,7 +3,8 @@ import AppKit
 
 // MARK: - Input Mode
 
-/// 输入模式枚举
+/// 输入模式枚举（已废弃，新代码请使用 SkillModel + SkillExecutor）
+/// 保留用于 OverlayView、AppSettings 等向后兼容
 /// 根据修饰键组合决定不同的处理方式
 enum InputMode: String, CaseIterable {
     /// 默认模式：AI 润色后上屏

@@ -1,6 +1,7 @@
 import Foundation
 
 /// 简单的文件日志工具
+/// Release 和 Debug 都写日志到 ~/ghostype_debug.log
 class FileLogger {
     static let shared = FileLogger()
     
@@ -11,20 +12,15 @@ class FileLogger {
         let home = FileManager.default.homeDirectoryForCurrentUser
         logFile = home.appendingPathComponent("ghostype_debug.log")
         
-        #if DEBUG
-        // 清空旧日志
+        // 每次启动清空旧日志
         try? "".write(to: logFile, atomically: true, encoding: .utf8)
-        #endif
     }
     
     static func log(_ message: String) {
-        #if DEBUG
         shared.write(message)
-        #endif
     }
     
     private func write(_ message: String) {
-        #if DEBUG
         queue.async {
             let timestamp = ISO8601DateFormatter().string(from: Date())
             let line = "[\(timestamp)] \(message)\n"
@@ -39,7 +35,6 @@ class FileLogger {
                 try? line.write(to: self.logFile, atomically: true, encoding: .utf8)
             }
         }
-        #endif
     }
 }
 

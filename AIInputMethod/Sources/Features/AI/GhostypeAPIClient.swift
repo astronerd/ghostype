@@ -10,13 +10,8 @@ class GhostypeAPIClient {
 
     // MARK: - Configuration
 
-    var apiBaseURL: String {
-        #if DEBUG
-        return "http://localhost:3000"
-        #else
-        return "https://www.ghostype.one"
-        #endif
-    }
+    /// API base URL（从 AppConfig 统一读取）
+    var apiBaseURL: String { AppConfig.apiBaseURL }
 
     /// LLM 聊天请求超时（秒）
     private let llmTimeout: TimeInterval = 30
@@ -24,7 +19,18 @@ class GhostypeAPIClient {
     /// 用户配置查询请求超时（秒）
     private let profileTimeout: TimeInterval = 10
 
-    private init() {}
+    /// 认证服务（通过协议抽象，支持测试替身）
+    private let auth: AuthProviding
+
+    /// 生产用初始化（保持向后兼容）
+    private init() {
+        self.auth = AuthManager.shared
+    }
+
+    /// 测试用初始化（依赖注入）
+    init(auth: AuthProviding) {
+        self.auth = auth
+    }
 
     // MARK: - Public API
 
@@ -115,7 +121,7 @@ class GhostypeAPIClient {
     ///   - timeout: 超时时间（秒）
     /// - Returns: 配置好 Header 的 URLRequest
     func buildRequest(url: URL, method: String, timeout: TimeInterval) throws -> URLRequest {
-        guard let token = AuthManager.shared.getToken() else {
+        guard let token = auth.getToken() else {
             throw GhostypeError.unauthorized(L.Auth.loginRequired)
         }
         
@@ -164,7 +170,7 @@ class GhostypeAPIClient {
 
         case 401:
             // 清除 JWT，回退到 Device-Id 模式
-            AuthManager.shared.handleUnauthorized()
+            auth.handleUnauthorized()
             let errorResponse = try? JSONDecoder().decode(GhostypeErrorResponse.self, from: data)
             let message = errorResponse?.error.message ?? "Unauthorized"
             throw GhostypeError.unauthorized(message)
@@ -288,3 +294,54 @@ extension GhostypeAPIClient {
         return response.text
     }
 }
+
+// MARK: - Skill Execute API Extension
+
+extension GhostypeAPIClient {
+
+    /// 通用 Skill 执行
+    /// 调用 POST /api/v1/skill/execute（或 config 中指定的自定义端点）
+    /// - Parameters:
+    ///   - systemPrompt: Skill 的系统提示词（已完成模板变量替换）
+    ///   - message: 用户语音文本
+    ///   - context: 上下文行为（directOutput/rewrite/explain/noInput）
+    ///   - endpoint: 自定义端点路径，默认 /api/v1/skill/execute
+    /// - Returns: AI 生成的文本结果
+    func executeSkill(
+        systemPrompt: String,
+        message: String,
+        context: ContextBehavior,
+        endpoint: String? = nil
+    ) async throws -> String {
+        let path = endpoint ?? "/api/v1/skill/execute"
+        let url = URL(string: "\(apiBaseURL)\(path)")!
+
+        let contextInfo = mapContextBehavior(context)
+        let body = SkillExecuteRequest(
+            system_prompt: systemPrompt,
+            message: message,
+            context: contextInfo
+        )
+
+        var request = try buildRequest(url: url, method: "POST", timeout: llmTimeout)
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let response: GhostypeResponse = try await performRequest(request, retryOn500: true)
+        return response.text
+    }
+
+    /// 将 ContextBehavior 枚举映射为 API 请求中的 ContextInfo
+    private func mapContextBehavior(_ behavior: ContextBehavior) -> SkillExecuteRequest.ContextInfo {
+        switch behavior {
+        case .directOutput:
+            return .init(type: "direct_output", selected_text: nil)
+        case .rewrite(let selectedText):
+            return .init(type: "rewrite", selected_text: selectedText)
+        case .explain(let selectedText):
+            return .init(type: "explain", selected_text: selectedText)
+        case .noInput:
+            return .init(type: "no_input", selected_text: nil)
+        }
+    }
+}
+

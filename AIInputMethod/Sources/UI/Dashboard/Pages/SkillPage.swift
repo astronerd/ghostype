@@ -2,11 +2,44 @@
 //  SkillPage.swift
 //  AIInputMethod
 //
-//  Skill 管理页面 - 展示内置和自定义技能卡片
+//  Skill management page
 //
 
 import SwiftUI
 import AppKit
+
+// MARK: - KeyCode Display Name Helper
+
+private func displayNameForKeyCode(_ keyCode: UInt16) -> String {
+    let mapping: [UInt16: String] = [
+        0: "A", 1: "S", 2: "D", 3: "F", 4: "H", 5: "G", 6: "Z", 7: "X",
+        8: "C", 9: "V", 11: "B", 12: "Q", 13: "W", 14: "E", 15: "R",
+        16: "Y", 17: "T", 31: "O", 32: "U", 34: "I", 35: "P",
+        37: "L", 38: "J", 40: "K", 45: "N", 46: "M",
+        18: "1", 19: "2", 20: "3", 21: "4", 22: "6", 23: "5",
+        25: "9", 26: "7", 28: "8", 29: "0",
+        24: "=", 27: "-", 30: "]", 33: "[", 39: "'", 41: ";",
+        42: "\\", 43: ",", 44: "/", 47: ".", 50: "`",
+        36: "\u{21A9}", 48: "\u{21E5}", 49: "Space", 51: "\u{232B}", 53: "\u{238B}",
+        71: "Clear", 76: "\u{2305}",
+        96: "F5", 97: "F6", 98: "F7", 99: "F3", 100: "F8",
+        101: "F9", 103: "F11", 105: "F13", 107: "F14",
+        109: "F10", 111: "F12", 113: "F15", 118: "F4",
+        120: "F2", 122: "F1",
+        123: "\u{2190}", 124: "\u{2192}", 125: "\u{2193}", 126: "\u{2191}",
+        54: "\u{2318}R", 55: "\u{2318}", 56: "\u{21E7}", 57: "\u{21EA}",
+        58: "\u{2325}", 59: "\u{2303}", 60: "\u{21E7}R", 61: "\u{2325}R",
+        62: "\u{2303}R", 63: "Fn",
+        65: "KP.", 67: "KP*", 69: "KP+", 75: "KP/",
+        78: "KP-", 81: "KP=",
+        82: "KP0", 83: "KP1", 84: "KP2", 85: "KP3",
+        86: "KP4", 87: "KP5", 88: "KP6", 89: "KP7",
+        91: "KP8", 92: "KP9",
+    ]
+    return mapping[keyCode] ?? "Key\(keyCode)"
+}
+
+private let systemModifierKeyCodes: Set<UInt16> = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
 
 // MARK: - SkillPage
 
@@ -21,7 +54,6 @@ struct SkillPage: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DS.Spacing.xl) {
-                // Title
                 VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                     Text(L.Skill.title)
                         .font(DS.Typography.largeTitle)
@@ -32,15 +64,27 @@ struct SkillPage: View {
                 }
                 .padding(.bottom, DS.Spacing.sm)
 
-                // Built-in Skills
                 if !viewModel.builtinSkills.isEmpty {
                     skillSection(title: L.Skill.builtin, skills: viewModel.builtinSkills)
                 }
 
-                // Custom Skills
                 skillSection(title: L.Skill.custom, skills: viewModel.customSkills, showAdd: true)
 
-                // Error message
+                // macOS 系统快捷键冲突提示
+                HStack(alignment: .top, spacing: DS.Spacing.sm) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.system(size: 11))
+                        .foregroundColor(DS.Colors.text3)
+                        .padding(.top, 1)
+                    Text(L.Skill.hotkeyConflictNote)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text3)
+                }
+                .padding(DS.Spacing.md)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(DS.Colors.bg2.opacity(0.5))
+                .cornerRadius(DS.Layout.cornerRadius)
+
                 if let error = viewModel.errorMessage {
                     HStack(spacing: DS.Spacing.sm) {
                         Image(systemName: "exclamationmark.triangle")
@@ -94,8 +138,6 @@ struct SkillPage: View {
         }
     }
 
-    // MARK: - Section
-
     @ViewBuilder
     private func skillSection(title: String, skills: [SkillModel], showAdd: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: DS.Spacing.md) {
@@ -103,16 +145,11 @@ struct SkillPage: View {
 
             LazyVGrid(columns: cardColumns, spacing: DS.Spacing.md) {
                 ForEach(skills) { skill in
-                    SkillCardView(
-                        skill: skill,
-                        viewModel: viewModel
-                    )
+                    SkillCardView(skill: skill, viewModel: viewModel)
                 }
 
                 if showAdd {
-                    AddSkillCard {
-                        viewModel.startCreate()
-                    }
+                    AddSkillCard { viewModel.startCreate() }
                 }
             }
         }
@@ -125,14 +162,13 @@ struct SkillCardView: View {
     let skill: SkillModel
     @Bindable var viewModel: SkillViewModel
     @State private var isHovered = false
+    @State private var keyMonitor: Any?
 
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.md) {
-            // Header: icon + name + type badge
             HStack(spacing: DS.Spacing.sm) {
-                Image(systemName: skill.icon)
-                    .font(.system(size: 18))
-                    .foregroundColor(skill.swiftUIColor)
+                Text(skill.icon)
+                    .font(.system(size: 20))
                     .frame(width: 28, height: 28)
 
                 VStack(alignment: .leading, spacing: 1) {
@@ -155,49 +191,91 @@ struct SkillCardView: View {
                 }
             }
 
-            // Description
             Text(skill.description)
                 .font(DS.Typography.caption)
                 .foregroundColor(DS.Colors.text2)
                 .lineLimit(2)
 
-            // Key binding
             HStack(spacing: DS.Spacing.sm) {
                 keyBindingButton
 
                 Spacer()
 
-                // Edit / Delete buttons (only on hover for custom skills)
-                if isHovered && !skill.isBuiltin {
-                    HStack(spacing: DS.Spacing.xs) {
-                        Button(action: { viewModel.startEdit(skill) }) {
-                            Image(systemName: "pencil")
-                                .font(.system(size: 11))
-                                .foregroundColor(DS.Colors.text2)
-                        }
-                        .buttonStyle(.plain)
+                HStack(spacing: DS.Spacing.xs) {
+                    Button(action: { viewModel.startEdit(skill) }) {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 11))
+                            .foregroundColor(DS.Colors.text2)
+                            .frame(width: 24, height: 24)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
+                                    .stroke(DS.Colors.border, lineWidth: DS.Layout.borderWidth)
+                            )
+                    }
+                    .buttonStyle(.plain)
 
+                    if !skill.isBuiltin {
                         Button(action: { viewModel.confirmDelete(id: skill.id) }) {
                             Image(systemName: "trash")
                                 .font(.system(size: 11))
-                                .foregroundColor(DS.Colors.statusError)
+                                .foregroundColor(DS.Colors.text2)
+                                .frame(width: 24, height: 24)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
+                                        .stroke(DS.Colors.border, lineWidth: DS.Layout.borderWidth)
+                                )
                         }
                         .buttonStyle(.plain)
                     }
                 }
+                .opacity(isHovered ? 1 : 0.5)
             }
         }
         .padding(DS.Spacing.lg)
         .background(DS.Colors.bg2)
         .overlay(
             RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
-                .stroke(isHovered ? DS.Colors.text2.opacity(0.3) : DS.Colors.border, lineWidth: DS.Layout.borderWidth)
+                .stroke(skill.swiftUIColor.opacity(isHovered ? 0.8 : 0.4), lineWidth: 4)
         )
         .clipShape(RoundedRectangle(cornerRadius: DS.Layout.cornerRadius))
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.15)) {
                 isHovered = hovering
             }
+        }
+        .onChange(of: viewModel.isBindingKey) { _, newValue in
+            if newValue && viewModel.bindingSkillId == skill.id {
+                startKeyMonitor()
+            } else if !newValue || viewModel.bindingSkillId != skill.id {
+                stopKeyMonitor()
+            }
+        }
+        .onDisappear {
+            stopKeyMonitor()
+        }
+    }
+
+    private func startKeyMonitor() {
+        stopKeyMonitor()
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { event in
+            let kc = event.keyCode
+            if event.type == .flagsChanged {
+                guard systemModifierKeyCodes.contains(kc) else { return event }
+                let display = displayNameForKeyCode(kc)
+                viewModel.completeKeyBinding(keyCode: kc, displayName: display, isSystemModifier: true)
+                return nil
+            }
+            let display = displayNameForKeyCode(kc)
+            let isSysMod = systemModifierKeyCodes.contains(kc)
+            viewModel.completeKeyBinding(keyCode: kc, displayName: display, isSystemModifier: isSysMod)
+            return nil
+        }
+    }
+
+    private func stopKeyMonitor() {
+        if let monitor = keyMonitor {
+            NSEvent.removeMonitor(monitor)
+            keyMonitor = nil
         }
     }
 
@@ -208,9 +286,6 @@ struct SkillCardView: View {
         Button(action: {
             if isBinding {
                 viewModel.cancelKeyBinding()
-            } else if skill.modifierKey != nil {
-                // Long press to unbind, tap to rebind
-                viewModel.startKeyBinding(skillId: skill.id)
             } else {
                 viewModel.startKeyBinding(skillId: skill.id)
             }
@@ -237,26 +312,6 @@ struct SkillCardView: View {
             .cornerRadius(DS.Layout.cornerRadius)
         }
         .buttonStyle(.plain)
-        .onKeyPress(phases: .down) { press in
-            guard isBinding else { return .ignored }
-            let keyCode = keyCodeFromKeyEquivalent(press.key)
-            let modifiers = press.modifiers
-            if modifiers.contains(.shift) {
-                viewModel.completeKeyBinding(keyCode: 56, displayName: "⇧", isSystemModifier: true)
-                return .handled
-            } else if modifiers.contains(.command) {
-                viewModel.completeKeyBinding(keyCode: 55, displayName: "⌘", isSystemModifier: true)
-                return .handled
-            } else if modifiers.contains(.control) {
-                viewModel.completeKeyBinding(keyCode: 59, displayName: "⌃", isSystemModifier: true)
-                return .handled
-            } else if keyCode > 0 {
-                let display = String(press.key.character).uppercased()
-                viewModel.completeKeyBinding(keyCode: keyCode, displayName: display, isSystemModifier: false)
-                return .handled
-            }
-            return .ignored
-        }
         .contextMenu {
             if skill.modifierKey != nil {
                 Button(action: { viewModel.unbindKey(skillId: skill.id) }) {
@@ -264,21 +319,6 @@ struct SkillCardView: View {
                 }
             }
         }
-    }
-
-    private func keyCodeFromKeyEquivalent(_ key: KeyEquivalent) -> UInt16 {
-        // Basic mapping for common keys
-        let char = key.character
-        let mapping: [Character: UInt16] = [
-            "a": 0, "s": 1, "d": 2, "f": 3, "h": 4, "g": 5, "z": 6, "x": 7,
-            "c": 8, "v": 9, "b": 11, "q": 12, "w": 13, "e": 14, "r": 15,
-            "y": 16, "t": 17, "1": 18, "2": 19, "3": 20, "4": 21, "6": 22,
-            "5": 23, "=": 24, "9": 25, "7": 26, "-": 27, "8": 28, "0": 29,
-            "]": 30, "o": 31, "u": 32, "[": 33, "i": 34, "p": 35,
-            "l": 37, "j": 38, "'": 39, "k": 40, ";": 41, "\\": 42,
-            ",": 43, "/": 44, "n": 45, "m": 46, ".": 47, " ": 49,
-        ]
-        return mapping[char] ?? 0
     }
 }
 
@@ -318,69 +358,207 @@ struct AddSkillCard: View {
     }
 }
 
+// MARK: - Color Picker Row (shared between Create & Edit)
+
+private struct ColorPickerRow: View {
+    @Binding var colorHex: String
+    @State private var hexInput: String = ""
+    @State private var pickerColor: Color = .blue
+
+    private let presetColors: [(name: String, hex: String)] = [
+        ("蓝", "#007AFF"), ("绿", "#34C759"), ("橙", "#FF9500"),
+        ("紫", "#AF52DE"), ("粉", "#FF2D55"), ("青", "#5AC8FA"),
+        ("红", "#FF3B30"), ("黄", "#FFCC00"), ("靛", "#5856D6"),
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+            // Preset circles
+            HStack(spacing: DS.Spacing.sm) {
+                ForEach(presetColors, id: \.hex) { preset in
+                    let isSelected = colorHex.uppercased() == preset.hex.uppercased()
+                    Circle()
+                        .fill(Color(hex: preset.hex))
+                        .frame(width: 24, height: 24)
+                        .overlay(Circle().stroke(Color.white, lineWidth: isSelected ? 2 : 0))
+                        .overlay(Circle().stroke(DS.Colors.border, lineWidth: 1))
+                        .onTapGesture {
+                            colorHex = preset.hex
+                            hexInput = preset.hex
+                            pickerColor = Color(hex: preset.hex)
+                        }
+                }
+            }
+
+            // Hex input + native color picker
+            HStack(spacing: DS.Spacing.sm) {
+                TextField(L.Skill.hexPlaceholder, text: $hexInput)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 120)
+                    .onSubmit { applyHexInput() }
+                    .onChange(of: hexInput) { _, newValue in
+                        let trimmed = newValue.trimmingCharacters(in: .whitespaces)
+                        if trimmed.count == 7 && trimmed.hasPrefix("#") {
+                            let hexChars = trimmed.dropFirst()
+                            if hexChars.allSatisfy({ $0.isHexDigit }) {
+                                colorHex = trimmed.uppercased()
+                                pickerColor = Color(hex: trimmed)
+                            }
+                        }
+                    }
+
+                ColorPicker("", selection: $pickerColor, supportsOpacity: false)
+                    .labelsHidden()
+                    .frame(width: 28, height: 28)
+                    .onChange(of: pickerColor) { _, newColor in
+                        if let hex = newColor.toHex() {
+                            colorHex = hex
+                            hexInput = hex
+                        }
+                    }
+
+                Circle()
+                    .fill(Color(hex: colorHex))
+                    .frame(width: 20, height: 20)
+                    .overlay(Circle().stroke(DS.Colors.border, lineWidth: 1))
+            }
+        }
+        .onAppear {
+            hexInput = colorHex
+            pickerColor = Color(hex: colorHex)
+        }
+    }
+
+    private func applyHexInput() {
+        var trimmed = hexInput.trimmingCharacters(in: .whitespaces)
+        if !trimmed.hasPrefix("#") { trimmed = "#" + trimmed }
+        trimmed = trimmed.uppercased()
+        if trimmed.count == 7 {
+            let hexChars = trimmed.dropFirst()
+            if hexChars.allSatisfy({ $0.isHexDigit }) {
+                colorHex = trimmed
+                pickerColor = Color(hex: trimmed)
+            }
+        }
+    }
+}
+
+// MARK: - Color → Hex helper
+
+private extension Color {
+    func toHex() -> String? {
+        guard let components = NSColor(self).usingColorSpace(.sRGB) else { return nil }
+        let r = Int(round(components.redComponent * 255))
+        let g = Int(round(components.greenComponent * 255))
+        let b = Int(round(components.blueComponent * 255))
+        return String(format: "#%02X%02X%02X", r, g, b)
+    }
+}
+
 // MARK: - Create Sheet
 
 struct SkillCreateSheet: View {
     @Bindable var viewModel: SkillViewModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.lg) {
-            Text(L.Skill.createSkill)
-                .font(DS.Typography.title)
-                .foregroundColor(DS.Colors.text1)
+        VStack(spacing: 0) {
+            // Header
+            HStack(spacing: DS.Spacing.md) {
+                EmojiPickerButton(selectedEmoji: $viewModel.newIcon, size: 44)
 
-            VStack(alignment: .leading, spacing: DS.Spacing.md) {
-                fieldRow(label: L.Skill.skillName) {
-                    TextField(L.Skill.namePlaceholder, text: $viewModel.newName)
-                        .textFieldStyle(.roundedBorder)
+                VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                    Text(L.Skill.createSkill)
+                        .font(DS.Typography.title)
+                        .foregroundColor(DS.Colors.text1)
+                    Text(L.Skill.descPlaceholder)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text2)
                 }
+                Spacer()
+            }
+            .padding(DS.Spacing.xl)
 
-                fieldRow(label: L.Skill.skillDescription) {
-                    TextField(L.Skill.descPlaceholder, text: $viewModel.newDescription)
-                        .textFieldStyle(.roundedBorder)
-                }
+            MinimalDivider()
+                .padding(.horizontal, DS.Spacing.xl)
 
-                fieldRow(label: L.Skill.skillIcon) {
-                    HStack(spacing: DS.Spacing.sm) {
-                        Image(systemName: viewModel.newIcon)
-                            .font(.system(size: 16))
-                            .foregroundColor(DS.Colors.text1)
-                            .frame(width: 28, height: 28)
-                            .background(DS.Colors.highlight)
-                            .cornerRadius(DS.Layout.cornerRadius)
-
-                        TextField("SF Symbol", text: $viewModel.newIcon)
+            ScrollView {
+                VStack(alignment: .leading, spacing: DS.Spacing.lg) {
+                    sheetField(label: L.Skill.skillName) {
+                        TextField(L.Skill.namePlaceholder, text: $viewModel.newName)
                             .textFieldStyle(.roundedBorder)
-                            .frame(width: 150)
+                    }
+
+                    sheetField(label: L.Skill.skillDescription) {
+                        TextField(L.Skill.descPlaceholder, text: $viewModel.newDescription)
+                            .textFieldStyle(.roundedBorder)
+                    }
+
+                    sheetField(label: L.Skill.skillColor) {
+                        ColorPickerRow(colorHex: $viewModel.newColorHex)
+                    }
+
+                    sheetField(label: L.Skill.skillInstruction) {
+                        TextEditor(text: $viewModel.newPrompt)
+                            .font(DS.Typography.body)
+                            .frame(minHeight: 100)
+                            .padding(4)
+                            .background(DS.Colors.bg2)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
+                                    .stroke(DS.Colors.border, lineWidth: 1)
+                            )
+                            .overlay(alignment: .topLeading) {
+                                if viewModel.newPrompt.isEmpty {
+                                    Text(L.Skill.instructionPlaceholder)
+                                        .font(DS.Typography.body)
+                                        .foregroundColor(DS.Colors.text2.opacity(0.5))
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 8)
+                                        .allowsHitTesting(false)
+                                }
+                            }
                     }
                 }
-
-                fieldRow(label: L.Skill.promptTemplate) {
-                    TextEditor(text: $viewModel.newPrompt)
-                        .font(DS.Typography.body)
-                        .frame(minHeight: 100)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
-                                .stroke(DS.Colors.border, lineWidth: 1)
-                        )
-                }
+                .padding(DS.Spacing.xl)
             }
+
+            MinimalDivider()
+                .padding(.horizontal, DS.Spacing.xl)
 
             HStack {
                 Spacer()
                 Button(L.Common.cancel) { viewModel.cancelCreate() }
                     .buttonStyle(.bordered)
+                    .disabled(viewModel.isGenerating)
                 Button(L.Common.save) { viewModel.confirmCreate() }
                     .buttonStyle(.borderedProminent)
-                    .disabled(viewModel.newName.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .disabled(viewModel.newName.trimmingCharacters(in: .whitespaces).isEmpty || viewModel.isGenerating)
+            }
+            .padding(DS.Spacing.xl)
+        }
+        .frame(width: 460, height: 520)
+        .background(DS.Colors.bg1)
+        .overlay {
+            if viewModel.isGenerating {
+                ZStack {
+                    Color.black.opacity(0.3)
+                    VStack(spacing: DS.Spacing.md) {
+                        ProgressView()
+                            .scaleEffect(1.2)
+                        Text(L.Skill.generatingPrompt)
+                            .font(DS.Typography.body)
+                            .foregroundColor(DS.Colors.text1)
+                    }
+                    .padding(DS.Spacing.xl)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(DS.Layout.cornerRadius)
+                }
             }
         }
-        .padding(DS.Spacing.xl)
-        .frame(width: 440)
     }
 
     @ViewBuilder
-    private func fieldRow<Content: View>(label: String, @ViewBuilder content: () -> Content) -> some View {
+    private func sheetField<Content: View>(label: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: DS.Spacing.xs) {
             Text(label)
                 .font(DS.Typography.caption)
@@ -395,79 +573,197 @@ struct SkillCreateSheet: View {
 struct SkillEditSheet: View {
     @Bindable var viewModel: SkillViewModel
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.lg) {
-            Text(L.Skill.editSkill)
-                .font(DS.Typography.title)
-                .foregroundColor(DS.Colors.text1)
+    private let languageOptions = [
+        L.Skill.autoDetect, "中文", "英文", "日文", "韩文", "法文", "德文", "西班牙文", "俄文"
+    ]
 
-            if let skill = viewModel.editingSkill {
-                VStack(alignment: .leading, spacing: DS.Spacing.md) {
-                    fieldRow(label: L.Skill.skillName) {
+    private var isTranslateSkill: Bool {
+        viewModel.editingSkill?.id == SkillModel.builtinTranslateId ||
+        viewModel.editingSkill?.config["source_language"] != nil
+    }
+
+    private var isBuiltin: Bool {
+        viewModel.editingSkill?.isBuiltin == true
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header
+            HStack(spacing: DS.Spacing.md) {
+                EmojiPickerButton(
+                    selectedEmoji: Binding(
+                        get: { viewModel.editingSkill?.icon ?? "✨" },
+                        set: { viewModel.editingSkill?.icon = $0 }
+                    ),
+                    size: 44
+                )
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L.Skill.editSkill)
+                        .font(DS.Typography.title)
+                        .foregroundColor(DS.Colors.text1)
+                    if let skill = viewModel.editingSkill {
+                        Text(skill.isBuiltin ? L.Skill.builtin : L.Skill.custom)
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text2)
+                    }
+                }
+                Spacer()
+
+                if let hex = viewModel.editingSkill?.colorHex {
+                    Circle()
+                        .fill(Color(hex: hex))
+                        .frame(width: 12, height: 12)
+                }
+            }
+            .padding(DS.Spacing.xl)
+
+            MinimalDivider()
+                .padding(.horizontal, DS.Spacing.xl)
+
+            // Content
+            ScrollView {
+                VStack(alignment: .leading, spacing: DS.Spacing.lg) {
+                    // Name (disabled for builtin)
+                    sheetField(label: L.Skill.skillName) {
                         TextField(L.Skill.namePlaceholder, text: Binding(
                             get: { viewModel.editingSkill?.name ?? "" },
                             set: { viewModel.editingSkill?.name = $0 }
                         ))
                         .textFieldStyle(.roundedBorder)
+                        .disabled(isBuiltin)
+                        .opacity(isBuiltin ? 0.6 : 1)
                     }
 
-                    fieldRow(label: L.Skill.skillDescription) {
+                    // Description (disabled for builtin)
+                    sheetField(label: L.Skill.skillDescription) {
                         TextField(L.Skill.descPlaceholder, text: Binding(
                             get: { viewModel.editingSkill?.description ?? "" },
                             set: { viewModel.editingSkill?.description = $0 }
                         ))
                         .textFieldStyle(.roundedBorder)
+                        .disabled(isBuiltin)
+                        .opacity(isBuiltin ? 0.6 : 1)
                     }
 
-                    fieldRow(label: L.Skill.skillIcon) {
-                        HStack(spacing: DS.Spacing.sm) {
-                            Image(systemName: viewModel.editingSkill?.icon ?? "sparkles")
-                                .font(.system(size: 16))
-                                .foregroundColor(DS.Colors.text1)
-                                .frame(width: 28, height: 28)
-                                .background(DS.Colors.highlight)
-                                .cornerRadius(DS.Layout.cornerRadius)
+                    // Color (always editable)
+                    sheetField(label: L.Skill.skillColor) {
+                        ColorPickerRow(colorHex: Binding(
+                            get: { viewModel.editingSkill?.colorHex ?? "#5AC8FA" },
+                            set: { viewModel.editingSkill?.colorHex = $0 }
+                        ))
+                    }
 
-                            TextField("SF Symbol", text: Binding(
-                                get: { viewModel.editingSkill?.icon ?? "" },
-                                set: { viewModel.editingSkill?.icon = $0 }
-                            ))
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 150)
+                    // Translate language picker
+                    if isTranslateSkill {
+                        sheetField(label: L.Skill.translateLanguage) {
+                            HStack(spacing: DS.Spacing.md) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(L.Skill.sourceLang)
+                                        .font(DS.Typography.caption)
+                                        .foregroundColor(DS.Colors.text2)
+                                    Picker("", selection: Binding(
+                                        get: { viewModel.editingSkill?.config["source_language"] ?? L.Skill.autoDetect },
+                                        set: { viewModel.editingSkill?.config["source_language"] = $0 }
+                                    )) {
+                                        ForEach(languageOptions, id: \.self) { lang in
+                                            Text(lang).tag(lang)
+                                        }
+                                    }
+                                    .frame(width: 130)
+                                }
+
+                                Image(systemName: "arrow.right")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(DS.Colors.text2)
+                                    .padding(.top, DS.Spacing.lg)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(L.Skill.targetLang)
+                                        .font(DS.Typography.caption)
+                                        .foregroundColor(DS.Colors.text2)
+                                    Picker("", selection: Binding(
+                                        get: { viewModel.editingSkill?.config["target_language"] ?? "英文" },
+                                        set: { viewModel.editingSkill?.config["target_language"] = $0 }
+                                    )) {
+                                        ForEach(languageOptions, id: \.self) { lang in
+                                            Text(lang).tag(lang)
+                                        }
+                                    }
+                                    .frame(width: 130)
+                                }
+                            }
                         }
                     }
 
-                    if skill.isEditable {
-                        fieldRow(label: L.Skill.promptTemplate) {
+                    // Prompt (custom skills only)
+                    if !isBuiltin {
+                        sheetField(label: L.Skill.skillInstruction) {
                             TextEditor(text: Binding(
-                                get: { viewModel.editingSkill?.promptTemplate ?? "" },
-                                set: { viewModel.editingSkill?.promptTemplate = $0 }
+                                get: { viewModel.editingSkill?.userPrompt ?? "" },
+                                set: { viewModel.editingSkill?.userPrompt = $0 }
                             ))
                             .font(DS.Typography.body)
                             .frame(minHeight: 100)
+                            .padding(4)
+                            .background(DS.Colors.bg2)
                             .overlay(
                                 RoundedRectangle(cornerRadius: DS.Layout.cornerRadius)
                                     .stroke(DS.Colors.border, lineWidth: 1)
                             )
+                            .overlay(alignment: .topLeading) {
+                                if (viewModel.editingSkill?.userPrompt ?? "").isEmpty {
+                                    Text(L.Skill.instructionPlaceholder)
+                                        .font(DS.Typography.body)
+                                        .foregroundColor(DS.Colors.text2.opacity(0.5))
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 8)
+                                        .allowsHitTesting(false)
+                                }
+                            }
                         }
                     }
                 }
+                .padding(DS.Spacing.xl)
             }
+
+            MinimalDivider()
+                .padding(.horizontal, DS.Spacing.xl)
 
             HStack {
                 Spacer()
                 Button(L.Common.cancel) { viewModel.cancelEdit() }
                     .buttonStyle(.bordered)
+                    .disabled(viewModel.isGenerating)
                 Button(L.Common.save) { viewModel.saveEdit() }
                     .buttonStyle(.borderedProminent)
+                    .disabled(viewModel.isGenerating)
+            }
+            .padding(DS.Spacing.xl)
+        }
+        .frame(width: 460, height: 520)
+        .background(DS.Colors.bg1)
+        .overlay {
+            if viewModel.isGenerating {
+                ZStack {
+                    Color.black.opacity(0.3)
+                    VStack(spacing: DS.Spacing.md) {
+                        ProgressView()
+                            .scaleEffect(1.2)
+                        Text(L.Skill.generatingPrompt)
+                            .font(DS.Typography.body)
+                            .foregroundColor(DS.Colors.text1)
+                    }
+                    .padding(DS.Spacing.xl)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(DS.Layout.cornerRadius)
+                }
             }
         }
-        .padding(DS.Spacing.xl)
-        .frame(width: 440)
     }
 
     @ViewBuilder
-    private func fieldRow<Content: View>(label: String, @ViewBuilder content: () -> Content) -> some View {
+    private func sheetField<Content: View>(label: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: DS.Spacing.xs) {
             Text(label)
                 .font(DS.Typography.caption)

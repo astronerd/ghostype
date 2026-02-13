@@ -13,9 +13,9 @@
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
+    <string>0.1.02131640</string>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>3</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>LSUIElement</key>
@@ -37,5 +37,11 @@
             </array>
         </dict>
     </array>
+    <key>SUFeedURL</key>
+    <string>https://raw.githubusercontent.com/astronerd/ghostype/main/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>8MGfJ7NMeozRnAzggep3bI3Yi4deZgOzyFJ9AtVRUOo=</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
 </dict>
 </plist>

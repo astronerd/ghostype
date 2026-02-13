@@ -2,67 +2,46 @@ import Foundation
 import AppKit
 import SwiftUI
 
-// MARK: - Skill Type
-
-/// Skill 类型，决定 API 路由
-enum SkillType: String, Codable, CaseIterable {
-    case polish         // 默认润色（无修饰键时）
-    case memo           // 随心记
-    case translate      // 翻译
-    case ghostCommand   // Ghost Command
-    case ghostTwin      // Call Ghost Twin
-    case custom         // 用户自定义
-}
-
 // MARK: - Modifier Key Binding
 
-/// 修饰键绑定
 struct ModifierKeyBinding: Codable, Equatable {
-    let keyCode: UInt16             // 按键 keyCode
-    let isSystemModifier: Bool      // 是否为系统修饰键 (Shift/Cmd/Ctrl/Fn)
-    let displayName: String         // 显示名称 (如 "⇧", "⌘", "A")
+    let keyCode: UInt16
+    let isSystemModifier: Bool
+    let displayName: String
 }
 
 // MARK: - Skill Model
 
-/// Skill 数据模型
-/// 以 SKILL.md 文件存储（YAML frontmatter + markdown body）
 struct SkillModel: Identifiable, Equatable {
-    let id: String                          // UUID 字符串或 builtin-xxx
-    var name: String                        // 显示名称
-    var description: String                 // 功能描述
-    var icon: String                        // SF Symbol 名称
-    var modifierKey: ModifierKeyBinding?    // 绑定的按键（nil = 未绑定）
-    var promptTemplate: String              // prompt 模板（markdown body）
-    var behaviorConfig: [String: String]    // 行为配置字典
+    // 来自 SKILL.md（语义内容）
+    let id: String                          // 目录名
+    var name: String                        // 必填
+    var description: String                 // 必填
+    var userPrompt: String                  // 用户原始指令（UI 展示用）
+    var systemPrompt: String                // AI 生成的完整 prompt（实际执行用）
+    var allowedTools: [String]              // 默认 ["provide_text"]
+    var config: [String: String]            // 可选配置参数
+
+    // 来自 SkillMetadataStore（UI 元数据）
+    var icon: String                        // emoji，默认 "✨"
+    var colorHex: String                    // 颜色，默认 "#5AC8FA"
+    var modifierKey: ModifierKeyBinding?    // 快捷键绑定
     var isBuiltin: Bool                     // 是否内置
-    var isEditable: Bool                    // prompt 是否可编辑
-    var skillType: SkillType               // Skill 类型，决定路由
+    var isInternal: Bool                    // 是否内部 skill（不对用户展示）
 
-    // MARK: - Display Helpers
+    // MARK: - Color Helpers
 
-    /// Skill 颜色（用于 UI 展示）
     var color: NSColor {
-        switch skillType {
-        case .polish: return .systemGreen
-        case .memo: return .systemOrange
-        case .translate: return .systemPurple
-        case .ghostCommand: return .systemBlue
-        case .ghostTwin: return .systemPink
-        case .custom: return .systemTeal
-        }
+        NSColor(hex: colorHex) ?? .systemTeal
     }
 
     var swiftUIColor: Color {
-        switch skillType {
-        case .polish: return .green
-        case .memo: return .orange
-        case .translate: return .purple
-        case .ghostCommand: return .blue
-        case .ghostTwin: return .pink
-        case .custom: return .teal
-        }
+        Color(hex: colorHex)
     }
+
+    // MARK: - Default Color
+
+    static let defaultColorHex = "#5AC8FA"
 }
 
 // MARK: - Builtin Skill IDs
@@ -72,4 +51,20 @@ extension SkillModel {
     static let builtinGhostCommandId = "builtin-ghost-command"
     static let builtinGhostTwinId = "builtin-ghost-twin"
     static let builtinTranslateId = "builtin-translate"
+    static let builtinPromptGeneratorId = "builtin-prompt-generator"
+}
+
+// MARK: - NSColor hex init
+
+extension NSColor {
+    convenience init?(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        guard hex.count == 6 else { return nil }
+        let r: CGFloat = CGFloat((int >> 16) & 0xFF) / 255.0
+        let g: CGFloat = CGFloat((int >> 8) & 0xFF) / 255.0
+        let b: CGFloat = CGFloat(int & 0xFF) / 255.0
+        self.init(red: r, green: g, blue: b, alpha: 1.0)
+    }
 }

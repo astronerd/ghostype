@@ -104,9 +104,9 @@ cat <<EOF > "$APP_BUNDLE/Contents/Info.plist"
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.1.02122220</string>
+    <string>0.1.02131640</string>
     <key>CFBundleVersion</key>
-    <string>2</string>
+    <string>3</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>LSUIElement</key>
