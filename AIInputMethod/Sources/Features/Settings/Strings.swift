@@ -128,12 +128,35 @@ enum L {
     // MARK: - Library Page / 记录库页
     enum Library {
         static var title: String { current.library.title }
+        static var subtitle: String { current.library.subtitle }
         static var empty: String { current.library.empty }
         static var search: String { current.library.search }
+        static var searchPlaceholder: String { current.library.searchPlaceholder }
         static var all: String { current.library.all }
         static var polish: String { current.library.polish }
         static var translate: String { current.library.translate }
         static var memo: String { current.library.memo }
+        static var recordCount: String { current.library.recordCount }
+        static var unknownApp: String { current.library.unknownApp }
+        static var copyBtn: String { current.library.copyBtn }
+        static var copiedToast: String { current.library.copiedToast }
+        static var selectRecord: String { current.library.selectRecord }
+        static var categoryGeneral: String { current.library.categoryGeneral }
+        static var emptySearchTitle: String { current.library.emptySearchTitle }
+        static var emptySearchMsg: String { current.library.emptySearchMsg }
+        static var emptyCategoryTitle: String { current.library.emptyCategoryTitle }
+        static var emptyCategoryMsg: String { current.library.emptyCategoryMsg }
+        static var emptyTitle: String { current.library.emptyTitle }
+        static var emptyMsg: String { current.library.emptyMsg }
+        static var seconds: String { current.library.seconds }
+        static var minutes: String { current.library.minutes }
+        static var minuteSeconds: String { current.library.minuteSeconds }
+        static var exportPrefix: String { current.library.exportPrefix }
+        static var confirmDeleteTitle: String { current.library.confirmDeleteTitle }
+        static var confirmDeleteMsg: String { current.library.confirmDeleteMsg }
+        static var originalText: String { current.library.originalText }
+        static var processedText: String { current.library.processedText }
+        static var skillDeleted: String { current.library.skillDeleted }
     }
     
     // MARK: - Memo Page / 随心记页
@@ -238,6 +261,8 @@ enum L {
         static var aiEngineOnline: String { current.prefs.aiEngineOnline }
         static var aiEngineOffline: String { current.prefs.aiEngineOffline }
         static var aiEngineChecking: String { current.prefs.aiEngineChecking }
+        static var checkUpdate: String { current.prefs.checkUpdate }
+        static var currentVersion: String { current.prefs.currentVersion }
         static var reset: String { current.prefs.reset }
     }
     
@@ -297,6 +322,11 @@ enum L {
         static var concise: String { current.profile.concise }
         static var creative: String { current.profile.creative }
         static var custom: String { current.profile.custom }
+        static var standardDesc: String { current.profile.standardDesc }
+        static var professionalDesc: String { current.profile.professionalDesc }
+        static var casualDesc: String { current.profile.casualDesc }
+        static var conciseDesc: String { current.profile.conciseDesc }
+        static var creativeDesc: String { current.profile.creativeDesc }
     }
     
     // MARK: - Auth Status / 授权状态
@@ -375,6 +405,65 @@ enum L {
         static var skillInstruction: String { current.skill.skillInstruction }
         static var instructionPlaceholder: String { current.skill.instructionPlaceholder }
         static var hotkeyConflictNote: String { current.skill.hotkeyConflictNote }
+        static var emojiInputHint: String { current.skill.emojiInputHint }
+        static var openEmojiPanel: String { current.skill.openEmojiPanel }
+        static var builtinGhostCommandName: String { current.skill.builtinGhostCommandName }
+        static var builtinGhostCommandDesc: String { current.skill.builtinGhostCommandDesc }
+        static var builtinGhostTwinName: String { current.skill.builtinGhostTwinName }
+        static var builtinGhostTwinDesc: String { current.skill.builtinGhostTwinDesc }
+        static var builtinMemoName: String { current.skill.builtinMemoName }
+        static var builtinMemoDesc: String { current.skill.builtinMemoDesc }
+        static var builtinTranslateName: String { current.skill.builtinTranslateName }
+        static var builtinTranslateDesc: String { current.skill.builtinTranslateDesc }
+        static var langChinese: String { current.skill.langChinese }
+        static var langEnglish: String { current.skill.langEnglish }
+        static var langJapanese: String { current.skill.langJapanese }
+        static var langKorean: String { current.skill.langKorean }
+        static var langFrench: String { current.skill.langFrench }
+        static var langGerman: String { current.skill.langGerman }
+        static var langSpanish: String { current.skill.langSpanish }
+        static var langRussian: String { current.skill.langRussian }
+    }
+
+    // MARK: - Menu Bar / 菜单栏
+    enum MenuBar {
+        static var hotkeyPrefix: String { current.menuBar.hotkeyPrefix }
+        static var openDashboard: String { current.menuBar.openDashboard }
+        static var checkUpdate: String { current.menuBar.checkUpdate }
+        static var accessibilityPerm: String { current.menuBar.accessibilityPerm }
+        static var accessibilityPermClick: String { current.menuBar.accessibilityPermClick }
+        static var micPerm: String { current.menuBar.micPerm }
+        static var micPermClick: String { current.menuBar.micPermClick }
+        static var devTools: String { current.menuBar.devTools }
+        static var overlayTest: String { current.menuBar.overlayTest }
+        static var quit: String { current.menuBar.quit }
+    }
+
+    // MARK: - Overlay / 悬浮窗
+    enum Overlay {
+        static var thinking: String { current.overlay.thinking }
+        static var listening: String { current.overlay.listening }
+        static var listeningPlaceholder: String { current.overlay.listeningPlaceholder }
+        static var badgePolished: String { current.overlay.badgePolished }
+        static var badgeTranslated: String { current.overlay.badgeTranslated }
+        static var badgeSaved: String { current.overlay.badgeSaved }
+        static var defaultSkillName: String { current.overlay.defaultSkillName }
+    }
+
+    // MARK: - AI Polish Examples / AI润色示例
+    enum AIPolishExamples {
+        static var inSentenceInput1: String { current.aiPolishExamples.inSentenceInput1 }
+        static var inSentenceOutput1: String { current.aiPolishExamples.inSentenceOutput1 }
+        static var inSentenceInput2: String { current.aiPolishExamples.inSentenceInput2 }
+        static var inSentenceOutput2: String { current.aiPolishExamples.inSentenceOutput2 }
+        static var inSentenceInput3: String { current.aiPolishExamples.inSentenceInput3 }
+        static var inSentenceOutput3: String { current.aiPolishExamples.inSentenceOutput3 }
+        static var triggerInput1: String { current.aiPolishExamples.triggerInput1 }
+        static var triggerOutput1: String { current.aiPolishExamples.triggerOutput1 }
+        static var triggerInput2: String { current.aiPolishExamples.triggerInput2 }
+        static var triggerOutput2: String { current.aiPolishExamples.triggerOutput2 }
+        static var triggerInput3: String { current.aiPolishExamples.triggerInput3 }
+        static var triggerOutput3: String { current.aiPolishExamples.triggerOutput3 }
     }
 
     // MARK: - Private Implementation
@@ -408,6 +497,9 @@ protocol StringsTable {
     var floatingCard: FloatingCardStrings { get }
     var banner: BannerStrings { get }
     var skill: SkillStrings { get }
+    var menuBar: MenuBarStrings { get }
+    var overlay: OverlayStrings { get }
+    var aiPolishExamples: AIPolishExamplesStrings { get }
 }
 
 protocol OnboardingStrings {
@@ -492,12 +584,35 @@ protocol OverviewStrings {
 
 protocol LibraryStrings {
     var title: String { get }
+    var subtitle: String { get }
     var empty: String { get }
     var search: String { get }
+    var searchPlaceholder: String { get }
     var all: String { get }
     var polish: String { get }
     var translate: String { get }
     var memo: String { get }
+    var recordCount: String { get }
+    var unknownApp: String { get }
+    var copyBtn: String { get }
+    var copiedToast: String { get }
+    var selectRecord: String { get }
+    var categoryGeneral: String { get }
+    var emptySearchTitle: String { get }
+    var emptySearchMsg: String { get }
+    var emptyCategoryTitle: String { get }
+    var emptyCategoryMsg: String { get }
+    var emptyTitle: String { get }
+    var emptyMsg: String { get }
+    var seconds: String { get }
+    var minutes: String { get }
+    var minuteSeconds: String { get }
+    var exportPrefix: String { get }
+    var confirmDeleteTitle: String { get }
+    var confirmDeleteMsg: String { get }
+    var originalText: String { get }
+    var processedText: String { get }
+    var skillDeleted: String { get }
 }
 
 protocol MemoStrings {
@@ -599,6 +714,8 @@ protocol PrefsStrings {
     var aiEngineOnline: String { get }
     var aiEngineOffline: String { get }
     var aiEngineChecking: String { get }
+    var checkUpdate: String { get }
+    var currentVersion: String { get }
     var reset: String { get }
 }
 
@@ -641,6 +758,11 @@ protocol ProfileStrings {
     var concise: String { get }
     var creative: String { get }
     var custom: String { get }
+    var standardDesc: String { get }
+    var professionalDesc: String { get }
+    var casualDesc: String { get }
+    var conciseDesc: String { get }
+    var creativeDesc: String { get }
 }
 
 protocol TranslateStrings {
@@ -750,4 +872,60 @@ protocol SkillStrings {
     var skillInstruction: String { get }
     var instructionPlaceholder: String { get }
     var hotkeyConflictNote: String { get }
+    var emojiInputHint: String { get }
+    var openEmojiPanel: String { get }
+    var builtinGhostCommandName: String { get }
+    var builtinGhostCommandDesc: String { get }
+    var builtinGhostTwinName: String { get }
+    var builtinGhostTwinDesc: String { get }
+    var builtinMemoName: String { get }
+    var builtinMemoDesc: String { get }
+    var builtinTranslateName: String { get }
+    var builtinTranslateDesc: String { get }
+    var langChinese: String { get }
+    var langEnglish: String { get }
+    var langJapanese: String { get }
+    var langKorean: String { get }
+    var langFrench: String { get }
+    var langGerman: String { get }
+    var langSpanish: String { get }
+    var langRussian: String { get }
+}
+
+protocol MenuBarStrings {
+    var hotkeyPrefix: String { get }
+    var openDashboard: String { get }
+    var checkUpdate: String { get }
+    var accessibilityPerm: String { get }
+    var accessibilityPermClick: String { get }
+    var micPerm: String { get }
+    var micPermClick: String { get }
+    var devTools: String { get }
+    var overlayTest: String { get }
+    var quit: String { get }
+}
+
+protocol OverlayStrings {
+    var thinking: String { get }
+    var listening: String { get }
+    var listeningPlaceholder: String { get }
+    var badgePolished: String { get }
+    var badgeTranslated: String { get }
+    var badgeSaved: String { get }
+    var defaultSkillName: String { get }
+}
+
+protocol AIPolishExamplesStrings {
+    var inSentenceInput1: String { get }
+    var inSentenceOutput1: String { get }
+    var inSentenceInput2: String { get }
+    var inSentenceOutput2: String { get }
+    var inSentenceInput3: String { get }
+    var inSentenceOutput3: String { get }
+    var triggerInput1: String { get }
+    var triggerOutput1: String { get }
+    var triggerInput2: String { get }
+    var triggerOutput2: String { get }
+    var triggerInput3: String { get }
+    var triggerOutput3: String { get }
 }

@@ -66,7 +66,7 @@ class AppleSpeechService: SpeechService {
         do {
             try audioEngine.start()
             isRecording = true
-            transcript = "正在听..."
+            transcript = AppConstants.Speech.listeningSentinel
         } catch {
             print("[Speech] Audio engine start error: \(error)")
             return
@@ -100,7 +100,7 @@ class AppleSpeechService: SpeechService {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             guard let self = self else { return }
             let finalText = self.lastTranscript.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !finalText.isEmpty && finalText != "正在听..." {
+            if !finalText.isEmpty && finalText != AppConstants.Speech.listeningSentinel {
                 self.onFinalResult?(finalText)
             }
             self.transcript = ""
@@ -122,7 +122,7 @@ class MockSpeechService: SpeechService {
     
     func startRecording() {
         isRecording = true
-        transcript = "正在听..."
+        transcript = AppConstants.Speech.listeningSentinel
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
             self?.transcript = "这是模拟语音结果"
         }

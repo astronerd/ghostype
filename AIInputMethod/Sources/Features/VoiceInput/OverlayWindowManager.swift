@@ -15,7 +15,8 @@ class OverlayWindowManager {
     func setup(speechService: DoubaoSpeechService) {
         guard let screen = NSScreen.main else { return }
 
-        let windowWidth = screen.frame.width * 0.35
+        // 窗口占满屏幕宽度（透明），capsule 在内部自动居中
+        let windowWidth = screen.frame.width
         let windowHeight: CGFloat = 100
 
         overlayWindow = NSPanel(

@@ -2,67 +2,127 @@
 //  LibraryViewModel.swift
 //  AIInputMethod
 //
-//  ViewModel for the Library page, managing search and category filtering.
+//  ViewModel for the Library page, managing search and dynamic skill-based filtering.
 //  Provides filtered UsageRecords based on user input.
-//
-//  Requirements:
-//  - 6.3: WHEN a filter tab is selected, THE Library SHALL display only Usage_Records matching that category
-//  - 6.4: WHEN search text is entered, THE Library SHALL filter Usage_Records containing the search text
 //
 
 import Foundation
 import CoreData
 import Combine
 
-/// LibraryViewModel manages the state and filtering logic for the Library page.
-/// Uses @Observable for reactive state management (macOS 14+).
+// MARK: - SkillTab
+
+/// Represents a dynamic tab in the Library page
+struct SkillTab: Identifiable, Equatable {
+    let id: String          // "all" or skillId
+    let displayName: String
+    let icon: String        // emoji or SF Symbol name
+    let colorHex: String
+    let isDeleted: Bool     // true if skill no longer exists
+
+    static let allTab = SkillTab(
+        id: "all",
+        displayName: L.Library.all,
+        icon: "square.grid.2x2",
+        colorHex: "#8E8E93",
+        isDeleted: false
+    )
+}
+
+// MARK: - LibraryViewModel
+
 @Observable
 class LibraryViewModel {
     
     // MARK: - Published Properties
     
-    /// Search text entered by the user for full-text search
     var searchText: String = ""
-    
-    /// Currently selected category filter (nil means "all")
-    var selectedCategory: RecordCategory? = .all
-    
-    /// Currently selected record for detail view
+    var selectedTabId: String = "all"
     var selectedRecord: UsageRecord?
     
     // MARK: - Private Properties
     
-    /// All records loaded from CoreData
     private var allRecords: [UsageRecord] = []
-    
-    /// PersistenceController for data access
     private let persistenceController: PersistenceController
-    
-    /// DeviceIdManager for getting current device ID
     private let deviceIdManager: DeviceIdManager
     
     // MARK: - Computed Properties
     
-    /// Filtered records based on category and search text
-    /// Combines both filters: category filter AND search filter
+    /// Dynamic tabs derived from records' skillId/skillName + legacy category
+    var availableTabs: [SkillTab] {
+        var tabs: [SkillTab] = [.allTab]
+        var seen = Set<String>()
+        
+        for record in allRecords {
+            let tabId: String
+            let tabName: String
+            let tabIcon: String
+            let tabColor: String
+            let isDeleted: Bool
+            
+            if let skillId = record.skillId, !skillId.isEmpty {
+                tabId = skillId
+                // Use stored skillName, fallback to skillId
+                tabName = record.skillName ?? skillId
+                
+                // Check if skill still exists
+                if let skill = SkillManager.shared.skill(byId: skillId) {
+                    tabIcon = skill.icon
+                    tabColor = skill.colorHex
+                    isDeleted = false
+                } else {
+                    // Skill was deleted
+                    tabIcon = "⚠️"
+                    tabColor = "#8E8E93"
+                    isDeleted = true
+                }
+            } else {
+                // Legacy record: derive from category field
+                switch record.category {
+                case "polish":
+                    tabId = "__legacy_polish"
+                    tabName = L.Library.polish
+                    tabIcon = "✨"
+                    tabColor = "#34C759"
+                    isDeleted = false
+                case "translate":
+                    tabId = "__legacy_translate"
+                    tabName = L.Library.translate
+                    tabIcon = "🌐"
+                    tabColor = "#AF52DE"
+                    isDeleted = false
+                case "memo":
+                    tabId = "__legacy_memo"
+                    tabName = L.Library.memo
+                    tabIcon = "📝"
+                    tabColor = "#FF9500"
+                    isDeleted = false
+                default:
+                    tabId = "__legacy_general"
+                    tabName = L.Library.categoryGeneral
+                    tabIcon = "⚡"
+                    tabColor = "#007AFF"
+                    isDeleted = false
+                }
+            }
+            
+            guard !seen.contains(tabId) else { continue }
+            seen.insert(tabId)
+            tabs.append(SkillTab(id: tabId, displayName: tabName, icon: tabIcon, colorHex: tabColor, isDeleted: isDeleted))
+        }
+        
+        return tabs
+    }
+    
     var filteredRecords: [UsageRecord] {
         var result = allRecords
-        
-        // Apply category filter (except for "all" which shows everything)
-        result = filterByCategory(result)
-        
-        // Apply search filter
+        result = filterByTab(result)
         result = filterBySearchText(result)
-        
         return result
     }
     
     // MARK: - Initialization
     
-    /// Initialize the LibraryViewModel
-    /// - Parameters:
-    ///   - persistenceController: PersistenceController for data access, defaults to shared instance
-    ///   - deviceIdManager: DeviceIdManager for device ID, defaults to shared instance
     init(
         persistenceController: PersistenceController = .shared,
         deviceIdManager: DeviceIdManager = .shared
@@ -74,126 +134,58 @@ class LibraryViewModel {
     
     // MARK: - Public Methods
     
-    /// Reload records from CoreData
     func loadRecords() {
         allRecords = persistenceController.fetchUsageRecords(deviceId: deviceIdManager.deviceId)
     }
     
-    /// Select a category filter
-    /// - Parameter category: The category to filter by, or .all to show all records
-    func selectCategory(_ category: RecordCategory) {
-        selectedCategory = category
+    func selectTab(_ tabId: String) {
+        selectedTabId = tabId
     }
     
-    /// Clear the search text
     func clearSearch() {
         searchText = ""
     }
     
-    /// Select a record for detail view
-    /// - Parameter record: The record to select
     func selectRecord(_ record: UsageRecord?) {
         selectedRecord = record
     }
     
+    func deleteRecord(_ record: UsageRecord) {
+        let recordId = record.id
+        if selectedRecord?.id == recordId {
+            selectedRecord = nil
+        }
+        persistenceController.deleteUsageRecord(id: recordId)
+        allRecords.removeAll { $0.id == recordId }
+    }
+    
     // MARK: - Filtering Logic
     
-    /// Filter records by category
-    /// - Parameter records: The records to filter
-    /// - Returns: Filtered records matching the selected category
-    ///
-    /// **Property 10: Category Filter Correctness**
-    /// *For any* RecordCategory filter (except .all) and any set of UsageRecords,
-    /// the filtered result shall contain only records where record.category equals the filter's rawValue.
-    /// **Validates: Requirements 6.3**
-    func filterByCategory(_ records: [UsageRecord]) -> [UsageRecord] {
-        guard let category = selectedCategory, category != .all else {
-            // "all" category shows everything
-            return records
-        }
-        
-        // Map RecordCategory to the stored category string
-        let categoryString = categoryToStoredValue(category)
+    func filterByTab(_ records: [UsageRecord]) -> [UsageRecord] {
+        guard selectedTabId != "all" else { return records }
         
         return records.filter { record in
-            record.category == categoryString
+            if let skillId = record.skillId, !skillId.isEmpty {
+                return skillId == selectedTabId
+            } else {
+                // Legacy records: match by derived tab id
+                switch record.category {
+                case "polish": return selectedTabId == "__legacy_polish"
+                case "translate": return selectedTabId == "__legacy_translate"
+                case "memo": return selectedTabId == "__legacy_memo"
+                default: return selectedTabId == "__legacy_general"
+                }
+            }
         }
     }
     
-    /// Filter records by search text (case-insensitive contains match)
-    /// - Parameter records: The records to filter
-    /// - Returns: Filtered records containing the search text
-    ///
-    /// **Property 11: Search Filter Correctness**
-    /// *For any* non-empty search string and any set of UsageRecords,
-    /// the filtered result shall contain only records where record.content contains the search string (case-insensitive).
-    /// **Validates: Requirements 6.4**
     func filterBySearchText(_ records: [UsageRecord]) -> [UsageRecord] {
         let trimmedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        guard !trimmedSearch.isEmpty else {
-            // Empty search shows all records
-            return records
-        }
+        guard !trimmedSearch.isEmpty else { return records }
         
         return records.filter { record in
-            record.content.localizedCaseInsensitiveContains(trimmedSearch)
-        }
-    }
-    
-    // MARK: - Helper Methods
-    
-    /// Convert RecordCategory enum to the stored string value in CoreData
-    /// - Parameter category: The RecordCategory enum value
-    /// - Returns: The string value stored in CoreData
-    private func categoryToStoredValue(_ category: RecordCategory) -> String {
-        return category.rawValue
-    }
-}
-
-// MARK: - Testing Support
-
-extension LibraryViewModel {
-    
-    /// Filter records by category (static version for testing)
-    /// - Parameters:
-    ///   - records: The records to filter
-    ///   - category: The category to filter by
-    /// - Returns: Filtered records matching the category
-    static func filterByCategory(_ records: [UsageRecord], category: RecordCategory?) -> [UsageRecord] {
-        guard let category = category, category != .all else {
-            return records
-        }
-        
-        let categoryString: String
-        switch category {
-        case .all:
-            return records
-        case .polish:
-            categoryString = "polish"
-        case .translate:
-            categoryString = "translate"
-        case .memo:
-            categoryString = "memo"
-        }
-        
-        return records.filter { $0.category == categoryString }
-    }
-    
-    /// Filter records by search text (static version for testing)
-    /// - Parameters:
-    ///   - records: The records to filter
-    ///   - searchText: The search text to filter by
-    /// - Returns: Filtered records containing the search text
-    static func filterBySearchText(_ records: [UsageRecord], searchText: String) -> [UsageRecord] {
-        let trimmedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        guard !trimmedSearch.isEmpty else {
-            return records
-        }
-        
-        return records.filter { record in
-            record.content.localizedCaseInsensitiveContains(trimmedSearch)
+            record.content.localizedCaseInsensitiveContains(trimmedSearch) ||
+            (record.originalContent?.localizedCaseInsensitiveContains(trimmedSearch) ?? false)
         }
     }
 }

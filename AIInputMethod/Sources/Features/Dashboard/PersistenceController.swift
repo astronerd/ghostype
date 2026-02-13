@@ -136,6 +136,21 @@ final class PersistenceController {
         deviceIdAttribute.attributeType = .stringAttributeType
         deviceIdAttribute.isOptional = false
         
+        let originalContentAttribute = NSAttributeDescription()
+        originalContentAttribute.name = "originalContent"
+        originalContentAttribute.attributeType = .stringAttributeType
+        originalContentAttribute.isOptional = true
+        
+        let skillIdAttribute = NSAttributeDescription()
+        skillIdAttribute.name = "skillId"
+        skillIdAttribute.attributeType = .stringAttributeType
+        skillIdAttribute.isOptional = true
+        
+        let skillNameAttribute = NSAttributeDescription()
+        skillNameAttribute.name = "skillName"
+        skillNameAttribute.attributeType = .stringAttributeType
+        skillNameAttribute.isOptional = true
+        
         usageRecordEntity.properties = [
             idAttribute,
             contentAttribute,
@@ -144,7 +159,10 @@ final class PersistenceController {
             sourceAppBundleIdAttribute,
             timestampAttribute,
             durationAttribute,
-            deviceIdAttribute
+            deviceIdAttribute,
+            originalContentAttribute,
+            skillIdAttribute,
+            skillNameAttribute
         ]
         
         // QuotaRecord Entity

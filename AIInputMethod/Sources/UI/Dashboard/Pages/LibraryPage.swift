@@ -47,11 +47,11 @@ struct LibraryPage: View {
         VStack(alignment: .leading, spacing: DS.Spacing.lg) {
             HStack {
                 VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-                    Text("历史库")
+                    Text(L.Library.title)
                         .font(DS.Typography.largeTitle)
                         .foregroundColor(DS.Colors.text1)
                     
-                    Text("搜索和管理您的语音输入记录")
+                    Text(L.Library.subtitle)
                         .font(DS.Typography.body)
                         .foregroundColor(DS.Colors.text2)
                 }
@@ -69,7 +69,7 @@ struct LibraryPage: View {
         HStack(spacing: DS.Spacing.xs) {
             Image(systemName: "doc.text")
                 .font(.system(size: 11))
-            Text("\(viewModel.filteredRecords.count) 条记录")
+            Text(String(format: L.Library.recordCount, viewModel.filteredRecords.count))
                 .font(DS.Typography.caption)
         }
         .foregroundColor(DS.Colors.text2)
@@ -89,7 +89,7 @@ struct LibraryPage: View {
                 .font(.system(size: 13))
                 .foregroundColor(DS.Colors.icon)
             
-            TextField("搜索记录内容...", text: $viewModel.searchText)
+            TextField(L.Library.searchPlaceholder, text: $viewModel.searchText)
                 .textFieldStyle(.plain)
                 .font(DS.Typography.body)
             
@@ -115,19 +115,21 @@ struct LibraryPage: View {
     // MARK: - Category Tabs Section
     
     private var categoryTabsSection: some View {
-        HStack(spacing: DS.Spacing.sm) {
-            ForEach(RecordCategory.allCases) { category in
-                CategoryTabButton(
-                    category: category,
-                    isSelected: viewModel.selectedCategory == category,
-                    action: {
-                        withAnimation(.easeInOut(duration: 0.15)) {
-                            viewModel.selectCategory(category)
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: DS.Spacing.sm) {
+                ForEach(viewModel.availableTabs) { tab in
+                    SkillTabButton(
+                        tab: tab,
+                        isSelected: viewModel.selectedTabId == tab.id,
+                        action: {
+                            withAnimation(.easeInOut(duration: 0.15)) {
+                                viewModel.selectTab(tab.id)
+                            }
                         }
-                    }
-                )
+                    )
+                }
+                Spacer()
             }
-            Spacer()
         }
     }
     
@@ -191,26 +193,29 @@ struct LibraryPage: View {
     
     private var emptyStateIcon: String {
         if !viewModel.searchText.isEmpty { return "magnifyingglass" }
-        else if viewModel.selectedCategory != .all { return "folder" }
+        else if viewModel.selectedTabId != "all" { return "folder" }
         else { return "doc.text" }
     }
     
     private var emptyStateTitle: String {
-        if !viewModel.searchText.isEmpty { return "未找到匹配的记录" }
-        else if viewModel.selectedCategory != .all { return "该分类暂无记录" }
-        else { return "暂无记录" }
+        if !viewModel.searchText.isEmpty { return L.Library.emptySearchTitle }
+        else if viewModel.selectedTabId != "all" { return L.Library.emptyCategoryTitle }
+        else { return L.Library.emptyTitle }
     }
     
     private var emptyStateMessage: String {
-        if !viewModel.searchText.isEmpty { return "尝试使用其他关键词搜索" }
-        else if viewModel.selectedCategory != .all { return "使用语音输入后，记录将显示在这里" }
-        else { return "开始使用语音输入，\n您的记录将自动保存在这里" }
+        if !viewModel.searchText.isEmpty { return L.Library.emptySearchMsg }
+        else if viewModel.selectedTabId != "all" { return L.Library.emptyCategoryMsg }
+        else { return L.Library.emptyMsg }
     }
     
     private var detailPanelSection: some View {
         Group {
             if let selectedRecord = viewModel.selectedRecord {
-                RecordDetailPanel(record: selectedRecord)
+                RecordDetailPanel(
+                    record: selectedRecord,
+                    onDelete: { viewModel.deleteRecord(selectedRecord) }
+                )
             } else {
                 RecordDetailEmptyView()
             }
@@ -219,21 +224,32 @@ struct LibraryPage: View {
     }
 }
 
-// MARK: - CategoryTabButton
+// MARK: - SkillTabButton
 
-struct CategoryTabButton: View {
-    let category: RecordCategory
+struct SkillTabButton: View {
+    let tab: SkillTab
     let isSelected: Bool
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
             HStack(spacing: DS.Spacing.sm) {
-                Image(systemName: categoryIcon)
-                    .font(.system(size: 11))
+                if tab.id == "all" {
+                    Image(systemName: tab.icon)
+                        .font(.system(size: 11))
+                } else {
+                    Text(tab.icon)
+                        .font(.system(size: 11))
+                }
                 
-                Text(category.displayName)
+                Text(tab.displayName)
                     .font(DS.Typography.body)
+                
+                if tab.isDeleted {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 9))
+                        .foregroundColor(DS.Colors.statusWarning)
+                }
             }
             .foregroundColor(isSelected ? DS.Colors.text1 : DS.Colors.text2)
             .padding(.horizontal, DS.Spacing.md)
@@ -246,15 +262,6 @@ struct CategoryTabButton: View {
             .clipShape(Capsule())
         }
         .buttonStyle(.plain)
-    }
-    
-    private var categoryIcon: String {
-        switch category {
-        case .all: return "square.grid.2x2"
-        case .polish: return "wand.and.stars"
-        case .translate: return "globe"
-        case .memo: return "note.text"
-        }
     }
 }
 

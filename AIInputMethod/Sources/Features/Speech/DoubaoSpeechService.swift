@@ -101,7 +101,7 @@ class DoubaoSpeechService: ObservableObject {
         sequenceNumber = 1
         audioBuffer = Data()
         isRecording = true
-        transcript = "正在听..."
+        transcript = AppConstants.Speech.listeningSentinel
         
         connectWebSocket()
     }
@@ -589,7 +589,7 @@ class DoubaoSpeechService: ObservableObject {
                 DispatchQueue.main.async {
                     let finalText = self.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
                     logToFile("[Doubao] Final text: '\(finalText)'")
-                    if !finalText.isEmpty && finalText != "正在听..." {
+                    if !finalText.isEmpty && finalText != AppConstants.Speech.listeningSentinel {
                         logToFile("[Doubao] ✅ Calling onFinalResult with: '\(finalText)'")
                         self.onFinalResult?(finalText)
                     } else {

@@ -30,7 +30,7 @@ struct PreferencesPage: View {
                 hotkeySettingsSection
                 contactsHotwordsSection
                 autoEnterSection
-                aiEngineSection
+                updateSection
                 resetSection
                 
                 Spacer(minLength: DS.Spacing.xl)
@@ -490,43 +490,39 @@ struct PreferencesPage: View {
         }
     }
 
-    // MARK: - AI Engine Section
+    // MARK: - Update Section
     
-    private var aiEngineSection: some View {
-        MinimalSettingsSection(title: L.Prefs.aiEngine, icon: "cpu") {
+    private var updateSection: some View {
+        MinimalSettingsSection(title: L.Prefs.checkUpdate, icon: "arrow.triangle.2.circlepath") {
             HStack {
                 VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-                    Text(L.Prefs.aiEngineName)
+                    Text(L.Prefs.currentVersion)
                         .font(DS.Typography.body)
                         .foregroundColor(DS.Colors.text1)
                     
-                    Text(L.Prefs.aiEngineApi)
+                    Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—")
                         .font(DS.Typography.caption)
                         .foregroundColor(DS.Colors.text2)
                 }
                 
                 Spacer()
                 
-                HStack(spacing: DS.Spacing.sm) {
-                    if viewModel.aiEngineStatus == .checking {
-                        ProgressView()
-                            .scaleEffect(0.6)
-                    } else {
-                        StatusDot(status: viewModel.aiEngineStatus == .online ? .success : .error, size: 8)
+                Button(action: {
+                    NotificationCenter.default.post(name: .checkForUpdates, object: nil)
+                }) {
+                    HStack(spacing: DS.Spacing.xs) {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .font(.system(size: 11))
+                        Text(L.Prefs.checkUpdate)
+                            .font(DS.Typography.caption)
                     }
-                    
-                    Text(viewModel.aiEngineStatus.localizedText)
-                        .font(DS.Typography.caption)
-                        .foregroundColor(DS.Colors.text2)
-                }
-                
-                Button(action: { viewModel.checkAIEngineStatus() }) {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 11))
-                        .foregroundColor(DS.Colors.icon)
+                    .foregroundColor(DS.Colors.text1)
+                    .padding(.horizontal, DS.Spacing.md)
+                    .padding(.vertical, DS.Spacing.sm)
+                    .background(DS.Colors.highlight)
+                    .cornerRadius(DS.Layout.cornerRadius)
                 }
                 .buttonStyle(.plain)
-                .padding(.leading, DS.Spacing.sm)
             }
             .padding(DS.Spacing.lg)
         }

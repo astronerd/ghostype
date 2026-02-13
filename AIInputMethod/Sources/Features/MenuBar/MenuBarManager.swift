@@ -15,6 +15,7 @@ class MenuBarManager {
     var onShowDashboard: (() -> Void)?
     var onCheckForUpdates: (() -> Void)?
     var onShowOverlayTest: (() -> Void)?
+    var onShowSizeDebug: (() -> Void)?
 
     // MARK: - Setup
 
@@ -42,18 +43,18 @@ class MenuBarManager {
         titleItem.isEnabled = false
         menu.addItem(titleItem)
 
-        let hotkeyItem = NSMenuItem(title: "快捷键: \(AppSettings.shared.hotkeyDisplay)", action: nil, keyEquivalent: "")
+        let hotkeyItem = NSMenuItem(title: "\(L.MenuBar.hotkeyPrefix)\(AppSettings.shared.hotkeyDisplay)", action: nil, keyEquivalent: "")
         hotkeyItem.isEnabled = false
         menu.addItem(hotkeyItem)
 
         menu.addItem(NSMenuItem.separator())
 
-        let dashboardItem = NSMenuItem(title: "打开 Dashboard", action: #selector(showDashboard), keyEquivalent: "d")
+        let dashboardItem = NSMenuItem(title: L.MenuBar.openDashboard, action: #selector(showDashboard), keyEquivalent: "d")
         dashboardItem.target = self
         dashboardItem.image = NSImage(systemSymbolName: "square.grid.2x2", accessibilityDescription: nil)
         menu.addItem(dashboardItem)
 
-        let checkUpdateItem = NSMenuItem(title: "检查更新...", action: #selector(checkForUpdates), keyEquivalent: "u")
+        let checkUpdateItem = NSMenuItem(title: L.MenuBar.checkUpdate, action: #selector(checkForUpdates), keyEquivalent: "u")
         checkUpdateItem.target = self
         checkUpdateItem.image = NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: nil)
         menu.addItem(checkUpdateItem)
@@ -61,7 +62,7 @@ class MenuBarManager {
         menu.addItem(NSMenuItem.separator())
 
         let accessibilityItem = NSMenuItem(
-            title: permissionManager.isAccessibilityTrusted ? "辅助功能权限" : "辅助功能权限 (点击开启)",
+            title: permissionManager.isAccessibilityTrusted ? L.MenuBar.accessibilityPerm : L.MenuBar.accessibilityPermClick,
             action: #selector(openAccessibilitySettings),
             keyEquivalent: ""
         )
@@ -70,7 +71,7 @@ class MenuBarManager {
         menu.addItem(accessibilityItem)
 
         let micItem = NSMenuItem(
-            title: permissionManager.isMicrophoneGranted ? "麦克风权限" : "麦克风权限 (点击开启)",
+            title: permissionManager.isMicrophoneGranted ? L.MenuBar.micPerm : L.MenuBar.micPermClick,
             action: #selector(requestMic),
             keyEquivalent: ""
         )
@@ -80,20 +81,27 @@ class MenuBarManager {
 
         menu.addItem(NSMenuItem.separator())
 
-        let devMenu = NSMenu(title: "开发者工具")
-        let devItem = NSMenuItem(title: "开发者工具", action: nil, keyEquivalent: "")
+        #if DEBUG
+        let devMenu = NSMenu(title: L.MenuBar.devTools)
+        let devItem = NSMenuItem(title: L.MenuBar.devTools, action: nil, keyEquivalent: "")
         devItem.submenu = devMenu
 
-        let overlayTestItem = NSMenuItem(title: "Overlay 动画测试", action: #selector(showOverlayTestWindow), keyEquivalent: "t")
+        let overlayTestItem = NSMenuItem(title: "Overlay Test", action: #selector(showOverlayTestWindow), keyEquivalent: "t")
         overlayTestItem.target = self
         overlayTestItem.keyEquivalentModifierMask = [.command, .shift]
         devMenu.addItem(overlayTestItem)
 
+        let sizeDebugItem = NSMenuItem(title: "Size Debug", action: #selector(showSizeDebugWindow), keyEquivalent: "y")
+        sizeDebugItem.target = self
+        sizeDebugItem.keyEquivalentModifierMask = [.command, .shift]
+        devMenu.addItem(sizeDebugItem)
+
         menu.addItem(devItem)
+        #endif
 
         menu.addItem(NSMenuItem.separator())
 
-        let quitItem = NSMenuItem(title: "退出", action: #selector(terminateApp), keyEquivalent: "q")
+        let quitItem = NSMenuItem(title: L.MenuBar.quit, action: #selector(terminateApp), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
 
@@ -130,6 +138,10 @@ class MenuBarManager {
 
     @objc private func showOverlayTestWindow() {
         onShowOverlayTest?()
+    }
+
+    @objc private func showSizeDebugWindow() {
+        onShowSizeDebug?()
     }
 
     @objc private func terminateApp() {

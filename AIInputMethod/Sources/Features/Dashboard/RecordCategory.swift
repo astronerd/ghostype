@@ -16,13 +16,13 @@ enum RecordCategory: String, CaseIterable, Identifiable {
     
     var id: String { rawValue }
     
-    /// 显示名称
+    /// 显示名称（本地化）
     var displayName: String {
         switch self {
-        case .all: return "全部"
-        case .polish: return "润色"
-        case .translate: return "翻译"
-        case .memo: return "随心记"
+        case .all: return L.Library.all
+        case .polish: return L.Library.polish
+        case .translate: return L.Library.translate
+        case .memo: return L.Library.memo
         }
     }
 }

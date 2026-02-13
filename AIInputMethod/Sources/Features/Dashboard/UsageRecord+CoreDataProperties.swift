@@ -38,6 +38,15 @@ extension UsageRecord {
     
     /// Device identifier for associating records with a specific device
     @NSManaged public var deviceId: String
+    
+    /// Original voice transcription before AI processing (nil if no processing was done)
+    @NSManaged public var originalContent: String?
+    
+    /// The skill ID used to process this record (nil for legacy records)
+    @NSManaged public var skillId: String?
+    
+    /// The skill display name at the time of recording (nil for legacy records)
+    @NSManaged public var skillName: String?
 }
 
 extension UsageRecord: Identifiable {

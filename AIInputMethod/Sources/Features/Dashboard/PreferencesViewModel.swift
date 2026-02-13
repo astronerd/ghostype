@@ -171,7 +171,6 @@ class PreferencesViewModel {
         self.enableAutoEnter = AppSettings.shared.enableAutoEnter
         self.appLanguage = AppSettings.shared.appLanguage
         
-        checkAIEngineStatus()
         loadContactsStatus()
         loadAutoEnterApps()
     }

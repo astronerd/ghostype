@@ -57,35 +57,25 @@ enum PolishProfile: String, CaseIterable, Identifiable {
     
     // MARK: - Properties
     
-    /// UI 显示名称（中文）
+    /// UI 显示名称（本地化）
     var displayName: String {
         switch self {
-        case .standard:
-            return "默认"
-        case .professional:
-            return "专业"
-        case .casual:
-            return "活泼"
-        case .concise:
-            return "简洁"
-        case .creative:
-            return "创意"
+        case .standard: return L.Profile.standard
+        case .professional: return L.Profile.professional
+        case .casual: return L.Profile.casual
+        case .concise: return L.Profile.concise
+        case .creative: return L.Profile.creative
         }
     }
     
-    /// 配置描述
+    /// 配置描述（本地化）
     var description: String {
         switch self {
-        case .standard:
-            return "去口语化、修语法、保原意"
-        case .professional:
-            return "正式书面语，适合邮件、报告"
-        case .casual:
-            return "保留口语感，轻松社交风格"
-        case .concise:
-            return "精简压缩，提炼核心"
-        case .creative:
-            return "润色+美化，增加修辞"
+        case .standard: return L.Profile.standardDesc
+        case .professional: return L.Profile.professionalDesc
+        case .casual: return L.Profile.casualDesc
+        case .concise: return L.Profile.conciseDesc
+        case .creative: return L.Profile.creativeDesc
         }
     }
     

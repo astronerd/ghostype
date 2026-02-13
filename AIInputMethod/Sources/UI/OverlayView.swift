@@ -13,7 +13,7 @@ struct OverlaySkillInfo: Equatable {
     /// 从 SkillModel 创建（nil = 默认润色）
     static func from(skill: SkillModel?) -> OverlaySkillInfo {
         guard let skill = skill else {
-            return OverlaySkillInfo(name: "润色", color: ModeColors.polishGreen, emoji: nil)
+            return OverlaySkillInfo(name: L.Overlay.defaultSkillName, color: ModeColors.polishGreen, emoji: nil)
         }
         return OverlaySkillInfo(name: skill.name, color: skill.swiftUIColor, emoji: skill.icon)
     }
@@ -166,15 +166,76 @@ struct GlowConfig {
     }
 }
 
+// MARK: - Overlay 尺寸配置
+
+struct OverlaySizeConfig {
+    /// "正在聆听…" 基础宽度之外的额外 padding
+    var minWidthExtraPadding: CGFloat = 12
+    /// 最大显示字符数（超过则截断）
+    var maxCharacters: Int = 42
+    /// capsule 高度
+    var capsuleHeight: CGFloat = 40
+    /// 图标尺寸
+    var iconSize: CGFloat = 22
+    /// 图标与文字间距
+    var spacing: CGFloat = 10
+    /// 水平内边距
+    var horizontalPadding: CGFloat = 14
+    /// Badge 预留空间
+    var badgeSpace: CGFloat = 70
+    /// 文字大小
+    var fontSize: CGFloat = 14
+    
+    static func load() -> OverlaySizeConfig {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let configDir = appSupport.appendingPathComponent("GHOSTYPE")
+        let configPath = configDir.appendingPathComponent("OverlaySizeConfig.json")
+        guard let data = try? Data(contentsOf: configPath),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return OverlaySizeConfig()
+        }
+        var config = OverlaySizeConfig()
+        if let v = json["minWidthExtraPadding"] as? Double { config.minWidthExtraPadding = CGFloat(v) }
+        if let v = json["maxCharacters"] as? Int { config.maxCharacters = v }
+        if let v = json["capsuleHeight"] as? Double { config.capsuleHeight = CGFloat(v) }
+        if let v = json["iconSize"] as? Double { config.iconSize = CGFloat(v) }
+        if let v = json["spacing"] as? Double { config.spacing = CGFloat(v) }
+        if let v = json["horizontalPadding"] as? Double { config.horizontalPadding = CGFloat(v) }
+        if let v = json["badgeSpace"] as? Double { config.badgeSpace = CGFloat(v) }
+        if let v = json["fontSize"] as? Double { config.fontSize = CGFloat(v) }
+        return config
+    }
+    
+    func save() {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let configDir = appSupport.appendingPathComponent("GHOSTYPE")
+        try? FileManager.default.createDirectory(at: configDir, withIntermediateDirectories: true)
+        let configPath = configDir.appendingPathComponent("OverlaySizeConfig.json")
+        let json: [String: Any] = [
+            "minWidthExtraPadding": Double(minWidthExtraPadding),
+            "maxCharacters": maxCharacters,
+            "capsuleHeight": Double(capsuleHeight),
+            "iconSize": Double(iconSize),
+            "spacing": Double(spacing),
+            "horizontalPadding": Double(horizontalPadding),
+            "badgeSpace": Double(badgeSpace),
+            "fontSize": Double(fontSize)
+        ]
+        if let data = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted) {
+            try? data.write(to: configPath)
+        }
+    }
+}
+
 // MARK: - 结果 Badge
 
 enum ResultBadge {
     case polished, translated, saved, custom(String, Color)
     var text: String {
         switch self {
-        case .polished: return "已润色"
-        case .translated: return "已翻译"
-        case .saved: return "已保存"
+        case .polished: return L.Overlay.badgePolished
+        case .translated: return L.Overlay.badgeTranslated
+        case .saved: return L.Overlay.badgeSaved
         case .custom(let name, _): return name
         }
     }
@@ -258,31 +319,36 @@ struct OverlayView: View {
     @State private var commitOffset: CGFloat = 0
     @State private var commitOpacity: Double = 1
     @State private var showGlow: Bool = true
+    @State private var sizeConfig = OverlaySizeConfig.load()
     
-    private let iconSize: CGFloat = 22
-    private let horizontalPadding: CGFloat = 14
-    private let verticalPadding: CGFloat = 10
-    private let spacing: CGFloat = 10
-    // 固定的 capsule 高度，不随内容变化
-    private let fixedCapsuleHeight: CGFloat = 42
+    /// 动态最小宽度：基于 "正在聆听…" 文案实际渲染宽度 + 额外 padding
+    private var dynamicMinWidth: CGFloat {
+        let font = NSFont.systemFont(ofSize: sizeConfig.fontSize, weight: .medium)
+        let listeningText = L.Overlay.listening
+        let textWidth = (listeningText as NSString).size(withAttributes: [.font: font]).width
+        return sizeConfig.iconSize + sizeConfig.spacing + textWidth + sizeConfig.horizontalPadding * 2 + sizeConfig.minWidthExtraPadding
+    }
     
-    private var screenWidth: CGFloat { NSScreen.main?.frame.width ?? 1440 }
+    /// 动态最大宽度：基于 maxCharacters 个字符的渲染宽度
+    private var dynamicMaxWidth: CGFloat {
+        let font = NSFont.systemFont(ofSize: sizeConfig.fontSize, weight: .medium)
+        let sampleChar = String(repeating: "M", count: sizeConfig.maxCharacters)
+        let textWidth = (sampleChar as NSString).size(withAttributes: [.font: font]).width
+        return sizeConfig.iconSize + sizeConfig.spacing + textWidth + sizeConfig.horizontalPadding * 2 + sizeConfig.badgeSpace
+    }
     
     private var capsuleWidth: CGFloat {
-        let minWidth = screenWidth * 0.10
-        let maxWidth = screenWidth * 0.30
         let text = displayText
-        let font = NSFont.systemFont(ofSize: 14, weight: .medium)
+        let font = NSFont.systemFont(ofSize: sizeConfig.fontSize, weight: .medium)
         let textWidth = (text as NSString).size(withAttributes: [.font: font]).width
-        // 预留 Badge 空间（约 60pt）
-        let badgeSpace: CGFloat = showBadge ? 70 : 0
-        let contentWidth = iconSize + spacing + textWidth + horizontalPadding * 2 + badgeSpace
-        return min(max(contentWidth, minWidth), maxWidth)
+        let badgeSpace: CGFloat = showBadge ? sizeConfig.badgeSpace : 0
+        let contentWidth = sizeConfig.iconSize + sizeConfig.spacing + textWidth + sizeConfig.horizontalPadding * 2 + badgeSpace
+        return min(max(contentWidth, dynamicMinWidth), dynamicMaxWidth)
     }
     
     private var maxTextWidth: CGFloat { 
-        let badgeSpace: CGFloat = showBadge ? 70 : 0
-        return capsuleWidth - iconSize - spacing - horizontalPadding * 2 - badgeSpace
+        let badgeSpace: CGFloat = showBadge ? sizeConfig.badgeSpace : 0
+        return capsuleWidth - sizeConfig.iconSize - sizeConfig.spacing - sizeConfig.horizontalPadding * 2 - badgeSpace
     }
     
     var body: some View {
@@ -292,21 +358,21 @@ struct OverlayView: View {
                     color: currentModeColor,
                     phase: stateManager.phase,
                     capsuleWidth: capsuleWidth,
-                    capsuleHeight: fixedCapsuleHeight
+                    capsuleHeight: sizeConfig.capsuleHeight
                 )
             }
             
-            HStack(spacing: spacing) {
+            HStack(spacing: sizeConfig.spacing) {
                 overlayIconView
-                    .frame(width: iconSize, height: iconSize)
+                    .frame(width: sizeConfig.iconSize, height: sizeConfig.iconSize)
                 textArea
                 if let badge = currentResultBadge {
                     ResultBadgeView(badge: badge, isVisible: showBadge)
                         .fixedSize()
                 }
             }
-            .padding(.horizontal, horizontalPadding)
-            .frame(width: capsuleWidth, height: fixedCapsuleHeight)
+            .padding(.horizontal, sizeConfig.horizontalPadding)
+            .frame(width: capsuleWidth, height: sizeConfig.capsuleHeight)
             .background(
                 ZStack {
                     VisualEffectBlur(material: .hudWindow, blendingMode: .behindWindow)
@@ -396,7 +462,7 @@ struct OverlayView: View {
             HStack(spacing: 3) {
                 Spacer(minLength: 0)
                 Text(displayText)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: sizeConfig.fontSize, weight: .medium))
                     .foregroundColor(.white.opacity(0.95))
                     .lineLimit(1)
                     .truncationMode(.head)
@@ -415,9 +481,8 @@ struct OverlayView: View {
     private var displayText: String {
         // 处理中显示对应文案
         switch stateManager.phase {
-        case .processing(let info):
-            // 根据 Skill 名称显示处理文案
-            return "正在\(info.name)…"
+        case .processing:
+            return L.Overlay.thinking
         case .loginRequired:
             return L.Auth.loginRequired
         default:
@@ -425,8 +490,8 @@ struct OverlayView: View {
         }
         
         let text = speechService.transcript
-        if text.isEmpty || text == "正在听..." {
-            return speechService.isRecording ? "正在聆听…" : "⌥ Space"
+        if text.isEmpty || text == L.Overlay.listeningPlaceholder {
+            return speechService.isRecording ? L.Overlay.listening : AppSettings.shared.hotkeyDisplay
         }
         return text
     }

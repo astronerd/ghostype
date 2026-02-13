@@ -13,8 +13,10 @@ import AppKit
 struct RecordDetailPanel: View {
     
     let record: UsageRecord
+    var onDelete: (() -> Void)? = nil
     
     @State private var showCopiedToast: Bool = false
+    @State private var showDeleteConfirm: Bool = false
     
     private let iconSize: CGFloat = 36
     
@@ -33,6 +35,12 @@ struct RecordDetailPanel: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: DS.Layout.cornerRadius))
         .overlay(copiedToastOverlay)
+        .alert(L.Library.confirmDeleteTitle, isPresented: $showDeleteConfirm) {
+            Button(L.Common.cancel, role: .cancel) { }
+            Button(L.Common.delete, role: .destructive) { onDelete?() }
+        } message: {
+            Text(L.Library.confirmDeleteMsg)
+        }
     }
     
     private var headerSection: some View {
@@ -40,7 +48,7 @@ struct RecordDetailPanel: View {
             appIconView
             
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-                Text(record.sourceApp.isEmpty ? "未知应用" : record.sourceApp)
+                Text(record.sourceApp.isEmpty ? L.Library.unknownApp : record.sourceApp)
                     .font(DS.Typography.body)
                     .foregroundColor(DS.Colors.text1)
                 
@@ -82,34 +90,85 @@ struct RecordDetailPanel: View {
     }
     
     private var categoryBadge: some View {
-        Text(categoryDisplayName)
-            .font(DS.Typography.caption)
-            .foregroundColor(DS.Colors.text2)
-            .padding(.horizontal, DS.Spacing.sm)
-            .padding(.vertical, 2)
-            .background(DS.Colors.highlight)
-            .cornerRadius(DS.Layout.cornerRadius)
+        HStack(spacing: 4) {
+            Text(skillDisplayName)
+                .font(DS.Typography.caption)
+                .foregroundColor(DS.Colors.text2)
+            
+            if isSkillDeleted {
+                Text("(\(L.Library.skillDeleted))")
+                    .font(DS.Typography.caption)
+                    .foregroundColor(DS.Colors.statusWarning)
+            }
+        }
+        .padding(.horizontal, DS.Spacing.sm)
+        .padding(.vertical, 2)
+        .background(DS.Colors.highlight)
+        .cornerRadius(DS.Layout.cornerRadius)
     }
     
     private var contentSection: some View {
         ScrollView {
-            Text(record.content)
-                .font(DS.Typography.body)
-                .foregroundColor(DS.Colors.text1)
-                .lineSpacing(4)
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(DS.Spacing.lg)
+            VStack(alignment: .leading, spacing: DS.Spacing.md) {
+                if let original = record.originalContent, !original.isEmpty {
+                    // 原文
+                    VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                        Text(L.Library.originalText)
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text2)
+                        Text(original)
+                            .font(DS.Typography.body)
+                            .foregroundColor(DS.Colors.text2)
+                            .lineSpacing(4)
+                            .textSelection(.enabled)
+                    }
+                    
+                    MinimalDivider()
+                    
+                    // 处理结果
+                    VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                        Text(L.Library.processedText)
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text2)
+                        Text(record.content)
+                            .font(DS.Typography.body)
+                            .foregroundColor(DS.Colors.text1)
+                            .lineSpacing(4)
+                            .textSelection(.enabled)
+                    }
+                } else {
+                    Text(record.content)
+                        .font(DS.Typography.body)
+                        .foregroundColor(DS.Colors.text1)
+                        .lineSpacing(4)
+                        .textSelection(.enabled)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(DS.Spacing.lg)
         }
         .frame(maxHeight: .infinity)
     }
     
     private var toolbarSection: some View {
         HStack {
+            if onDelete != nil {
+                Button(action: { showDeleteConfirm = true }) {
+                    Label(L.Common.delete, systemImage: "trash")
+                        .font(DS.Typography.caption)
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(DS.Colors.statusError)
+                .padding(.horizontal, DS.Spacing.md)
+                .padding(.vertical, DS.Spacing.sm)
+                .background(DS.Colors.statusError.opacity(0.1))
+                .cornerRadius(DS.Layout.cornerRadius)
+            }
+            
             Spacer()
             
             Button(action: copyToClipboard) {
-                Label("复制", systemImage: "doc.on.doc")
+                Label(L.Library.copyBtn, systemImage: "doc.on.doc")
                     .font(DS.Typography.caption)
             }
             .buttonStyle(.plain)
@@ -131,7 +190,7 @@ struct RecordDetailPanel: View {
                 Spacer()
                 HStack(spacing: DS.Spacing.sm) {
                     StatusDot(status: .success)
-                    Text("已复制到剪贴板")
+                    Text(L.Library.copiedToast)
                         .font(DS.Typography.caption)
                         .foregroundColor(DS.Colors.text1)
                 }
@@ -152,27 +211,38 @@ struct RecordDetailPanel: View {
     
     private var formattedTimestamp: String {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "yyyy年M月d日 HH:mm"
+        let lang = LocalizationManager.shared.currentLanguage
+        formatter.locale = lang == .chinese ? Locale(identifier: "zh_CN") : Locale(identifier: "en_US")
+        formatter.dateFormat = lang == .chinese ? "yyyy年M月d日 HH:mm" : "MMM d, yyyy HH:mm"
         return formatter.string(from: record.timestamp)
     }
     
     private var formattedDuration: String {
         let seconds = Int(record.duration)
-        if seconds < 60 { return "\(seconds)秒" }
+        if seconds < 60 { return String(format: L.Library.seconds, seconds) }
         let minutes = seconds / 60
         let remainingSeconds = seconds % 60
-        if remainingSeconds == 0 { return "\(minutes)分钟" }
-        return "\(minutes)分\(remainingSeconds)秒"
+        if remainingSeconds == 0 { return String(format: L.Library.minutes, minutes) }
+        return String(format: L.Library.minuteSeconds, minutes, remainingSeconds)
     }
     
-    private var categoryDisplayName: String {
-        switch record.category {
-        case "polish": return "润色"
-        case "translate": return "翻译"
-        case "memo": return "随心记"
-        default: return "通用"
+    private var skillDisplayName: String {
+        // New records with skillName
+        if let name = record.skillName, !name.isEmpty {
+            return name
         }
+        // Legacy records: derive from category
+        switch record.category {
+        case "polish": return L.Library.polish
+        case "translate": return L.Library.translate
+        case "memo": return L.Library.memo
+        default: return L.Library.categoryGeneral
+        }
+    }
+    
+    private var isSkillDeleted: Bool {
+        guard let skillId = record.skillId, !skillId.isEmpty else { return false }
+        return SkillManager.shared.skill(byId: skillId) == nil
     }
     
     private func getAppIcon(bundleId: String) -> NSImage? {
@@ -204,7 +274,7 @@ struct RecordDetailEmptyView: View {
                 .font(.system(size: 36))
                 .foregroundColor(DS.Colors.text3)
             
-            Text("选择一条记录查看详情")
+            Text(L.Library.selectRecord)
                 .font(DS.Typography.body)
                 .foregroundColor(DS.Colors.text2)
         }

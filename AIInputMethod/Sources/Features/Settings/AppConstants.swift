@@ -40,6 +40,13 @@ enum AppConstants {
         static let loginRequiredDismissDelay: TimeInterval = 2.0
     }
 
+    // MARK: - 语音识别
+
+    enum Speech {
+        /// 录音开始时的占位符（内部 sentinel，不会显示给用户）
+        static let listeningSentinel = "__listening__"
+    }
+
     // MARK: - 文本插入
 
     enum TextInsertion {

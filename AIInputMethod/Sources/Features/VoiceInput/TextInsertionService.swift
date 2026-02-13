@@ -64,12 +64,15 @@ class TextInsertionService {
     }
 
     /// 保存使用记录到 CoreData
-    func saveUsageRecord(content: String, category: RecordCategory) {
+    func saveUsageRecord(content: String, category: RecordCategory, originalContent: String? = nil, skillId: String? = nil, skillName: String? = nil) {
         let context = PersistenceController.shared.container.viewContext
         let record = UsageRecord(context: context)
         record.id = UUID()
         record.content = content
+        record.originalContent = originalContent
         record.category = category.rawValue
+        record.skillId = skillId
+        record.skillName = skillName
         record.timestamp = Date()
         record.deviceId = DeviceIdManager.shared.deviceId
 
@@ -84,7 +87,7 @@ class TextInsertionService {
 
         do {
             try context.save()
-            FileLogger.log("[Record] Saved: \(category.rawValue) - \(content.prefix(30))...")
+            FileLogger.log("[Record] Saved: \(category.rawValue) skill=\(skillName ?? "nil") - \(content.prefix(30))...")
         } catch {
             FileLogger.log("[Record] Save error: \(error)")
         }

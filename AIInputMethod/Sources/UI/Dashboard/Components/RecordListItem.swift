@@ -44,9 +44,18 @@ struct RecordListItem: View {
 
     @ViewBuilder
     private var categoryBadge: some View {
-        let cat = record.category
         let (emoji, color): (String, Color) = {
-            switch cat {
+            // New records with skillId
+            if let skillId = record.skillId, !skillId.isEmpty {
+                if let skill = SkillManager.shared.skill(byId: skillId) {
+                    return (skill.icon, skill.swiftUIColor)
+                } else {
+                    // Skill deleted
+                    return ("⚠️", Color(hex: "#8E8E93"))
+                }
+            }
+            // Legacy records
+            switch record.category {
             case "polish": return ("✨", Color(hex: "#34C759"))
             case "translate": return ("🌐", Color(hex: "#AF52DE"))
             case "memo": return ("📝", Color(hex: "#FF9500"))
@@ -106,7 +115,8 @@ struct RecordListItem: View {
     
     private var formattedTimestamp: String {
         let formatter = RelativeDateTimeFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
+        let lang = LocalizationManager.shared.currentLanguage
+        formatter.locale = lang == .chinese ? Locale(identifier: "zh_CN") : Locale(identifier: "en_US")
         formatter.unitsStyle = .short
         return formatter.localizedString(for: record.timestamp, relativeTo: Date())
     }
@@ -152,7 +162,7 @@ struct RecordListItem: View {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyyMMdd_HHmmss"
         let dateString = dateFormatter.string(from: record.timestamp)
-        return "GHOSTYPE_记录_\(dateString).txt"
+        return "\(L.Library.exportPrefix)_\(dateString).txt"
     }
     
     static func truncateContent(_ content: String, maxLength: Int = 100) -> String {

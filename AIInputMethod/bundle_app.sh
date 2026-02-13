@@ -1,4 +1,7 @@
 #!/bin/bash
+# GHOSTYPE - Debug 打包脚本
+# 用法: bash bundle_app.sh [--clean]
+# --clean: 清除应用数据重新开始
 
 APP_NAME="AIInputMethod"
 DISPLAY_NAME="GHOSTYPE"
@@ -12,30 +15,27 @@ else
     echo "📌 Keeping existing app data (use --clean to reset)"
 fi
 
-echo "📦 Bundling $DISPLAY_NAME (Release)..."
+echo "📦 Bundling $DISPLAY_NAME (Debug)..."
+
+# 检查 debug 可执行文件
+if [ ! -f ".build/debug/$APP_NAME" ]; then
+    echo "❌ Debug executable not found. Run 'swift build -c debug' first."
+    exit 1
+fi
 
 # 清理旧的 app bundle
 rm -rf "$APP_BUNDLE"
 
 mkdir -p "$APP_BUNDLE/Contents/MacOS"
 mkdir -p "$APP_BUNDLE/Contents/Resources"
+mkdir -p "$APP_BUNDLE/Contents/Frameworks"
 
-# Copy Executable - 优先使用 release 版本
-if [ -f ".build/release/$APP_NAME" ]; then
-    cp ".build/release/$APP_NAME" "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
-    chmod +x "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
-    echo "✅ Executable copied (release)."
-elif [ -f ".build/debug/$APP_NAME" ]; then
-    cp ".build/debug/$APP_NAME" "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
-    chmod +x "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
-    echo "✅ Executable copied (debug)."
-else
-    echo "❌ Executable not found."
-    exit 1
-fi
+# Copy Executable
+cp ".build/debug/$APP_NAME" "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
+chmod +x "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
+echo "✅ Executable copied (debug)."
 
 # Copy Sparkle.framework
-mkdir -p "$APP_BUNDLE/Contents/Frameworks"
 if [ -d "Frameworks/Sparkle.framework" ]; then
     cp -R "Frameworks/Sparkle.framework" "$APP_BUNDLE/Contents/Frameworks/"
     echo "✅ Sparkle.framework copied."
@@ -43,7 +43,7 @@ else
     echo "⚠️ Sparkle.framework not found in Frameworks/, skipping."
 fi
 
-# App Icon - 使用现有的 AppIcon.iconset 文件夹
+# App Icon
 if [ -d "AppIcon.iconset" ]; then
     iconutil -c icns "AppIcon.iconset" -o "$APP_BUNDLE/Contents/Resources/AppIcon.icns" 2>/dev/null
     echo "✅ App icon created (AppIcon.icns)."
@@ -79,7 +79,6 @@ done
 for png in Sources/Resources/*.png; do
     if [ -f "$png" ]; then
         basename_png=$(basename "$png")
-        # Skip files already copied above
         if [ "$basename_png" != "MenuBarIcon.png" ] && [ "$basename_png" != "GhostIcon.png" ]; then
             cp "$png" "$APP_BUNDLE/Contents/Resources/"
             echo "✅ PNG copied: $basename_png"
@@ -104,9 +103,9 @@ cat <<EOF > "$APP_BUNDLE/Contents/Info.plist"
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.1.02131640</string>
+    <string>0.0.0-debug</string>
     <key>CFBundleVersion</key>
-    <string>3</string>
+    <string>0</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>LSUIElement</key>
@@ -133,13 +132,13 @@ cat <<EOF > "$APP_BUNDLE/Contents/Info.plist"
     <key>SUPublicEDKey</key>
     <string>8MGfJ7NMeozRnAzggep3bI3Yi4deZgOzyFJ9AtVRUOo=</string>
     <key>SUEnableAutomaticChecks</key>
-    <true/>
+    <false/>
 </dict>
 </plist>
 EOF
-echo "✅ Info.plist created."
+echo "✅ Info.plist created (debug, auto-update disabled)."
 
-# 🔐 代码签名 (Ad-hoc signing for accessibility permissions)
+# 🔐 代码签名
 echo "🔐 Signing app with ad-hoc signature..."
 codesign --force --deep --sign - "$APP_BUNDLE" 2>&1
 if [ $? -eq 0 ]; then
@@ -148,15 +147,11 @@ else
     echo "⚠️ Signing failed, but app may still work."
 fi
 
-# 验证签名
-echo "🔍 Verifying signature..."
-codesign -dv --verbose=2 "$APP_BUNDLE" 2>&1 | head -5
-
 echo ""
-echo "🚀 Done: $APP_BUNDLE"
+echo "🚀 Done: $APP_BUNDLE (Debug)"
 echo "📍 Location: $(pwd)/$APP_BUNDLE"
 
-# 复制 .env 到 app bundle 旁边
+# 复制 .env 到 app bundle
 if [ -f ".env" ]; then
     cp .env "$APP_BUNDLE/Contents/MacOS/.env"
     echo "✅ .env copied into app bundle."

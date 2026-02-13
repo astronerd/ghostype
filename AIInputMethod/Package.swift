@@ -16,7 +16,8 @@ let package = Package(
             dependencies: [],
             path: "Sources",
             swiftSettings: [
-                .unsafeFlags(["-F", "Frameworks"])
+                .unsafeFlags(["-F", "Frameworks"]),
+                .define("DEBUG", .when(configuration: .debug))
             ],
             linkerSettings: [
                 .unsafeFlags(["-F", "Frameworks", "-framework", "Sparkle", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])

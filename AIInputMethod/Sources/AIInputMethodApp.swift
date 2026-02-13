@@ -62,7 +62,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     var hotkeyManager = HotkeyManager()
     var onboardingController = OnboardingWindowController()
     var dashboardController: DashboardWindowController { DashboardWindowController.shared }
-    var testWindow: NSWindow?
     
     // MARK: - Extracted Services
     let textInserter = TextInsertionService()
@@ -201,8 +200,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         menuBarManager.onCheckForUpdates = { [weak self] in
             self?.updaterController.checkForUpdates(nil)
         }
+        
+        // 偏好设置页面的检查更新通知
+        NotificationCenter.default.addObserver(forName: .checkForUpdates, object: nil, queue: .main) { [weak self] _ in
+            self?.updaterController.checkForUpdates(nil)
+        }
         menuBarManager.onShowOverlayTest = {
             OverlayTestWindowController.shared.show()
+        }
+        menuBarManager.onShowSizeDebug = {
+            OverlaySizeTestWindowController.shared.show()
         }
         statusItem = menuBarManager.statusItem
         
@@ -238,24 +245,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             permissionManager.promptForAccessibility()
         }
         permissionManager.requestMicrophoneAccess()
-    }
-    
-    // MARK: - Test Window
-    @objc func showTestWindow() {
-        if testWindow == nil {
-            let window = NSWindow(
-                contentRect: NSRect(origin: .zero, size: AppConstants.Window.testWindowSize),
-                styleMask: [.titled, .closable, .miniaturizable],
-                backing: .buffered,
-                defer: false
-            )
-            window.title = "语音识别测试"
-            window.contentView = NSHostingView(rootView: TestWindow(speechService: speechService))
-            window.center()
-            testWindow = window
-        }
-        testWindow?.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
     }
     
     // MARK: - Overlay (convenience, delegates to OverlayWindowManager)

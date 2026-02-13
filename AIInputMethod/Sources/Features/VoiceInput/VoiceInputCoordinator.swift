@@ -202,22 +202,17 @@ class VoiceInputCoordinator: ToolOutputHandler {
         FileLogger.log("[Process] Processing with skill: \(skillName)")
         FileLogger.log("[Process] Raw text: \(text)")
 
-        if skill.id == SkillModel.builtinMemoId {
-            processMemo(text)
-            return
-        }
-
         Task { @MainActor in
             await self.skillExecutor.execute(
                 skill: skill,
                 speechText: text,
                 onDirectOutput: { [weak self] result in
                     guard let self = self else { return }
-                    self.insertAndRecord(result, skill: skill)
+                    self.insertAndRecord(result, skill: skill, originalText: text)
                 },
                 onRewrite: { [weak self] result in
                     guard let self = self else { return }
-                    self.insertAndRecord(result, skill: skill)
+                    self.insertAndRecord(result, skill: skill, originalText: text)
                 },
                 onFloatingCard: { [weak self] result, speechText, skill, debugInfo in
                     guard let self = self else { return }
@@ -243,9 +238,16 @@ class VoiceInputCoordinator: ToolOutputHandler {
     }
 
     /// 插入文本 + 保存记录 + 报告额度 + 隐藏 Overlay（公共逻辑）
-    private func insertAndRecord(_ text: String, skill: SkillModel) {
+    private func insertAndRecord(_ text: String, skill: SkillModel, originalText: String? = nil) {
         insertTextAtCursor(text)
-        textInserter.saveUsageRecord(content: text, category: categoryForSkill(skill))
+        let original = (originalText != nil && originalText != text) ? originalText : nil
+        textInserter.saveUsageRecord(
+            content: text,
+            category: categoryForSkill(skill),
+            originalContent: original,
+            skillId: skill.id,
+            skillName: skill.localizedName
+        )
         Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
         NotificationCenter.default.post(name: .ghostTwinStatusShouldRefresh, object: nil)
         OverlayStateManager.shared.setCommitting(type: .textInput)
@@ -283,7 +285,10 @@ class VoiceInputCoordinator: ToolOutputHandler {
             } else {
                 FileLogger.log("[Process] AI Polish OFF, inserting raw text")
                 insertTextAtCursor(text)
-                textInserter.saveUsageRecord(content: text, category: .polish)
+                textInserter.saveUsageRecord(
+                    content: text, category: .polish, originalContent: nil,
+                    skillId: SkillModel.builtinGhostCommandId, skillName: L.Overlay.defaultSkillName
+                )
                 Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
                 OverlayStateManager.shared.setCommitting(type: .textInput)
                 DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.Overlay.commitDismissDelay) {
@@ -305,7 +310,10 @@ class VoiceInputCoordinator: ToolOutputHandler {
         if text.count < polishThreshold {
             print("[Polish] Text too short (\(text.count) < \(polishThreshold)), skipping AI")
             insertTextAtCursor(text)
-            textInserter.saveUsageRecord(content: text, category: .polish)
+            textInserter.saveUsageRecord(
+                content: text, category: .polish, originalContent: nil,
+                skillId: SkillModel.builtinGhostCommandId, skillName: L.Overlay.defaultSkillName
+            )
             Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
             OverlayStateManager.shared.setCommitting(type: .textInput)
             DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.Overlay.commitDismissDelay) {
@@ -333,7 +341,11 @@ class VoiceInputCoordinator: ToolOutputHandler {
                 )
                 print("[Polish] Success: \(polishedText)")
                 self.insertTextAtCursor(polishedText)
-                self.textInserter.saveUsageRecord(content: polishedText, category: .polish)
+                let original = (polishedText != text) ? text : nil
+                self.textInserter.saveUsageRecord(
+                    content: polishedText, category: .polish, originalContent: original,
+                    skillId: SkillModel.builtinGhostCommandId, skillName: L.Overlay.defaultSkillName
+                )
                 Task { await QuotaManager.shared.reportAndRefresh(characters: polishedText.count) }
                 NotificationCenter.default.post(name: .ghostTwinStatusShouldRefresh, object: nil)
             } catch {
@@ -362,7 +374,10 @@ class VoiceInputCoordinator: ToolOutputHandler {
                 )
                 print("[Translate] Success: \(translatedText)")
                 self.insertTextAtCursor(translatedText)
-                self.textInserter.saveUsageRecord(content: translatedText, category: .translate)
+                self.textInserter.saveUsageRecord(
+                    content: translatedText, category: .translate, originalContent: text,
+                    skillId: SkillModel.builtinTranslateId, skillName: L.Skill.builtinTranslateName
+                )
                 Task { await QuotaManager.shared.reportAndRefresh(characters: translatedText.count) }
                 NotificationCenter.default.post(name: .ghostTwinStatusShouldRefresh, object: nil)
             } catch {
@@ -381,7 +396,10 @@ class VoiceInputCoordinator: ToolOutputHandler {
     private func processMemo(_ text: String) {
         FileLogger.log("[Memo] Saving memo directly...")
 
-        textInserter.saveUsageRecord(content: text, category: .memo)
+        textInserter.saveUsageRecord(
+            content: text, category: .memo, originalContent: nil,
+            skillId: SkillModel.builtinMemoId, skillName: L.Skill.builtinMemoName
+        )
         FileLogger.log("[Memo] Saved to notes")
         Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
 
@@ -408,14 +426,17 @@ class VoiceInputCoordinator: ToolOutputHandler {
     func handleTextOutput(context: ToolContext) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            self.insertAndRecord(context.text, skill: context.skill)
+            self.insertAndRecord(context.text, skill: context.skill, originalText: nil)
         }
     }
 
     func handleMemoSave(text: String) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            self.textInserter.saveUsageRecord(content: text, category: .memo)
+            self.textInserter.saveUsageRecord(
+                content: text, category: .memo,
+                skillId: SkillModel.builtinMemoId, skillName: L.Skill.builtinMemoName
+            )
             FileLogger.log("[Memo] Saved via ToolRegistry")
             Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
             OverlayStateManager.shared.setCommitting(type: .memoSaved)

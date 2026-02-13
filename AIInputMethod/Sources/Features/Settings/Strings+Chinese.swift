@@ -21,6 +21,9 @@ struct ChineseStrings: StringsTable {
     var floatingCard: FloatingCardStrings { ChineseFloatingCard() }
     var banner: BannerStrings { ChineseBanner() }
     var skill: SkillStrings { ChineseSkill() }
+    var menuBar: MenuBarStrings { ChineseMenuBar() }
+    var overlay: OverlayStrings { ChineseOverlay() }
+    var aiPolishExamples: AIPolishExamplesStrings { ChineseAIPolishExamples() }
 }
 
 // MARK: - Onboarding
@@ -80,8 +83,8 @@ private struct ChineseNav: NavStrings {
     var overview: String { "概览" }
     var incubator: String { "孵化室" }
     var skills: String { "技能" }
-    var library: String { "记录库" }
-    var memo: String { "随心记" }
+    var library: String { "输入历史" }
+    var memo: String { "快速笔记" }
     var aiPolish: String { "AI 润色" }
     var preferences: String { "偏好设置" }
 }
@@ -95,7 +98,7 @@ private struct ChineseOverview: OverviewStrings {
     var totalRecords: String { "总记录数" }
     var polishCount: String { "润色" }
     var translateCount: String { "翻译" }
-    var memoCount: String { "随心记" }
+    var memoCount: String { "快速笔记" }
     var wordCount: String { "输入字数统计" }
     var today: String { "今日" }
     var chars: String { "字" }
@@ -114,19 +117,42 @@ private struct ChineseOverview: OverviewStrings {
 // MARK: - Library
 
 private struct ChineseLibrary: LibraryStrings {
-    var title: String { "记录库" }
+    var title: String { "输入历史" }
+    var subtitle: String { "搜索和管理您的语音输入记录" }
     var empty: String { "暂无记录" }
     var search: String { "搜索..." }
+    var searchPlaceholder: String { "搜索记录内容..." }
     var all: String { "全部" }
     var polish: String { "润色" }
     var translate: String { "翻译" }
-    var memo: String { "随心记" }
+    var memo: String { "快速笔记" }
+    var recordCount: String { "%d 条记录" }
+    var unknownApp: String { "未知应用" }
+    var copyBtn: String { "复制" }
+    var copiedToast: String { "已复制到剪贴板" }
+    var selectRecord: String { "选择一条记录查看详情" }
+    var categoryGeneral: String { "通用" }
+    var emptySearchTitle: String { "未找到匹配的记录" }
+    var emptySearchMsg: String { "尝试使用其他关键词搜索" }
+    var emptyCategoryTitle: String { "该分类暂无记录" }
+    var emptyCategoryMsg: String { "使用语音输入后，记录将显示在这里" }
+    var emptyTitle: String { "暂无记录" }
+    var emptyMsg: String { "开始使用语音输入，\n您的记录将自动保存在这里" }
+    var seconds: String { "%d秒" }
+    var minutes: String { "%d分钟" }
+    var minuteSeconds: String { "%d分%d秒" }
+    var exportPrefix: String { "GHOSTYPE_记录" }
+    var confirmDeleteTitle: String { "确认删除" }
+    var confirmDeleteMsg: String { "删除后无法恢复，确定要删除这条记录吗？" }
+    var originalText: String { "原文" }
+    var processedText: String { "处理结果" }
+    var skillDeleted: String { "技能已删除" }
 }
 
 // MARK: - Memo
 
 private struct ChineseMemo: MemoStrings {
-    var title: String { "随心记" }
+    var title: String { "快速笔记" }
     var empty: String { "暂无笔记" }
     var placeholder: String { "按住快捷键说话，记录灵感..." }
     var noteCount: String { "条笔记" }
@@ -202,8 +228,8 @@ private struct ChinesePrefs: PrefsStrings {
     var modeModifiers: String { "模式修饰键" }
     var translateMode: String { "翻译模式" }
     var translateModeDesc: String { "按住主触发键 + 此修饰键进入翻译模式" }
-    var memoMode: String { "随心记模式" }
-    var memoModeDesc: String { "按住主触发键 + 此修饰键进入随心记模式" }
+    var memoMode: String { "快速笔记模式" }
+    var memoModeDesc: String { "按住主触发键 + 此修饰键进入快速笔记模式" }
     var translateSettings: String { "翻译设置" }
     var translateLanguage: String { "翻译语言" }
     var translateLanguageDesc: String { "选择翻译模式的目标语言" }
@@ -228,6 +254,8 @@ private struct ChinesePrefs: PrefsStrings {
     var aiEngineOnline: String { "在线" }
     var aiEngineOffline: String { "离线" }
     var aiEngineChecking: String { "检测中..." }
+    var checkUpdate: String { "检查更新" }
+    var currentVersion: String { "当前版本" }
     var reset: String { "恢复默认设置" }
 }
 
@@ -281,15 +309,21 @@ private struct ChineseTranslate: TranslateStrings {
     var englishKorean: String { "英韩互译" }
     var auto: String { "自动检测" }
 }
+
 // MARK: - Profile
 
 private struct ChineseProfile: ProfileStrings {
-    var standard: String { "标准" }
+    var standard: String { "默认" }
     var professional: String { "专业" }
-    var casual: String { "轻松" }
+    var casual: String { "活泼" }
     var concise: String { "简洁" }
     var creative: String { "创意" }
     var custom: String { "自定义" }
+    var standardDesc: String { "去口语化、修语法、保原意" }
+    var professionalDesc: String { "正式书面语，适合邮件、报告" }
+    var casualDesc: String { "保留口语感，轻松社交风格" }
+    var conciseDesc: String { "精简压缩，提炼核心" }
+    var creativeDesc: String { "润色+美化，增加修辞" }
 }
 
 // MARK: - Auth
@@ -345,7 +379,6 @@ private struct ChineseIncubator: IncubatorStrings {
     var idleTextsLevel10: [String] { ["我就是你。", "随时准备好。", "让我替你说话。", "我们是一体的。", "你的分身已完成。"] }
 }
 
-
 // MARK: - Floating Card
 
 private struct ChineseFloatingCard: FloatingCardStrings {
@@ -398,5 +431,67 @@ private struct ChineseSkill: SkillStrings {
     var generatingPrompt: String { "正在生成指令…" }
     var skillInstruction: String { "指令" }
     var instructionPlaceholder: String { "描述这个 Skill 要做什么，AI 会自动生成完整的执行指令" }
-    var hotkeyConflictNote: String { "⚠️ 以下按键与 macOS 系统快捷键冲突，绑定后可能无法自动上屏：F（前进一词）、B（后退一词）、D（向前删除）、W（删除前一词）、A（行首）、E（行尾）、H（退格）、K（删除至行尾）、N（下一行）、P（上一行）" }
+    var hotkeyConflictNote: String { "以下按键与 macOS 系统快捷键冲突，绑定后可能无法自动上屏：F（前进一词）、B（后退一词）、D（向前删除）、W（删除前一词）、A（行首）、E（行尾）、H（退格）、K（删除至行尾）、N（下一行）、P（上一行）" }
+    var emojiInputHint: String { "输入或粘贴 emoji" }
+    var openEmojiPanel: String { "打开系统 emoji 面板" }
+    var builtinGhostCommandName: String { "Ghost Command" }
+    var builtinGhostCommandDesc: String { "万能 AI 助手，根据语音指令直接生成内容。适用于写作、编程、计算、翻译、总结等任何文本生成任务。" }
+    var builtinGhostTwinName: String { "Ghost Twin" }
+    var builtinGhostTwinDesc: String { "以你的口吻和语言习惯生成回复。基于你的人格档案，模仿你的表达风格。" }
+    var builtinMemoName: String { "快速笔记" }
+    var builtinMemoDesc: String { "将语音内容整理为结构化笔记并保存。适用于会议记录、灵感捕捉、待办事项等场景。" }
+    var builtinTranslateName: String { "翻译" }
+    var builtinTranslateDesc: String { "语音翻译助手，将语音内容翻译为目标语言。支持自动检测源语言。" }
+    var langChinese: String { "中文" }
+    var langEnglish: String { "英文" }
+    var langJapanese: String { "日文" }
+    var langKorean: String { "韩文" }
+    var langFrench: String { "法文" }
+    var langGerman: String { "德文" }
+    var langSpanish: String { "西班牙文" }
+    var langRussian: String { "俄文" }
+}
+
+// MARK: - Menu Bar
+
+private struct ChineseMenuBar: MenuBarStrings {
+    var hotkeyPrefix: String { "快捷键: " }
+    var openDashboard: String { "打开 Dashboard" }
+    var checkUpdate: String { "检查更新..." }
+    var accessibilityPerm: String { "辅助功能权限" }
+    var accessibilityPermClick: String { "辅助功能权限 (点击开启)" }
+    var micPerm: String { "麦克风权限" }
+    var micPermClick: String { "麦克风权限 (点击开启)" }
+    var devTools: String { "开发者工具" }
+    var overlayTest: String { "Overlay 动画测试" }
+    var quit: String { "退出" }
+}
+
+// MARK: - Overlay
+
+private struct ChineseOverlay: OverlayStrings {
+    var thinking: String { "思考中…" }
+    var listening: String { "正在聆听…" }
+    var listeningPlaceholder: String { "__listening__" }
+    var badgePolished: String { "已润色" }
+    var badgeTranslated: String { "已翻译" }
+    var badgeSaved: String { "已保存" }
+    var defaultSkillName: String { "润色" }
+}
+
+// MARK: - AI Polish Examples
+
+private struct ChineseAIPolishExamples: AIPolishExamplesStrings {
+    var inSentenceInput1: String { "我今天出门看见一个小狗 加个小狗的emoji 然后我想摸摸它但是它跑了 哭脸表情" }
+    var inSentenceOutput1: String { "我今天出门看见一个小狗🐶然后我想摸摸它但是它跑了😭" }
+    var inSentenceInput2: String { "密码是 大写A 小写b 数字1 数字2 at符号" }
+    var inSentenceOutput2: String { "Ab12@" }
+    var inSentenceInput3: String { "第一点我们要开会 换行 第二点准备材料 换行 第三点通知客户" }
+    var inSentenceOutput3: String { "第一点我们要开会\n第二点准备材料\n第三点通知客户" }
+    var triggerInput1: String { "审核Q3报告、更新官网文案、给Acme发票、约设计团队一对一 %@ 做成待办清单" }
+    var triggerOutput1: String { "- [ ] 审核 Q3 报告\n- [ ] 更新官网文案\n- [ ] 给 Acme Corp 发送发票\n- [ ] 约设计团队一对一会议" }
+    var triggerInput2: String { "hey this deadline isn't gonna work for us %@ recipient is my VP, keep it professional" }
+    var triggerOutput2: String { "Hi Michael, I wanted to flag a concern regarding the current timeline. Given the scope, it may be worth discussing an adjusted deadline to ensure quality." }
+    var triggerInput3: String { "张处这个不太行 %@ 对方是个体制内处长给我改改" }
+    var triggerOutput3: String { "张处，关于此事，经综合评估，实施层面确实存在一些客观困难，可能需要从长计议。" }
 }

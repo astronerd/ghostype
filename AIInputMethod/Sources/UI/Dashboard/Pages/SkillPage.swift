@@ -72,7 +72,7 @@ struct SkillPage: View {
 
                 // macOS 系统快捷键冲突提示
                 HStack(alignment: .top, spacing: DS.Spacing.sm) {
-                    Image(systemName: "exclamationmark.triangle")
+                    Image(systemName: "info.circle")
                         .font(.system(size: 11))
                         .foregroundColor(DS.Colors.text3)
                         .padding(.top, 1)
@@ -172,7 +172,7 @@ struct SkillCardView: View {
                     .frame(width: 28, height: 28)
 
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(skill.name)
+                    Text(skill.localizedName)
                         .font(DS.Typography.title)
                         .foregroundColor(DS.Colors.text1)
                         .lineLimit(1)
@@ -191,7 +191,7 @@ struct SkillCardView: View {
                 }
             }
 
-            Text(skill.description)
+            Text(skill.localizedDescription)
                 .font(DS.Typography.caption)
                 .foregroundColor(DS.Colors.text2)
                 .lineLimit(2)
@@ -573,9 +573,26 @@ struct SkillCreateSheet: View {
 struct SkillEditSheet: View {
     @Bindable var viewModel: SkillViewModel
 
-    private let languageOptions = [
-        L.Skill.autoDetect, "中文", "英文", "日文", "韩文", "法文", "德文", "西班牙文", "俄文"
+    /// Internal value (Chinese, used in config/prompt) → localized display name
+    private static let languageMap: [(value: String, display: () -> String)] = [
+        ("自动检测", { L.Skill.autoDetect }),
+        ("中文", { L.Skill.langChinese }),
+        ("英文", { L.Skill.langEnglish }),
+        ("日文", { L.Skill.langJapanese }),
+        ("韩文", { L.Skill.langKorean }),
+        ("法文", { L.Skill.langFrench }),
+        ("德文", { L.Skill.langGerman }),
+        ("西班牙文", { L.Skill.langSpanish }),
+        ("俄文", { L.Skill.langRussian }),
     ]
+
+    private var languageInternalValues: [String] {
+        Self.languageMap.map(\.value)
+    }
+
+    private func displayName(for internalValue: String) -> String {
+        Self.languageMap.first(where: { $0.value == internalValue })?.display() ?? internalValue
+    }
 
     private var isTranslateSkill: Bool {
         viewModel.editingSkill?.id == SkillModel.builtinTranslateId ||
@@ -663,11 +680,11 @@ struct SkillEditSheet: View {
                                         .font(DS.Typography.caption)
                                         .foregroundColor(DS.Colors.text2)
                                     Picker("", selection: Binding(
-                                        get: { viewModel.editingSkill?.config["source_language"] ?? L.Skill.autoDetect },
+                                        get: { viewModel.editingSkill?.config["source_language"] ?? "自动检测" },
                                         set: { viewModel.editingSkill?.config["source_language"] = $0 }
                                     )) {
-                                        ForEach(languageOptions, id: \.self) { lang in
-                                            Text(lang).tag(lang)
+                                        ForEach(languageInternalValues, id: \.self) { lang in
+                                            Text(displayName(for: lang)).tag(lang)
                                         }
                                     }
                                     .frame(width: 130)
@@ -686,8 +703,8 @@ struct SkillEditSheet: View {
                                         get: { viewModel.editingSkill?.config["target_language"] ?? "英文" },
                                         set: { viewModel.editingSkill?.config["target_language"] = $0 }
                                     )) {
-                                        ForEach(languageOptions, id: \.self) { lang in
-                                            Text(lang).tag(lang)
+                                        ForEach(languageInternalValues, id: \.self) { lang in
+                                            Text(displayName(for: lang)).tag(lang)
                                         }
                                     }
                                     .frame(width: 130)

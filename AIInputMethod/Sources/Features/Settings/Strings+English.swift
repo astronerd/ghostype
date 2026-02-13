@@ -21,6 +21,9 @@ struct EnglishStrings: StringsTable {
     var floatingCard: FloatingCardStrings { EnglishFloatingCard() }
     var banner: BannerStrings { EnglishBanner() }
     var skill: SkillStrings { EnglishSkill() }
+    var menuBar: MenuBarStrings { EnglishMenuBar() }
+    var overlay: OverlayStrings { EnglishOverlay() }
+    var aiPolishExamples: AIPolishExamplesStrings { EnglishAIPolishExamples() }
 }
 
 // MARK: - Onboarding
@@ -80,8 +83,8 @@ private struct EnglishNav: NavStrings {
     var overview: String { "Overview" }
     var incubator: String { "Incubator" }
     var skills: String { "Skills" }
-    var library: String { "Library" }
-    var memo: String { "Memo" }
+    var library: String { "History" }
+    var memo: String { "Quick Memo" }
     var aiPolish: String { "AI Polish" }
     var preferences: String { "Preferences" }
 }
@@ -95,7 +98,7 @@ private struct EnglishOverview: OverviewStrings {
     var totalRecords: String { "Total Records" }
     var polishCount: String { "Polish" }
     var translateCount: String { "Translate" }
-    var memoCount: String { "Memo" }
+    var memoCount: String { "Quick Memo" }
     var wordCount: String { "Word Count" }
     var today: String { "Today" }
     var chars: String { "chars" }
@@ -114,19 +117,42 @@ private struct EnglishOverview: OverviewStrings {
 // MARK: - Library
 
 private struct EnglishLibrary: LibraryStrings {
-    var title: String { "Library" }
+    var title: String { "History" }
+    var subtitle: String { "Search and manage your voice input records" }
     var empty: String { "No records yet" }
     var search: String { "Search..." }
+    var searchPlaceholder: String { "Search records..." }
     var all: String { "All" }
     var polish: String { "Polish" }
     var translate: String { "Translate" }
-    var memo: String { "Memo" }
+    var memo: String { "Quick Memo" }
+    var recordCount: String { "%d records" }
+    var unknownApp: String { "Unknown App" }
+    var copyBtn: String { "Copy" }
+    var copiedToast: String { "Copied to clipboard" }
+    var selectRecord: String { "Select a record to view details" }
+    var categoryGeneral: String { "General" }
+    var emptySearchTitle: String { "No matching records" }
+    var emptySearchMsg: String { "Try different keywords" }
+    var emptyCategoryTitle: String { "No records in this category" }
+    var emptyCategoryMsg: String { "Records will appear here after voice input" }
+    var emptyTitle: String { "No records yet" }
+    var emptyMsg: String { "Start using voice input,\nyour records will be saved here" }
+    var seconds: String { "%ds" }
+    var minutes: String { "%dmin" }
+    var minuteSeconds: String { "%dm %ds" }
+    var exportPrefix: String { "GHOSTYPE_Record" }
+    var confirmDeleteTitle: String { "Confirm Delete" }
+    var confirmDeleteMsg: String { "This cannot be undone. Delete this record?" }
+    var originalText: String { "Original" }
+    var processedText: String { "Processed" }
+    var skillDeleted: String { "Skill Deleted" }
 }
 
 // MARK: - Memo
 
 private struct EnglishMemo: MemoStrings {
-    var title: String { "Memo" }
+    var title: String { "Quick Memo" }
     var empty: String { "No notes yet" }
     var placeholder: String { "Hold hotkey to speak, capture your thoughts..." }
     var noteCount: String { "notes" }
@@ -202,8 +228,8 @@ private struct EnglishPrefs: PrefsStrings {
     var modeModifiers: String { "Mode Modifiers" }
     var translateMode: String { "Translate Mode" }
     var translateModeDesc: String { "Hold main hotkey + this modifier for translate" }
-    var memoMode: String { "Memo Mode" }
-    var memoModeDesc: String { "Hold main hotkey + this modifier for memo" }
+    var memoMode: String { "Quick Memo Mode" }
+    var memoModeDesc: String { "Hold main hotkey + this modifier for quick memo" }
     var translateSettings: String { "Translation Settings" }
     var translateLanguage: String { "Translation Language" }
     var translateLanguageDesc: String { "Select target language for translation" }
@@ -228,6 +254,8 @@ private struct EnglishPrefs: PrefsStrings {
     var aiEngineOnline: String { "Online" }
     var aiEngineOffline: String { "Offline" }
     var aiEngineChecking: String { "Checking..." }
+    var checkUpdate: String { "Check for Updates" }
+    var currentVersion: String { "Current Version" }
     var reset: String { "Reset to Defaults" }
 }
 
@@ -281,6 +309,7 @@ private struct EnglishTranslate: TranslateStrings {
     var englishKorean: String { "English ↔ Korean" }
     var auto: String { "Auto Detect" }
 }
+
 // MARK: - Profile
 
 private struct EnglishProfile: ProfileStrings {
@@ -290,6 +319,11 @@ private struct EnglishProfile: ProfileStrings {
     var concise: String { "Concise" }
     var creative: String { "Creative" }
     var custom: String { "Custom" }
+    var standardDesc: String { "Remove filler words, fix grammar, keep meaning" }
+    var professionalDesc: String { "Formal writing, ideal for emails and reports" }
+    var casualDesc: String { "Keep it conversational, light social tone" }
+    var conciseDesc: String { "Compress and distill to the core" }
+    var creativeDesc: String { "Polish + embellish, add rhetoric" }
 }
 
 // MARK: - Auth
@@ -345,7 +379,6 @@ private struct EnglishIncubator: IncubatorStrings {
     var idleTextsLevel10: [String] { ["I am you.", "Ready whenever.", "Let me talk for you.", "We are one.", "Your ghost is complete."] }
 }
 
-
 // MARK: - Floating Card
 
 private struct EnglishFloatingCard: FloatingCardStrings {
@@ -398,5 +431,67 @@ private struct EnglishSkill: SkillStrings {
     var generatingPrompt: String { "Generating instructions…" }
     var skillInstruction: String { "Instruction" }
     var instructionPlaceholder: String { "Describe what this Skill should do. AI will generate the full execution prompt." }
-    var hotkeyConflictNote: String { "⚠️ These keys conflict with macOS system shortcuts and may prevent auto-insert when bound: F (forward word), B (backward word), D (forward delete), W (delete word), A (line start), E (line end), H (backspace), K (kill line), N (next line), P (previous line)" }
+    var hotkeyConflictNote: String { "These keys conflict with macOS system shortcuts and may prevent auto-insert when bound: F (forward word), B (backward word), D (forward delete), W (delete word), A (line start), E (line end), H (backspace), K (kill line), N (next line), P (previous line)" }
+    var emojiInputHint: String { "Type or paste emoji" }
+    var openEmojiPanel: String { "Open system emoji panel" }
+    var builtinGhostCommandName: String { "Ghost Command" }
+    var builtinGhostCommandDesc: String { "Universal AI assistant. Generate content from voice commands — writing, coding, calculations, translation, summaries, and more." }
+    var builtinGhostTwinName: String { "Ghost Twin" }
+    var builtinGhostTwinDesc: String { "Reply in your voice and style. Based on your personality profile, it mimics how you express yourself." }
+    var builtinMemoName: String { "Quick Memo" }
+    var builtinMemoDesc: String { "Turn voice into structured notes. Great for meetings, ideas, and to-do lists." }
+    var builtinTranslateName: String { "Translate" }
+    var builtinTranslateDesc: String { "Voice translation assistant. Translate spoken content into the target language with auto source detection." }
+    var langChinese: String { "Chinese" }
+    var langEnglish: String { "English" }
+    var langJapanese: String { "Japanese" }
+    var langKorean: String { "Korean" }
+    var langFrench: String { "French" }
+    var langGerman: String { "German" }
+    var langSpanish: String { "Spanish" }
+    var langRussian: String { "Russian" }
+}
+
+// MARK: - Menu Bar
+
+private struct EnglishMenuBar: MenuBarStrings {
+    var hotkeyPrefix: String { "Hotkey: " }
+    var openDashboard: String { "Open Dashboard" }
+    var checkUpdate: String { "Check for Updates..." }
+    var accessibilityPerm: String { "Accessibility Permission" }
+    var accessibilityPermClick: String { "Accessibility Permission (Click to Enable)" }
+    var micPerm: String { "Microphone Permission" }
+    var micPermClick: String { "Microphone Permission (Click to Enable)" }
+    var devTools: String { "Developer Tools" }
+    var overlayTest: String { "Overlay Animation Test" }
+    var quit: String { "Quit" }
+}
+
+// MARK: - Overlay
+
+private struct EnglishOverlay: OverlayStrings {
+    var thinking: String { "Thinking..." }
+    var listening: String { "Listening..." }
+    var listeningPlaceholder: String { "__listening__" }
+    var badgePolished: String { "Polished" }
+    var badgeTranslated: String { "Translated" }
+    var badgeSaved: String { "Saved" }
+    var defaultSkillName: String { "Polish" }
+}
+
+// MARK: - AI Polish Examples
+
+private struct EnglishAIPolishExamples: AIPolishExamplesStrings {
+    var inSentenceInput1: String { "I saw a puppy today add a puppy emoji and I wanted to pet it but it ran away crying face" }
+    var inSentenceOutput1: String { "I saw a puppy today 🐶 and I wanted to pet it but it ran away 😭" }
+    var inSentenceInput2: String { "password is capital A lowercase b number 1 number 2 at sign" }
+    var inSentenceOutput2: String { "Ab12@" }
+    var inSentenceInput3: String { "first we need a meeting new line second prepare materials new line third notify clients" }
+    var inSentenceOutput3: String { "First we need a meeting\nSecond prepare materials\nThird notify clients" }
+    var triggerInput1: String { "review Q3 report, update website copy, invoice Acme, schedule design team 1-on-1 %@ make a to-do list" }
+    var triggerOutput1: String { "- [ ] Review Q3 report\n- [ ] Update website copy\n- [ ] Invoice Acme Corp\n- [ ] Schedule design team 1-on-1" }
+    var triggerInput2: String { "hey this deadline isn't gonna work for us %@ recipient is my VP, keep it professional" }
+    var triggerOutput2: String { "Hi Michael, I wanted to flag a concern regarding the current timeline. Given the scope, it may be worth discussing an adjusted deadline to ensure quality." }
+    var triggerInput3: String { "this plan has issues %@ recipient is a senior government official, make it diplomatic" }
+    var triggerOutput3: String { "Regarding this matter, after comprehensive evaluation, there are indeed some practical challenges at the implementation level that may require further deliberation." }
 }

@@ -17,6 +17,7 @@ struct MemoPage: View {
     @State private var isLoading = false
     @State private var currentPage: Int = 0
     @State private var hasMoreData: Bool = true
+    @State private var showDetailSheet = false
     
     private let pageSize: Int = 20
     private let persistenceController: PersistenceController
@@ -56,9 +57,13 @@ struct MemoPage: View {
                         ForEach(filteredMemos, id: \.objectID) { memo in
                             MemoCard(
                                 memo: memo,
-                                isSelected: false,
+                                isSelected: selectedMemo?.objectID == memo.objectID,
                                 onDelete: { deleteMemo(memo) }
                             )
+                            .onTapGesture {
+                                selectedMemo = memo
+                                showDetailSheet = true
+                            }
                             .onAppear {
                                 if memo.objectID == filteredMemos.last?.objectID && hasMoreData && !isLoading {
                                     loadMemos()
@@ -85,6 +90,22 @@ struct MemoPage: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(DS.Colors.bg1)
         .onAppear { loadMemos(reset: true) }
+        .sheet(isPresented: $showDetailSheet) {
+            if let memo = selectedMemo {
+                MemoDetailSheet(
+                    memo: memo,
+                    onSave: { newContent in
+                        updateMemo(memo, content: newContent)
+                        showDetailSheet = false
+                    },
+                    onCancel: { showDetailSheet = false },
+                    onDelete: {
+                        deleteMemo(memo)
+                        showDetailSheet = false
+                    }
+                )
+            }
+        }
     }
 
     private var memoHeader: some View {

@@ -470,16 +470,16 @@ struct AIPolishPage: View {
             }
             VStack(alignment: .leading, spacing: DS.Spacing.md) {
                 exampleBlock(
-                    input: "那个，额，就是那个我觉得这个方案吧，对，这个方案还是改一改吧",
-                    output: "我觉得这个方案还是得改一下"
+                    input: L.AIPolishExamples.inSentenceInput1,
+                    output: L.AIPolishExamples.inSentenceOutput1
                 )
                 exampleBlock(
-                    input: "so um I think we should probably like revisit the budget yeah",
-                    output: "I think we should revisit the budget"
+                    input: L.AIPolishExamples.inSentenceInput2,
+                    output: L.AIPolishExamples.inSentenceOutput2
                 )
                 exampleBlock(
-                    input: "我今天出门看见一个小狗 加个小狗的emoji 然后我想摸摸它但是它跑了 哭脸表情",
-                    output: "我今天出门看见一个小狗🐶然后我想摸摸它但是它跑了😭"
+                    input: L.AIPolishExamples.inSentenceInput3,
+                    output: L.AIPolishExamples.inSentenceOutput3
                 )
             }
         }
@@ -564,16 +564,16 @@ struct AIPolishPage: View {
             }
             VStack(alignment: .leading, spacing: DS.Spacing.md) {
                 exampleBlock(
-                    input: "审核Q3报告、更新官网文案、给Acme发票、约设计团队一对一 \(displayWord) 做成待办清单",
-                    output: "- [ ] 审核 Q3 报告\n- [ ] 更新官网文案\n- [ ] 给 Acme Corp 发送发票\n- [ ] 约设计团队一对一会议"
+                    input: String(format: L.AIPolishExamples.triggerInput1, displayWord),
+                    output: L.AIPolishExamples.triggerOutput1
                 )
                 exampleBlock(
-                    input: "hey this deadline isn't gonna work for us \(displayWord) recipient is my VP, keep it professional",
-                    output: "Hi Michael, I wanted to flag a concern regarding the current timeline. Given the scope, it may be worth discussing an adjusted deadline to ensure quality."
+                    input: String(format: L.AIPolishExamples.triggerInput2, displayWord),
+                    output: L.AIPolishExamples.triggerOutput2
                 )
                 exampleBlock(
-                    input: "张处这个不太行 \(displayWord) 对方是个体制内处长给我改改",
-                    output: "张处，关于此事，经综合评估，实施层面确实存在一些客观困难，可能需要从长计议。"
+                    input: String(format: L.AIPolishExamples.triggerInput3, displayWord),
+                    output: L.AIPolishExamples.triggerOutput3
                 )
             }
         }

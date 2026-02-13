@@ -24,18 +24,18 @@ APPCAST_FILE="appcast.xml"
 echo "🚀 发布 ${APP_NAME} v${VERSION}"
 echo "================================"
 
-# Step 1: 更新 bundle_app.sh 中的版本号
+# Step 1: 更新 bundle_release.sh 中的版本号
 echo ""
 echo "📝 Step 1: 更新版本号..."
 
 # 更新 CFBundleShortVersionString
-sed -i '' "s|<key>CFBundleShortVersionString</key>|<key>CFBundleShortVersionString</key>|" bundle_app.sh
-sed -i '' "/<key>CFBundleShortVersionString<\/key>/{n;s|<string>.*</string>|<string>${VERSION}</string>|;}" bundle_app.sh
+sed -i '' "s|<key>CFBundleShortVersionString</key>|<key>CFBundleShortVersionString</key>|" bundle_release.sh
+sed -i '' "/<key>CFBundleShortVersionString<\/key>/{n;s|<string>.*</string>|<string>${VERSION}</string>|;}" bundle_release.sh
 
 # 获取当前 build number 并递增
-CURRENT_BUILD=$(sed -n '/<key>CFBundleVersion<\/key>/{n;s/.*<string>\(.*\)<\/string>.*/\1/p;}' bundle_app.sh)
+CURRENT_BUILD=$(sed -n '/<key>CFBundleVersion<\/key>/{n;s/.*<string>\(.*\)<\/string>.*/\1/p;}' bundle_release.sh)
 NEW_BUILD=$((CURRENT_BUILD + 1))
-sed -i '' "/<key>CFBundleVersion<\/key>/{n;s|<string>.*</string>|<string>${NEW_BUILD}</string>|;}" bundle_app.sh
+sed -i '' "/<key>CFBundleVersion<\/key>/{n;s|<string>.*</string>|<string>${NEW_BUILD}</string>|;}" bundle_release.sh
 
 echo "   版本: ${VERSION}, Build: ${NEW_BUILD}"
 
@@ -48,7 +48,7 @@ echo "   ✅ 编译完成"
 # Step 3: 打包 .app
 echo ""
 echo "📦 Step 3: 打包 .app..."
-bash bundle_app.sh
+bash bundle_release.sh
 echo "   ✅ 打包完成"
 
 # Step 4: 创建 zip

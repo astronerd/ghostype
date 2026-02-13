@@ -9,6 +9,8 @@ import CoreGraphics
 extension Notification.Name {
     /// 权限状态变化通知（辅助功能/麦克风授权后发送）
     static let permissionsDidChange = Notification.Name("permissionsDidChange")
+    /// 检查更新通知（从偏好设置页面触发）
+    static let checkForUpdates = Notification.Name("checkForUpdates")
 }
 
 @Observable

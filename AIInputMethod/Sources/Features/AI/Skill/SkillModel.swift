@@ -39,6 +39,28 @@ struct SkillModel: Identifiable, Equatable {
         Color(hex: colorHex)
     }
 
+    // MARK: - Localized Display
+
+    var localizedName: String {
+        switch id {
+        case SkillModel.builtinGhostCommandId: return L.Skill.builtinGhostCommandName
+        case SkillModel.builtinGhostTwinId: return L.Skill.builtinGhostTwinName
+        case SkillModel.builtinMemoId: return L.Skill.builtinMemoName
+        case SkillModel.builtinTranslateId: return L.Skill.builtinTranslateName
+        default: return name
+        }
+    }
+
+    var localizedDescription: String {
+        switch id {
+        case SkillModel.builtinGhostCommandId: return L.Skill.builtinGhostCommandDesc
+        case SkillModel.builtinGhostTwinId: return L.Skill.builtinGhostTwinDesc
+        case SkillModel.builtinMemoId: return L.Skill.builtinMemoDesc
+        case SkillModel.builtinTranslateId: return L.Skill.builtinTranslateDesc
+        default: return description
+        }
+    }
+
     // MARK: - Default Color
 
     static let defaultColorHex = "#5AC8FA"
