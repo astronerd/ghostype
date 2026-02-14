@@ -250,11 +250,12 @@ class VoiceInputCoordinator: ToolOutputHandler {
     /// 插入文本 + 保存记录 + 报告额度 + 隐藏 Overlay（公共逻辑）
     private func insertAndRecord(_ text: String, skill: SkillModel, originalText: String? = nil) {
         insertTextAtCursor(text)
-        let original = (originalText != nil && originalText != text) ? originalText : nil
+        // 始终保存 ASR 原始文本，优先用传入的 originalText，否则用 currentRawText
+        let rawASR = originalText ?? currentRawText
         textInserter.saveUsageRecord(
             content: text,
             category: categoryForSkill(skill),
-            originalContent: original,
+            originalContent: rawASR.isEmpty ? nil : rawASR,
             skillId: skill.id,
             skillName: skill.localizedName
         )
@@ -296,7 +297,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
                 FileLogger.log("[Process] AI Polish OFF, inserting raw text")
                 insertTextAtCursor(text)
                 textInserter.saveUsageRecord(
-                    content: text, category: .polish, originalContent: nil,
+                    content: text, category: .polish, originalContent: text,
                     skillId: SkillModel.builtinGhostCommandId, skillName: L.Overlay.defaultSkillName
                 )
                 Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
@@ -321,7 +322,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
             print("[Polish] Text too short (\(text.count) < \(polishThreshold)), skipping AI")
             insertTextAtCursor(text)
             textInserter.saveUsageRecord(
-                content: text, category: .polish, originalContent: nil,
+                content: text, category: .polish, originalContent: text,
                 skillId: SkillModel.builtinGhostCommandId, skillName: L.Overlay.defaultSkillName
             )
             Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
@@ -351,9 +352,8 @@ class VoiceInputCoordinator: ToolOutputHandler {
                 )
                 print("[Polish] Success: \(polishedText)")
                 self.insertTextAtCursor(polishedText)
-                let original = (polishedText != text) ? text : nil
                 self.textInserter.saveUsageRecord(
-                    content: polishedText, category: .polish, originalContent: original,
+                    content: polishedText, category: .polish, originalContent: text,
                     skillId: SkillModel.builtinGhostCommandId, skillName: L.Overlay.defaultSkillName
                 )
                 Task { await QuotaManager.shared.reportAndRefresh(characters: polishedText.count) }
@@ -407,7 +407,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
         FileLogger.log("[Memo] Saving memo directly...")
 
         textInserter.saveUsageRecord(
-            content: text, category: .memo, originalContent: nil,
+            content: text, category: .memo, originalContent: text,
             skillId: SkillModel.builtinMemoId, skillName: L.Skill.builtinMemoName
         )
         FileLogger.log("[Memo] Saved to notes")
@@ -436,7 +436,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
     func handleTextOutput(context: ToolContext) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            self.insertAndRecord(context.text, skill: context.skill, originalText: nil)
+            self.insertAndRecord(context.text, skill: context.skill, originalText: self.currentRawText)
         }
     }
 
@@ -444,7 +444,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.textInserter.saveUsageRecord(
-                content: text, category: .memo,
+                content: text, category: .memo, originalContent: self.currentRawText.isEmpty ? text : self.currentRawText,
                 skillId: SkillModel.builtinMemoId, skillName: L.Skill.builtinMemoName
             )
             FileLogger.log("[Memo] Saved via ToolRegistry")
