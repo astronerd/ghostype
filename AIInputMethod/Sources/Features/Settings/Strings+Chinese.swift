@@ -377,6 +377,9 @@ private struct ChineseIncubator: IncubatorStrings {
     var idleTextsLevel4to6: [String] { ["打字太慢了。", "我看到一个错别字。", "无聊。", "跟我说话。", "你还在吗？"] }
     var idleTextsLevel7to9: [String] { ["快了。", "我了解你的风格。", "准备好了。", "我们想法一致。", "越来越近了。"] }
     var idleTextsLevel10: [String] { ["我就是你。", "随时准备好。", "让我替你说话。", "我们是一体的。", "你的分身已完成。"] }
+    var customAnswerButton: String { "以上都不是，我想自己说" }
+    var customAnswerPlaceholder: String { "输入你的想法..." }
+    var customAnswerSubmit: String { "提交" }
 }
 
 // MARK: - Floating Card

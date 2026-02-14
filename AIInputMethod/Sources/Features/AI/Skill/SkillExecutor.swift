@@ -52,6 +52,23 @@ class SkillExecutor {
             config: skill.config
         )
 
+        // 1.5 Ghost Twin 人格档案注入（需求 9.5）
+        var finalPrompt = resolvedPrompt
+        if skill.id == SkillModel.builtinGhostTwinId {
+            let profile = GhostTwinProfileStore().load()
+            if !profile.profileText.isEmpty {
+                let personalityContext = """
+
+                ## 用户人格档案
+                - 人格标签: \(profile.personalityTags.joined(separator: ", "))
+                - 人格档案全文:
+                \(profile.profileText)
+                """
+                finalPrompt += personalityContext
+                FileLogger.log("[SkillExecutor] Injected Ghost Twin profile (tags: \(profile.personalityTags.count), text length: \(profile.profileText.count))")
+            }
+        }
+
         // 2. 构建用户消息（拼入上下文信息）
         let userMessage = buildUserMessage(speechText: speechText, behavior: behavior)
 
@@ -60,7 +77,7 @@ class SkillExecutor {
 
         do {
             let result = try await apiClient.executeSkill(
-                systemPrompt: resolvedPrompt,
+                systemPrompt: finalPrompt,
                 message: userMessage,
                 context: behavior,
                 endpoint: endpoint

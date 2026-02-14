@@ -74,6 +74,8 @@ extension SkillModel {
     static let builtinGhostTwinId = "builtin-ghost-twin"
     static let builtinTranslateId = "builtin-translate"
     static let builtinPromptGeneratorId = "builtin-prompt-generator"
+    static let internalGhostCalibrationId = "internal-ghost-calibration"
+    static let internalGhostProfilingId = "internal-ghost-profiling"
 }
 
 // MARK: - NSColor hex init

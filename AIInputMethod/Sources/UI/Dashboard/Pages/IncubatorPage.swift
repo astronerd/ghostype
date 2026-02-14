@@ -110,8 +110,9 @@ struct IncubatorPage: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(DS.Colors.bg1)
         .onAppear {
+            viewModel.loadLocalData()
             Task {
-                await viewModel.fetchStatus()
+                await viewModel.checkAndRecover()
             }
             viewModel.startIdleTextCycle()
             viewModel.startObservingLLMNotifications()
@@ -234,8 +235,12 @@ struct IncubatorPage: View {
                             challenge: challenge,
                             onSelectOption: { selectedIndex in
                                 handleOptionSelected(
-                                    challengeId: challenge.id,
                                     selectedOption: selectedIndex
+                                )
+                            },
+                            onSubmitCustomAnswer: { customAnswer in
+                                handleCustomAnswerSubmitted(
+                                    customAnswer: customAnswer
                                 )
                             },
                             onDismiss: {
@@ -307,7 +312,7 @@ struct IncubatorPage: View {
                 text: L.Incubator.tapToCalibrate,
                 isInteractive: true,
                 onTap: {
-                    Task { await viewModel.fetchChallenge() }
+                    Task { await viewModel.startCalibration() }
                 },
                 isBlinking: isBlinkingIncoming,
                 isDisabled: viewModel.isLoadingChallenge || viewModel.showReceiptSlip,
@@ -389,12 +394,11 @@ struct IncubatorPage: View {
             HStack(spacing: 6) {
                 // Mock Challenge (show receipt slip)
                 Button("Mock Challenge") {
-                    viewModel.currentChallenge = CalibrationChallenge(
-                        id: "test-\(UUID().uuidString.prefix(8))",
+                    viewModel.currentChallenge = LocalCalibrationChallenge(
                         type: .dilemma,
                         scenario: "Your friend posted something with obvious factual errors. What do you do?",
                         options: ["DM them privately", "Comment publicly", "Pretend you didn't see it"],
-                        xp_reward: 500
+                        targetField: "spirit"
                     )
                     withAnimation(.easeInOut(duration: 0.3)) {
                         viewModel.showReceiptSlip = true
@@ -402,7 +406,7 @@ struct IncubatorPage: View {
                 }
                 // Fetch Real Challenge
                 Button("Real Challenge") {
-                    Task { await viewModel.fetchChallenge() }
+                    Task { await viewModel.startCalibration() }
                 }
                 // Ghost Response
                 Button("Ghost Say") {
@@ -422,9 +426,9 @@ struct IncubatorPage: View {
                 Button("Ceremony") {
                     Task { await viewModel.performLevelUpCeremony() }
                 }
-                // Refresh Status from API
-                Button("Refresh API") {
-                    Task { await viewModel.fetchStatus() }
+                // Refresh Local Data
+                Button("Refresh Local") {
+                    Task { viewModel.loadLocalData() }
                 }
                 // Shuffle Pixels
                 Button("Shuffle Pixels") {
@@ -451,9 +455,26 @@ struct IncubatorPage: View {
     /// 处理用户选择校准选项
     /// 提交答案 → 收回纸条 → 显示 ghost_response → 更新 XP
     /// Validates: Requirements 8a.5
-    private func handleOptionSelected(challengeId: String, selectedOption: Int) {
+    private func handleOptionSelected(selectedOption: Int) {
         Task {
-            await viewModel.submitAnswer(challengeId: challengeId, selectedOption: selectedOption)
+            await viewModel.submitAnswer(selectedOption: selectedOption, customAnswer: nil)
+            
+            if viewModel.ghostResponse != nil {
+                showGhostResponse = true
+                
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                
+                showGhostResponse = false
+                viewModel.ghostResponse = nil
+            }
+        }
+    }
+    
+    /// 处理用户提交自定义答案
+    /// Validates: Requirements 13.1, 13.2, 13.5
+    private func handleCustomAnswerSubmitted(customAnswer: String) {
+        Task {
+            await viewModel.submitAnswer(selectedOption: nil, customAnswer: customAnswer)
             
             if viewModel.ghostResponse != nil {
                 showGhostResponse = true

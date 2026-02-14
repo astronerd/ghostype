@@ -4,7 +4,8 @@
 //
 //  Ghost Twin 孵化室 ViewModel
 //  管理等级、经验值、校准挑战、闲置文案等状态
-//  Validates: Requirements 6.3, 6.4, 7.1, 7.3, 7.5, 8.4, 10.1, 10.2, 10.3
+//  端上迁移：替换服务端 API 为本地校准逻辑
+//  Validates: Requirements 5.3, 5.4, 5.5, 6.2, 6.3, 6.4, 6.5, 6.6, 7.1, 7.2, 7.5, 7.6, 7.7, 11.6, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8, 12.9, 12.10
 //
 
 import Foundation
@@ -46,114 +47,122 @@ enum GhostTwinCacheKey: String {
     case activationOrder = "ghostTwin.activationOrder"
 }
 
+// MARK: - CalibrationAnalysisResponse
+
+/// LLM 校准分析响应
+struct CalibrationAnalysisResponse: Decodable {
+    let profile_diff: ProfileDiff
+    let ghost_response: String
+    let analysis: String
+
+    struct ProfileDiff: Codable {
+        let layer: String
+        let changes: [String: String]
+        let new_tags: [String]
+    }
+}
+
 // MARK: - IncubatorViewModel
 
 /// Ghost Twin 孵化室 ViewModel
 /// 管理等级、经验值、校准挑战、闲置文案等状态
-/// Validates: Requirements 6.3, 6.4, 7.1, 7.3, 7.5, 8.4, 10.1, 10.2, 10.3
+/// 端上迁移：所有校准逻辑本地驱动，LLM 仅作代理
 @Observable
 @MainActor
 class IncubatorViewModel {
-    
+
     // MARK: - State
-    
+
     /// 当前等级 (1~10)
     var level: Int = 1
-    
+
     /// 总经验值
     var totalXP: Int = 0
-    
+
     /// 当前等级内的经验值 (0~9999)
     var currentLevelXP: Int = 0
-    
+
     /// 已捕捉的人格特征标签
     var personalityTags: [String] = []
-    
+
     /// 今日剩余校准挑战次数
     var challengesRemaining: Int = 0
-    
-    /// 当前校准挑战
-    var currentChallenge: CalibrationChallenge?
-    
+
+    /// 当前校准挑战（本地类型）
+    var currentChallenge: LocalCalibrationChallenge?
+
     /// 是否正在加载校准挑战
     var isLoadingChallenge: Bool = false
-    
+
     /// 是否正在提交答案
     var isSubmittingAnswer: Bool = false
-    
+
     /// Ghost 的反馈语
     var ghostResponse: String?
-    
+
     /// 是否显示热敏纸条
     var showReceiptSlip: Bool = false
-    
+
     /// 闲置文案当前显示文本
     var idleText: String = ""
-    
+
     /// 是否正在打字机效果中
     var isTypingIdle: Bool = false
-    
+
     /// 是否正在升级
     var isLevelingUp: Bool = false
-    
+
     /// 升级仪式阶段 (0=无, 1=全屏闪烁, 2=背景熄灭, 3=Ghost 亮度提升)
-    /// Validates: Requirements 6.1, 6.2
     var levelUpPhase: Int = 0
-    
+
     /// 是否有错误
     var isError: Bool = false
-    
+
     /// 错误信息
     var errorMessage: String?
-    
+
+    /// 本地人格档案
+    var profile: GhostTwinProfile = .initial
+
     // MARK: - Models
-    
+
     /// 点阵数据模型
     let matrixModel = GhostMatrixModel()
-    
+
+    // MARK: - Dependencies
+
+    private let profileStore = GhostTwinProfileStore()
+    private let recordStore = CalibrationRecordStore()
+    private let corpusStore = ASRCorpusStore()
+    private let recoveryManager = RecoveryManager()
+
     // MARK: - Computed Properties
-    
+
     /// Ghost 透明度，随等级线性递增
-    /// Lv.1 = 0.1, Lv.2 = 0.2, ..., Lv.10 = 1.0
-    /// Validates: Requirements 3.5, 6.3
     var ghostOpacity: Double { Double(level) * 0.1 }
-    
+
     /// 同步率百分比
     var syncRate: Int { level * 10 }
-    
+
     /// 当前等级进度 (0.0 ~ 1.0)
     var progressFraction: Double { Double(currentLevelXP) / 10_000.0 }
-    
+
     /// 当前动效阶段
-    /// Validates: Requirements 6.4
     var animationPhase: AnimationPhase {
         Self.animationPhase(forLevel: level)
     }
-    
+
     // MARK: - Private Properties
-    
-    /// 闲置文案循环 Timer
+
     private var idleTextTimer: Timer?
-    
-    /// 打字机效果 Timer
     private var typewriterTimer: Timer?
-    
-    /// 当前打字机效果的完整文本
     private var fullIdleText: String = ""
-    
-    /// 当前打字机效果的字符索引
     private var typewriterIndex: Int = 0
-    
-    /// NotificationCenter 订阅（LLM 调用成功后刷新 status）
-    /// Validates: Requirements 7.6
     private var statusRefreshCancellable: AnyCancellable?
-    
+
     // MARK: - Static Helpers (for testability)
-    
+
     /// 根据等级返回动效阶段
-    /// - Parameter level: 等级 (1~10)
-    /// - Returns: 对应的 AnimationPhase
-    /// Validates: Requirements 6.4
     static func animationPhase(forLevel level: Int) -> AnimationPhase {
         switch level {
         case 1...3: return .glitch
@@ -161,16 +170,12 @@ class IncubatorViewModel {
         case 7...9: return .awakening
         case 10: return .complete
         default:
-            // 超出范围时的安全回退
             if level < 1 { return .glitch }
             return .complete
         }
     }
-    
+
     /// 根据等级返回闲置文案分组索引
-    /// - Parameter level: 等级 (1~10)
-    /// - Returns: 分组索引 (0=懵懂, 1=有个性, 2=自信, 3=完全体)
-    /// Validates: Requirements 10.2
     static func idleTextGroup(forLevel level: Int) -> Int {
         switch level {
         case 1...3: return 0
@@ -182,86 +187,95 @@ class IncubatorViewModel {
             return 3
         }
     }
-    
+
     /// 根据等级计算 Ghost 透明度
-    /// - Parameter level: 等级 (1~10)
-    /// - Returns: 透明度 (0.1 ~ 1.0)
-    /// Validates: Requirements 3.5, 6.3
     static func ghostOpacity(forLevel level: Int) -> Double {
         return Double(level) * 0.1
     }
-    
+
     // MARK: - LLM Notification Observer
-    
-    /// 开始监听 LLM 调用成功通知，自动刷新 Ghost Twin status
-    /// 在 Dashboard 生命周期内调用（IncubatorPage onAppear）
-    /// Validates: Requirements 7.6
+
+    /// 开始监听 LLM 调用成功通知，自动刷新本地数据
     func startObservingLLMNotifications() {
-        // 避免重复订阅
         stopObservingLLMNotifications()
-        
+
         statusRefreshCancellable = NotificationCenter.default
             .publisher(for: .ghostTwinStatusShouldRefresh)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self = self else { return }
-                print("[IncubatorViewModel] 🔄 Received LLM success notification, refreshing Ghost Twin status")
-                Task {
-                    await self.fetchStatus()
-                }
+                print("[IncubatorViewModel] 🔄 Received LLM success notification, refreshing local data")
+                self.loadLocalData()
             }
-        
+
         print("[IncubatorViewModel] ✅ Started observing LLM notifications")
     }
-    
+
     /// 停止监听 LLM 调用成功通知
-    /// 在 Dashboard 生命周期内调用（IncubatorPage onDisappear）
     func stopObservingLLMNotifications() {
         statusRefreshCancellable?.cancel()
         statusRefreshCancellable = nil
     }
-    
-    // MARK: - API Methods
-    
-    /// 获取 Ghost Twin 状态
-    /// 成功时更新所有状态并写入缓存，失败时从缓存恢复
-    /// Validates: Requirements 7.1, 7.3, 7.5
-    func fetchStatus() async {
-        do {
-            let response = try await GhostypeAPIClient.shared.fetchGhostTwinStatus()
-            
-            // 更新状态
-            level = response.level
-            totalXP = response.total_xp
-            currentLevelXP = response.current_level_xp
-            personalityTags = response.personality_tags
-            challengesRemaining = response.challenges_remaining_today
-            
-            // 写入缓存
-            saveToCacheInternal()
-            
-            // 清除错误状态
-            isError = false
-            errorMessage = nil
-            
-        } catch {
-            // API 失败，从缓存恢复
-            loadFromCacheInternal()
-            
-            // 静默失败，不弹错误提示
-            print("[IncubatorViewModel] ⚠️ fetchStatus failed: \(error.localizedDescription), using cached values")
-        }
+
+    // MARK: - Local Data (replaces fetchStatus)
+
+    /// 加载本地数据（替代 fetchStatus）
+    /// Validates: Requirements 5.3, 11.6
+    func loadLocalData() {
+        profile = profileStore.load()
+        level = profile.level
+        totalXP = profile.totalXP
+        currentLevelXP = GhostTwinXP.currentLevelXP(totalXP: profile.totalXP)
+        personalityTags = profile.personalityTags
+        challengesRemaining = recordStore.challengesRemainingToday()
+
+        // Also update cache for backward compatibility
+        saveToCacheInternal()
+
+        isError = false
+        errorMessage = nil
     }
-    
-    /// 获取当日校准挑战
-    /// Validates: Requirements 8.4
-    func fetchChallenge() async {
+
+    // MARK: - Start Calibration (replaces fetchChallenge)
+
+    /// 发起校准挑战（替代 fetchChallenge）
+    /// Validates: Requirements 5.3, 5.4, 5.5, 12.4
+    func startCalibration() async {
         guard !isLoadingChallenge else { return }
-        
         isLoadingChallenge = true
-        
+
         do {
-            let challenge = try await GhostypeAPIClient.shared.fetchCalibrationChallenge()
+            // 1. Load calibration skill
+            guard let skill = SkillManager.shared.skill(byId: SkillModel.internalGhostCalibrationId) else {
+                throw NSError(domain: "IncubatorViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: "校准技能未找到"])
+            }
+
+            // 2. Build user message
+            let records = recordStore.loadAll()
+            let userMessage = buildChallengeUserMessage(profile: profile, records: records)
+
+            // 3. Call LLM via executeSkill
+            let result = try await GhostypeAPIClient.shared.executeSkill(
+                systemPrompt: skill.systemPrompt,
+                message: userMessage,
+                context: .noInput
+            )
+
+            // 4. Parse challenge
+            let challenge: LocalCalibrationChallenge = try LLMJsonParser.parse(result)
+
+            // 5. Persist intermediate state
+            let flowState = CalibrationFlowState(
+                phase: .challenging,
+                challenge: challenge,
+                selectedOption: nil,
+                customAnswer: nil,
+                retryCount: 0,
+                updatedAt: Date()
+            )
+            recoveryManager.saveCalibrationFlowState(flowState)
+
+            // 6. Update UI
             currentChallenge = challenge
             showReceiptSlip = true
             isError = false
@@ -269,124 +283,291 @@ class IncubatorViewModel {
         } catch {
             isError = true
             errorMessage = error.localizedDescription
-            print("[IncubatorViewModel] ⚠️ fetchChallenge failed: \(error.localizedDescription)")
+            FileLogger.log("[IncubatorViewModel] startCalibration failed: \(error)")
         }
-        
+
         isLoadingChallenge = false
     }
-    
-    /// 提交校准答案
-    /// - Parameters:
-    ///   - challengeId: 挑战 ID
-    ///   - selectedOption: 用户选择的选项索引 (0-based)
-    /// Validates: Requirements 8.4
-    func submitAnswer(challengeId: String, selectedOption: Int) async {
-        guard !isSubmittingAnswer else { return }
-        
+
+    // MARK: - Submit Answer (replaces submitAnswer(challengeId:selectedOption:))
+
+    /// 提交校准答案（支持自定义答案）
+    /// Validates: Requirements 6.2, 6.3, 6.4, 6.5, 6.6, 7.1, 7.2, 12.4, 12.8
+    func submitAnswer(selectedOption: Int?, customAnswer: String?) async {
+        guard !isSubmittingAnswer, let challenge = currentChallenge else { return }
         isSubmittingAnswer = true
-        
+
         do {
-            let response = try await GhostypeAPIClient.shared.submitCalibrationAnswer(
-                challengeId: challengeId,
-                selectedOption: selectedOption
+            // 1. Save analyzing state
+            let flowState = CalibrationFlowState(
+                phase: .analyzing,
+                challenge: challenge,
+                selectedOption: selectedOption,
+                customAnswer: customAnswer,
+                retryCount: 0,
+                updatedAt: Date()
             )
-            
-            // 检测是否升级
-            let previousLevel = level
-            
-            // 更新状态
-            totalXP = response.new_total_xp
-            level = response.new_level
-            currentLevelXP = totalXP - (level - 1) * 10_000
-            personalityTags = response.personality_tags_updated
-            ghostResponse = response.ghost_response
-            
-            // 减少剩余挑战次数
-            if challengesRemaining > 0 {
-                challengesRemaining -= 1
+            recoveryManager.saveCalibrationFlowState(flowState)
+
+            // 2. Load calibration skill
+            guard let skill = SkillManager.shared.skill(byId: SkillModel.internalGhostCalibrationId) else {
+                throw NSError(domain: "IncubatorViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: "校准技能未找到"])
             }
-            
-            // 写入缓存
-            saveToCacheInternal()
-            
-            // 检测升级
-            if response.new_level > previousLevel {
-                // 触发升级仪式动效
+
+            // 3. Build analysis message
+            let records = recordStore.loadAll()
+            let userMessage = buildAnalysisUserMessage(
+                profile: profile,
+                challenge: challenge,
+                selectedOption: selectedOption,
+                customAnswer: customAnswer,
+                records: records
+            )
+
+            // 4. Call LLM
+            let result = try await GhostypeAPIClient.shared.executeSkill(
+                systemPrompt: skill.systemPrompt,
+                message: userMessage,
+                context: .noInput
+            )
+
+            // 5. Parse analysis response
+            let analysis: CalibrationAnalysisResponse = try LLMJsonParser.parse(result)
+
+            // 6. Merge tags
+            let newTags = analysis.profile_diff.new_tags
+            var updatedTags = profile.personalityTags
+            for tag in newTags {
+                if !updatedTags.contains(tag) {
+                    updatedTags.append(tag)
+                }
+            }
+
+            // 7. Calculate XP
+            let xpReward = GhostTwinXP.xpReward(for: challenge.type)
+            let oldXP = profile.totalXP
+            let newXP = oldXP + xpReward
+            let levelCheck = GhostTwinXP.checkLevelUp(oldXP: oldXP, newXP: newXP)
+
+            // 8. Update profile
+            profile.personalityTags = updatedTags
+            profile.totalXP = newXP
+            profile.level = GhostTwinXP.calculateLevel(totalXP: newXP)
+            profile.version += 1
+            profile.updatedAt = Date()
+            try profileStore.save(profile)
+
+            // 9. Save calibration record
+            let record = CalibrationRecord(
+                id: UUID(),
+                type: challenge.type,
+                scenario: challenge.scenario,
+                options: challenge.options,
+                selectedOption: customAnswer != nil ? -1 : (selectedOption ?? 0),
+                customAnswer: customAnswer,
+                xpEarned: xpReward,
+                ghostResponse: analysis.ghost_response,
+                profileDiff: String(data: try JSONEncoder().encode(analysis.profile_diff), encoding: .utf8),
+                createdAt: Date()
+            )
+            recordStore.append(record)
+
+            // 10. Update UI state
+            level = profile.level
+            totalXP = profile.totalXP
+            currentLevelXP = GhostTwinXP.currentLevelXP(totalXP: newXP)
+            personalityTags = profile.personalityTags
+            ghostResponse = analysis.ghost_response
+            challengesRemaining = recordStore.challengesRemainingToday()
+
+            // 11. Clear calibration flow state
+            recoveryManager.clearCalibrationFlowState()
+
+            // 12. Check level-up → trigger ceremony + profiling
+            if levelCheck.leveledUp {
                 Task {
                     await performLevelUpCeremony()
                 }
+                // Trigger profiling in background (non-blocking)
+                Task {
+                    await triggerProfiling(atLevel: levelCheck.newLevel)
+                }
             }
-            
-            // 隐藏热敏纸条
+
+            // 13. Hide receipt slip
             showReceiptSlip = false
             currentChallenge = nil
-            
+
+            // 14. Save cache
+            saveToCacheInternal()
+
             isError = false
             errorMessage = nil
-            
         } catch {
             isError = true
             errorMessage = error.localizedDescription
-            // 失败时也关闭纸条，避免卡住
+            // Don't clear flow state on error — allow retry (Req 12.8)
             showReceiptSlip = false
             currentChallenge = nil
-            print("[IncubatorViewModel] ⚠️ submitAnswer failed: \(error.localizedDescription)")
+            FileLogger.log("[IncubatorViewModel] submitAnswer failed: \(error)")
         }
-        
+
         isSubmittingAnswer = false
     }
-    
+
+    // MARK: - Profiling (triggered on level-up)
+
+    /// LLM 构筑结果的 JSON 摘要部分
+    private struct ProfilingSummary: Decodable {
+        let summary: String
+        let refined_tags: [String]
+    }
+
+    /// 触发人格构筑（升级时调用，非阻塞）
+    /// Validates: Requirements 7.1, 7.2, 7.5, 7.6, 7.7, 12.5, 12.7, 12.9
+    private func triggerProfiling(atLevel level: Int) async {
+        // Save profiling state
+        let unconsumedCorpus = corpusStore.unconsumed()
+        let corpusIds = unconsumedCorpus.map { $0.id }
+        let profilingState = ProfilingFlowState(
+            phase: .running,
+            triggerLevel: level,
+            corpusIds: corpusIds,
+            retryCount: 0,
+            maxRetries: 3,
+            updatedAt: Date()
+        )
+        recoveryManager.saveProfilingFlowState(profilingState)
+
+        do {
+            guard let skill = SkillManager.shared.skill(byId: SkillModel.internalGhostProfilingId) else {
+                throw NSError(domain: "IncubatorViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: "构筑技能未找到"])
+            }
+
+            let records = recordStore.loadAll()
+            let userMessage = buildProfilingUserMessage(
+                profile: profile,
+                previousReport: nil,
+                corpus: unconsumedCorpus,
+                records: records
+            )
+
+            let result = try await GhostypeAPIClient.shared.executeSkill(
+                systemPrompt: skill.systemPrompt,
+                message: userMessage,
+                context: .noInput
+            )
+
+            // Parse profiling result — extract summary and refined_tags from the JSON at the end
+            if let jsonStart = result.range(of: "{\"summary\""),
+               let jsonEnd = result.range(of: "}", options: .backwards, range: jsonStart.lowerBound..<result.endIndex) {
+                let jsonStr = String(result[jsonStart.lowerBound...jsonEnd.upperBound])
+                if let data = jsonStr.data(using: .utf8),
+                   let summary = try? JSONDecoder().decode(ProfilingSummary.self, from: data) {
+                    profile.personalityTags = summary.refined_tags
+                    profile.profileText = result
+                    profile.updatedAt = Date()
+                    try profileStore.save(profile)
+
+                    // Mark corpus as consumed
+                    corpusStore.markConsumed(ids: corpusIds, atLevel: level)
+
+                    // Update UI
+                    personalityTags = profile.personalityTags
+                }
+            }
+
+            // Clear profiling state
+            recoveryManager.clearProfilingFlowState()
+
+        } catch {
+            // Increment retry count, keep state for recovery
+            var state = profilingState
+            state.retryCount += 1
+            state.phase = .pending
+            if state.retryCount >= state.maxRetries {
+                recoveryManager.clearProfilingFlowState()
+                FileLogger.log("[IncubatorViewModel] Profiling gave up after \(state.maxRetries) retries")
+            } else {
+                recoveryManager.saveProfilingFlowState(state)
+                FileLogger.log("[IncubatorViewModel] Profiling failed, will retry (attempt \(state.retryCount)/\(state.maxRetries))")
+            }
+        }
+    }
+
+    // MARK: - Recovery (app launch)
+
+    /// 启动时检查并恢复中断流程
+    /// Validates: Requirements 12.3, 12.4, 12.5, 12.6, 12.7, 12.10
+    func checkAndRecover() async {
+        // Check calibration flow state
+        if let calibState = recoveryManager.loadCalibrationFlowState() {
+            switch calibState.phase {
+            case .challenging:
+                if let challenge = calibState.challenge {
+                    currentChallenge = challenge
+                    showReceiptSlip = true
+                    FileLogger.log("[IncubatorViewModel] Recovered calibration at challenging phase")
+                }
+            case .analyzing:
+                if let challenge = calibState.challenge {
+                    currentChallenge = challenge
+                    await submitAnswer(selectedOption: calibState.selectedOption, customAnswer: calibState.customAnswer)
+                }
+            case .idle:
+                break
+            }
+        }
+
+        // Check profiling flow state (non-blocking)
+        if let profState = recoveryManager.loadProfilingFlowState() {
+            if profState.phase == .pending, profState.retryCount < profState.maxRetries {
+                if let triggerLevel = profState.triggerLevel {
+                    Task {
+                        await triggerProfiling(atLevel: triggerLevel)
+                    }
+                }
+            }
+        }
+    }
+
     // MARK: - Level-Up Ceremony
-    
+
     /// 执行升级仪式动效序列
-    /// Phase 1: 全屏像素闪烁 (0.5s)
-    /// Phase 2: 背景像素熄灭 (0.3s)
-    /// Phase 3: Ghost 亮度提升 (0.5s)
-    /// Phase 4: 重置并恢复正常状态
-    /// Validates: Requirements 6.1, 6.2, 6.5
     func performLevelUpCeremony() async {
         isLevelingUp = true
-        
-        // Phase 1: Flash all pixels (全屏像素闪烁)
+
+        // Phase 1: Flash all pixels
         levelUpPhase = 1
-        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
-        
-        // Phase 2: Background pixels turn off (背景像素熄灭)
+        try? await Task.sleep(nanoseconds: 500_000_000)
+
+        // Phase 2: Background pixels turn off
         levelUpPhase = 2
-        try? await Task.sleep(nanoseconds: 300_000_000) // 0.3s
-        
-        // Phase 3: Ghost brightness increases (Ghost 亮度提升)
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        // Phase 3: Ghost brightness increases
         levelUpPhase = 3
-        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
-        
+        try? await Task.sleep(nanoseconds: 500_000_000)
+
         // Phase 4: Reset and resume normal state
-        // 升级后重置背景像素的点亮序列，保持 Ghost Logo 基础亮度
-        // Validates: Requirements 6.5
         matrixModel.shuffleActivationOrder(seed: nil)
         matrixModel.saveActivationOrder()
-        
+
         levelUpPhase = 0
         isLevelingUp = false
-        
+
         print("[IncubatorViewModel] 🎉 Level-up ceremony completed (Lv.\(level))")
     }
-    
+
     // MARK: - Idle Text Cycling
-    
+
     /// 开始闲置文案循环
-    /// 每 8~15 秒随机切换一条，使用打字机效果逐字显示
-    /// Validates: Requirements 10.1, 10.2, 10.3
     func startIdleTextCycle() {
-        // 先停止已有的 Timer
         stopIdleTextCycle()
-        
-        // 立即显示一条
         showNextIdleText()
-        
-        // 启动循环 Timer
         scheduleNextIdleText()
     }
-    
+
     /// 停止闲置文案循环
     func stopIdleTextCycle() {
         idleTextTimer?.invalidate()
@@ -395,22 +576,21 @@ class IncubatorViewModel {
         typewriterTimer = nil
         isTypingIdle = false
     }
-    
+
     // MARK: - Cache Methods
-    
+
     /// 将当前状态保存到 UserDefaults 缓存
     func saveToCache() {
         saveToCacheInternal()
     }
-    
+
     /// 从 UserDefaults 缓存加载状态
     func loadFromCache() {
         loadFromCacheInternal()
     }
-    
+
     // MARK: - Private Cache Implementation
-    
-    /// 将当前状态保存到 UserDefaults
+
     private func saveToCacheInternal() {
         let defaults = UserDefaults.standard
         defaults.set(level, forKey: GhostTwinCacheKey.level.rawValue)
@@ -420,68 +600,58 @@ class IncubatorViewModel {
         defaults.set(challengesRemaining, forKey: GhostTwinCacheKey.challengesRemaining.rawValue)
         print("[IncubatorViewModel] 💾 Saved state to cache (Lv.\(level), XP: \(totalXP))")
     }
-    
-    /// 从 UserDefaults 加载状态
+
     private func loadFromCacheInternal() {
         let defaults = UserDefaults.standard
-        
+
         let cachedLevel = defaults.integer(forKey: GhostTwinCacheKey.level.rawValue)
         if cachedLevel > 0 {
             level = cachedLevel
         }
-        
+
         totalXP = defaults.integer(forKey: GhostTwinCacheKey.totalXP.rawValue)
         currentLevelXP = defaults.integer(forKey: GhostTwinCacheKey.currentLevelXP.rawValue)
-        
+
         if let tags = defaults.stringArray(forKey: GhostTwinCacheKey.personalityTags.rawValue) {
             personalityTags = tags
         }
-        
+
         challengesRemaining = defaults.integer(forKey: GhostTwinCacheKey.challengesRemaining.rawValue)
-        
+
         print("[IncubatorViewModel] ✅ Loaded state from cache (Lv.\(level), XP: \(totalXP))")
     }
-    
+
     // MARK: - Private Idle Text Implementation
-    
-    /// 显示下一条闲置文案
+
     private func showNextIdleText() {
         let texts = L.Incubator.idleTexts(forLevel: level)
         guard !texts.isEmpty else { return }
-        
-        // 随机选取一条
+
         let text = texts.randomElement() ?? texts[0]
-        
-        // 开始打字机效果
         startTypewriterEffect(text: text)
     }
-    
-    /// 开始打字机效果
-    /// - Parameter text: 要逐字显示的完整文本
+
     private func startTypewriterEffect(text: String) {
-        // 停止之前的打字机效果
         typewriterTimer?.invalidate()
         typewriterTimer = nil
-        
+
         fullIdleText = text
         typewriterIndex = 0
         idleText = ""
         isTypingIdle = true
-        
-        // 每 0.05 秒显示一个字符
+
         typewriterTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] timer in
             Task { @MainActor in
                 guard let self = self else {
                     timer.invalidate()
                     return
                 }
-                
+
                 if self.typewriterIndex < self.fullIdleText.count {
                     let index = self.fullIdleText.index(self.fullIdleText.startIndex, offsetBy: self.typewriterIndex)
                     self.idleText = String(self.fullIdleText[self.fullIdleText.startIndex...index])
                     self.typewriterIndex += 1
                 } else {
-                    // 打字机效果完成
                     timer.invalidate()
                     self.typewriterTimer = nil
                     self.isTypingIdle = false
@@ -489,12 +659,27 @@ class IncubatorViewModel {
             }
         }
     }
-    
-    /// 安排下一次闲置文案切换
+
+    // MARK: - User Message Builders (delegates to MessageBuilder)
+
+    /// 构建出题阶段的 user message
+    private func buildChallengeUserMessage(profile: GhostTwinProfile, records: [CalibrationRecord]) -> String {
+        MessageBuilder.buildChallengeUserMessage(profile: profile, records: records)
+    }
+
+    /// 构建分析阶段的 user message（支持自定义答案标注）
+    private func buildAnalysisUserMessage(profile: GhostTwinProfile, challenge: LocalCalibrationChallenge, selectedOption: Int?, customAnswer: String?, records: [CalibrationRecord]) -> String {
+        MessageBuilder.buildAnalysisUserMessage(profile: profile, challenge: challenge, selectedOption: selectedOption, customAnswer: customAnswer, records: records)
+    }
+
+    /// 构建构筑阶段的 user message
+    private func buildProfilingUserMessage(profile: GhostTwinProfile, previousReport: String?, corpus: [ASRCorpusEntry], records: [CalibrationRecord]) -> String {
+        MessageBuilder.buildProfilingUserMessage(profile: profile, previousReport: previousReport, corpus: corpus, records: records)
+    }
+
     private func scheduleNextIdleText() {
-        // 随机 8~15 秒
         let interval = Double.random(in: 8...15)
-        
+
         idleTextTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: false) { [weak self] _ in
             Task { @MainActor in
                 guard let self = self else { return }

@@ -27,6 +27,10 @@ class VoiceInputCoordinator: ToolOutputHandler {
     private var waitingForFinalResult = false
     private var cancellables = Set<AnyCancellable>()
 
+    // MARK: - ASR Corpus
+
+    private let corpusStore = ASRCorpusStore()
+
     // MARK: - Init
 
     init(speechService: DoubaoSpeechService,
@@ -97,6 +101,12 @@ class VoiceInputCoordinator: ToolOutputHandler {
             guard let self = self else { return }
             FileLogger.log("[Speech] ✅ Final result: \(text)")
             self.currentRawText = text
+
+            // 收集 ASR 语料用于 Ghost Twin 人格构筑
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                self.corpusStore.append(text: trimmed)
+            }
 
             if self.waitingForFinalResult, let skill = self.pendingSkill {
                 FileLogger.log("[Speech] Processing immediately after final result")

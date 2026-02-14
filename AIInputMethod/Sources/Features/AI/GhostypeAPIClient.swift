@@ -210,55 +210,6 @@ class GhostypeAPIClient {
     }
 }
 
-// MARK: - Ghost Twin API Extension
-
-extension GhostypeAPIClient {
-
-    /// 获取 Ghost Twin 状态
-    /// GET /api/v1/ghost-twin/status
-    /// - Returns: Ghost Twin 状态响应，包含等级、经验值、人格标签等
-    func fetchGhostTwinStatus() async throws -> GhostTwinStatusResponse {
-        let url = URL(string: "\(apiBaseURL)/api/v1/ghost-twin/status")!
-        let request = try buildRequest(url: url, method: "GET", timeout: profileTimeout)
-
-        return try await performRequest(request, retryOn500: true)
-    }
-
-    /// 获取当日校准挑战
-    /// GET /api/v1/ghost-twin/challenge
-    /// - Returns: 校准挑战，包含场景描述和选项
-    func fetchCalibrationChallenge() async throws -> CalibrationChallenge {
-        let url = URL(string: "\(apiBaseURL)/api/v1/ghost-twin/challenge")!
-        let request = try buildRequest(url: url, method: "GET", timeout: profileTimeout)
-
-        return try await performRequest(request, retryOn500: true)
-    }
-
-    /// 提交校准答案
-    /// POST /api/v1/ghost-twin/challenge/answer
-    /// - Parameters:
-    ///   - challengeId: 挑战 ID
-    ///   - selectedOption: 用户选择的选项索引（0-based）
-    /// - Returns: 校准答案响应，包含获得的 XP、新等级、Ghost 反馈等
-    func submitCalibrationAnswer(
-        challengeId: String,
-        selectedOption: Int
-    ) async throws -> CalibrationAnswerResponse {
-        let url = URL(string: "\(apiBaseURL)/api/v1/ghost-twin/challenge/answer")!
-        var request = try buildRequest(url: url, method: "POST", timeout: profileTimeout)
-
-        // 构建请求体
-        let body: [String: Any] = [
-            "challenge_id": challengeId,
-            "selected_option": selectedOption
-        ]
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-
-        return try await performRequest(request, retryOn500: true)
-    }
-}
-
-
 // MARK: - Ghost Morph Skill API Extension
 
 extension GhostypeAPIClient {
@@ -281,18 +232,6 @@ extension GhostypeAPIClient {
         return response.text
     }
 
-    /// Ghost Twin Chat：以用户口吻和语言习惯回复
-    /// 使用独立的 Ghost Twin 端点（不同于 /api/v1/llm/chat）
-    func ghostTwinChat(text: String) async throws -> String {
-        let url = URL(string: "\(apiBaseURL)/api/v1/ghost-twin/chat")!
-        var request = try buildRequest(url: url, method: "POST", timeout: llmTimeout)
-
-        let body: [String: Any] = ["message": text]
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-
-        let response: GhostypeResponse = try await performRequest(request, retryOn500: true)
-        return response.text
-    }
 }
 
 // MARK: - Skill Execute API Extension

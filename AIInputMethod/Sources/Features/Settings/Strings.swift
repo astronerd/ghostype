@@ -89,6 +89,10 @@ enum L {
         static var idleTextsLevel7to9: [String] { current.incubator.idleTextsLevel7to9 }
         static var idleTextsLevel10: [String] { current.incubator.idleTextsLevel10 }
         
+        static var customAnswerButton: String { current.incubator.customAnswerButton }
+        static var customAnswerPlaceholder: String { current.incubator.customAnswerPlaceholder }
+        static var customAnswerSubmit: String { current.incubator.customAnswerSubmit }
+        
         /// 根据等级返回对应的闲置文案数组
         static func idleTexts(forLevel level: Int) -> [String] {
             switch level {
@@ -823,6 +827,9 @@ protocol IncubatorStrings {
     var idleTextsLevel4to6: [String] { get }
     var idleTextsLevel7to9: [String] { get }
     var idleTextsLevel10: [String] { get }
+    var customAnswerButton: String { get }
+    var customAnswerPlaceholder: String { get }
+    var customAnswerSubmit: String { get }
 }
 
 protocol FloatingCardStrings {

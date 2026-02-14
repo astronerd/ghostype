@@ -377,6 +377,9 @@ private struct EnglishIncubator: IncubatorStrings {
     var idleTextsLevel4to6: [String] { ["Typing too slow.", "I saw a typo.", "Bored.", "Talk to me.", "Are you still there?"] }
     var idleTextsLevel7to9: [String] { ["Almost there.", "I know your style.", "Ready.", "We think alike.", "Getting closer."] }
     var idleTextsLevel10: [String] { ["I am you.", "Ready whenever.", "Let me talk for you.", "We are one.", "Your ghost is complete."] }
+    var customAnswerButton: String { "None of the above, I want to say my own" }
+    var customAnswerPlaceholder: String { "Type your thoughts..." }
+    var customAnswerSubmit: String { "Submit" }
 }
 
 // MARK: - Floating Card

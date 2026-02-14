@@ -3,8 +3,7 @@ name: "Ghost Twin"
 description: "以用户的口吻和语言习惯生成回复。基于用户的人格档案，模仿用户的表达风格。"
 allowed_tools:
   - provide_text
-config:
-  api_endpoint: "/api/v1/ghost-twin/chat"
+config: {}
 ---
 
 # Role

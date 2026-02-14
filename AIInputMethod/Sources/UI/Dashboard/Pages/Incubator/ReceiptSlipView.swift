@@ -12,12 +12,21 @@
 import SwiftUI
 
 struct ReceiptSlipView: View {
-    let challenge: CalibrationChallenge
+    let challenge: LocalCalibrationChallenge
     let onSelectOption: (Int) -> Void
+    let onSubmitCustomAnswer: (String) -> Void
     let onDismiss: () -> Void
+    
+    @State private var showCustomInput: Bool = false
+    @State private var customText: String = ""
     
     // 像素边框线宽（与 RPGDialogView / LevelInfoBar 一致）
     private static let borderWidth: CGFloat = 2
+    
+    /// 自定义输入是否为空白（用于禁用提交按钮）
+    private var isCustomTextEmpty: Bool {
+        customText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -56,6 +65,74 @@ struct ReceiptSlipView: View {
                             .background(Color.green.opacity(0.08))
                         }
                         .buttonStyle(.plain)
+                    }
+                    
+                    // 分隔线
+                    Rectangle()
+                        .fill(Color.green.opacity(0.25))
+                        .frame(height: 1)
+                        .padding(.vertical, 2)
+                    
+                    // 自定义答案按钮
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            showCustomInput.toggle()
+                        }
+                    }) {
+                        HStack(spacing: 4) {
+                            Text(verbatim: "[✎]")
+                                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                                .foregroundColor(Color.green.opacity(0.9))
+                            Text(L.Incubator.customAnswerButton)
+                                .font(.system(size: 9, weight: .medium, design: .monospaced))
+                                .foregroundColor(Color.green.opacity(0.85))
+                                .fixedSize(horizontal: false, vertical: true)
+                            Spacer(minLength: 0)
+                        }
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 4)
+                        .background(Color.green.opacity(0.08))
+                    }
+                    .buttonStyle(.plain)
+                    
+                    // 自定义输入区域
+                    if showCustomInput {
+                        VStack(alignment: .leading, spacing: 6) {
+                            TextField(L.Incubator.customAnswerPlaceholder, text: $customText)
+                                .font(.system(size: 9, weight: .regular, design: .monospaced))
+                                .foregroundColor(Color.green.opacity(0.9))
+                                .textFieldStyle(.plain)
+                                .padding(4)
+                                .background(Color.green.opacity(0.06))
+                                .overlay(
+                                    Rectangle()
+                                        .stroke(Color.green.opacity(0.3), lineWidth: 1)
+                                )
+                            
+                            HStack {
+                                Spacer()
+                                Button(action: {
+                                    let trimmed = customText.trimmingCharacters(in: .whitespacesAndNewlines)
+                                    guard !trimmed.isEmpty else { return }
+                                    onSubmitCustomAnswer(trimmed)
+                                }) {
+                                    Text(L.Incubator.customAnswerSubmit)
+                                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                                        .foregroundColor(isCustomTextEmpty ? Color.green.opacity(0.3) : Color.green.opacity(0.9))
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 3)
+                                        .background(isCustomTextEmpty ? Color.green.opacity(0.04) : Color.green.opacity(0.12))
+                                        .overlay(
+                                            Rectangle()
+                                                .stroke(isCustomTextEmpty ? Color.green.opacity(0.15) : Color.green.opacity(0.4), lineWidth: 1)
+                                        )
+                                }
+                                .buttonStyle(.plain)
+                                .disabled(isCustomTextEmpty)
+                            }
+                        }
+                        .padding(.horizontal, 6)
+                        .transition(.opacity)
                     }
                 }
                 .padding(8)
