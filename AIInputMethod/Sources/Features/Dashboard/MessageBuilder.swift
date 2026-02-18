@@ -38,7 +38,7 @@ enum MessageBuilder {
             parts.append("无历史记录")
         } else {
             for record in records {
-                parts.append("- [\(record.type.rawValue)] \(record.scenario) → 选项\(record.selectedOption)")
+                parts.append("- \(record.scenario) → 选项\(record.selectedOption)")
             }
         }
 
@@ -68,7 +68,6 @@ enum MessageBuilder {
         // 本次挑战信息
         parts.append("")
         parts.append("## 本次挑战信息")
-        parts.append("- 类型: \(challenge.type.rawValue)")
         parts.append("- 场景: \(challenge.scenario)")
         let optionsText = challenge.options.enumerated()
             .map { "\($0.offset): \($0.element)" }
@@ -98,7 +97,7 @@ enum MessageBuilder {
             parts.append("无历史记录")
         } else {
             for record in records {
-                parts.append("- [\(record.type.rawValue)] \(record.scenario) → 选项\(record.selectedOption)")
+                parts.append("- \(record.scenario) → 选项\(record.selectedOption)")
             }
         }
 
@@ -142,7 +141,7 @@ enum MessageBuilder {
             parts.append("无校准记录")
         } else {
             for record in records {
-                parts.append("- [\(record.type.rawValue)] \(record.scenario) → 选项\(record.selectedOption)")
+                parts.append("- \(record.scenario) → 选项\(record.selectedOption)")
             }
         }
 

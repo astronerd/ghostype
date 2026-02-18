@@ -28,12 +28,12 @@ enum GhostTwinXP {
         return (newLevel > oldLevel, oldLevel, newLevel)
     }
 
-    /// 挑战类型对应的 XP 奖励
-    static func xpReward(for type: ChallengeType) -> Int {
-        switch type {
-        case .dilemma: return 500
-        case .reverseTuring: return 300
-        case .prediction: return 200
-        }
+    /// 统一校准 XP 奖励
+    static let calibrationXPReward = 300
+
+    /// 语音输入 XP 奖励（1 字符 = 1 XP）
+    /// 正常说话也能积累 XP，10000 字即可升一级
+    static func speechXP(characterCount: Int) -> Int {
+        max(characterCount, 0)
     }
 }

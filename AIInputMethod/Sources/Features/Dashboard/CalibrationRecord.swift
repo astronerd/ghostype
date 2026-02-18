@@ -6,7 +6,6 @@ import Foundation
 /// 记录单次校准挑战的完整信息，包含题目、选项、用户选择、XP 奖励等
 struct CalibrationRecord: Codable, Identifiable, Equatable {
     let id: UUID
-    let type: ChallengeType
     let scenario: String
     let options: [String]
     let selectedOption: Int        // -1 表示使用了自定义答案
@@ -21,7 +20,6 @@ struct CalibrationRecord: Codable, Identifiable, Equatable {
 
 /// 本地校准挑战（端上生成）
 struct LocalCalibrationChallenge: Codable, Equatable {
-    let type: ChallengeType
     let scenario: String
     let options: [String]
     let targetField: String   // "form" | "spirit" | "method"

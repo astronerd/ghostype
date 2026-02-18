@@ -12,7 +12,9 @@ enum LLMJsonParser {
             throw LLMParseError.invalidEncoding(preview: String(raw.prefix(100)))
         }
         do {
-            return try JSONDecoder().decode(T.self, from: data)
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .convertFromSnakeCase
+            return try decoder.decode(T.self, from: data)
         } catch {
             throw LLMParseError.invalidJSON(
                 preview: String(raw.prefix(200)),

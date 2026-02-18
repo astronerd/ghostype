@@ -300,13 +300,24 @@ struct IncubatorPage: View {
     /// 优先显示校准提示（INCOMING），否则显示闲置文案
     @ViewBuilder
     private var rpgDialogLayer: some View {
-        if showGhostResponse, let response = viewModel.ghostResponse {
+        if viewModel.isError, let errorMsg = viewModel.errorMessage {
+            // 错误状态：红色文字显示错误信息，点击清除
+            RPGDialogView(
+                text: "⚠ \(errorMsg)",
+                isInteractive: true,
+                onTap: {
+                    viewModel.isError = false
+                    viewModel.errorMessage = nil
+                },
+                textColor: Color(red: 1.0, green: 0.3, blue: 0.3)
+            )
+        } else if showGhostResponse, let response = viewModel.ghostResponse {
             // Ghost 反馈语：复用底部对话框，更亮的绿色
             RPGDialogView(
                 text: response,
                 textColor: Color(red: 0.4, green: 1.0, blue: 0.4)
             )
-        } else if viewModel.challengesRemaining > 0 && !viewModel.showReceiptSlip {
+        } else if viewModel.hasCompletedProfiling && viewModel.challengesRemaining > 0 && !viewModel.showReceiptSlip {
             // 校准提示：明确的 "点击此处校准 Ghost"
             RPGDialogView(
                 text: L.Incubator.tapToCalibrate,
@@ -395,7 +406,6 @@ struct IncubatorPage: View {
                 // Mock Challenge (show receipt slip)
                 Button("Mock Challenge") {
                     viewModel.currentChallenge = LocalCalibrationChallenge(
-                        type: .dilemma,
                         scenario: "Your friend posted something with obvious factual errors. What do you do?",
                         options: ["DM them privately", "Comment publicly", "Pretend you didn't see it"],
                         targetField: "spirit"

@@ -22,7 +22,9 @@ private enum TestLLMJsonParser {
             throw TestLLMParseError.invalidEncoding
         }
         do {
-            return try JSONDecoder().decode(T.self, from: data)
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .convertFromSnakeCase
+            return try decoder.decode(T.self, from: data)
         } catch {
             throw TestLLMParseError.invalidJSON(underlying: error)
         }

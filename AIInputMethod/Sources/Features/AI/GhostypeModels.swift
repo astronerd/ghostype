@@ -106,24 +106,6 @@ enum GhostypeError: LocalizedError {
     }
 }
 
-// MARK: - Calibration Challenge
-
-/// 校准挑战类型
-enum ChallengeType: String, Codable {
-    case dilemma                            // 灵魂拷问，500 XP
-    case reverseTuring = "reverse_turing"   // 找鬼游戏，300 XP
-    case prediction                         // 预判赌局，200 XP
-    
-    /// 该类型挑战的 XP 奖励
-    var xpReward: Int {
-        switch self {
-        case .dilemma: return 500
-        case .reverseTuring: return 300
-        case .prediction: return 200
-        }
-    }
-}
-
 // MARK: - Skill Execute Request
 
 /// Skill 执行请求体
