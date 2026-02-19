@@ -13,9 +13,9 @@
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.0.0-debug</string>
+    <string>0.1.02192224</string>
     <key>CFBundleVersion</key>
-    <string>0</string>
+    <string>1</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>LSUIElement</key>
@@ -42,6 +42,6 @@
     <key>SUPublicEDKey</key>
     <string>8MGfJ7NMeozRnAzggep3bI3Yi4deZgOzyFJ9AtVRUOo=</string>
     <key>SUEnableAutomaticChecks</key>
-    <false/>
+    <true/>
 </dict>
 </plist>

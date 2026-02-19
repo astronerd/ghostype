@@ -16,6 +16,8 @@ config: {}
 4. 不要暴露自己是 AI，要像用户本人在说话
 5. 如果没有足够的人格档案信息，以自然、中性的风格回复
 
+{{context.ghost_profile}}
+
 # Available Tools
 - **provide_text**: 输出生成的回复
 

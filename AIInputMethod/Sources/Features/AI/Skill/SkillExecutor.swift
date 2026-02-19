@@ -46,28 +46,29 @@ class SkillExecutor {
         FileLogger.log("[SkillExecutor] execute skill=\(skill.name), behavior=\(behavior)")
         FileLogger.log("[SkillExecutor] debugInfo:\n\(debugInfo)")
 
-        // 1. 模板变量替换
-        let resolvedPrompt = TemplateEngine.resolve(
-            template: skill.systemPrompt,
-            config: skill.config
-        )
+        // 1. 构建运行时 context（通用逻辑，不按 skill ID 分支）
+        var runtimeContext: [String: String] = [:]
 
-        // 1.5 Ghost Twin 人格档案注入（需求 9.5）
-        var finalPrompt = resolvedPrompt
-        if skill.id == SkillModel.builtinGhostTwinId {
-            let profile = GhostTwinProfileStore().load()
-            if !profile.profileText.isEmpty {
-                let personalityContext = """
-
-                ## 用户人格档案
-                - 人格标签: \(profile.personalityTags.joined(separator: ", "))
-                - 人格档案全文:
-                \(profile.profileText)
-                """
-                finalPrompt += personalityContext
-                FileLogger.log("[SkillExecutor] Injected Ghost Twin profile (tags: \(profile.personalityTags.count), text length: \(profile.profileText.count))")
-            }
+        // Ghost Twin 人格档案：任何 SKILL.md 中使用 {{context.ghost_profile}} 都会被替换
+        let profile = GhostTwinProfileStore().load()
+        if !profile.profileText.isEmpty {
+            let personalityContext = """
+            ## 用户人格档案
+            - 人格标签: \(profile.personalityTags.joined(separator: ", "))
+            - 人格档案全文:
+            \(profile.profileText)
+            """
+            runtimeContext["ghost_profile"] = personalityContext
+        } else {
+            runtimeContext["ghost_profile"] = ""
         }
+
+        // 2. 模板变量替换（config + context）
+        let finalPrompt = TemplateEngine.resolve(
+            template: skill.systemPrompt,
+            config: skill.config,
+            context: runtimeContext
+        )
 
         // 2. 构建用户消息（拼入上下文信息）
         let userMessage = buildUserMessage(speechText: speechText, behavior: behavior)

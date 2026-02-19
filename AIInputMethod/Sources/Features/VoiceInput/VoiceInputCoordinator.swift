@@ -27,9 +27,10 @@ class VoiceInputCoordinator: ToolOutputHandler {
     private var waitingForFinalResult = false
     private var cancellables = Set<AnyCancellable>()
 
-    // MARK: - ASR Corpus
+    // MARK: - ASR Corpus & Profile
 
     private let corpusStore = ASRCorpusStore()
+    private let profileStore = GhostTwinProfileStore()
 
     // MARK: - Init
 
@@ -102,10 +103,11 @@ class VoiceInputCoordinator: ToolOutputHandler {
             FileLogger.log("[Speech] ✅ Final result: \(text)")
             self.currentRawText = text
 
-            // 收集 ASR 语料用于 Ghost Twin 人格构筑
+            // 收集 ASR 语料用于 Ghost Twin 人格构筑 + 语音 XP
             let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmed.isEmpty {
                 self.corpusStore.append(text: trimmed)
+                self.awardSpeechXP(characterCount: trimmed.count)
             }
 
             if self.waitingForFinalResult, let skill = self.pendingSkill {
@@ -123,6 +125,49 @@ class VoiceInputCoordinator: ToolOutputHandler {
 
         speechService.onPartialResult = { text in
             FileLogger.log("[Speech] Partial result: \(text)")
+        }
+    }
+
+    // MARK: - Speech XP
+
+    /// 语音输入奖励 XP（1 字符 = 1 XP）
+    /// 正常说话即可积累经验，无需校准
+    private func awardSpeechXP(characterCount: Int) {
+        let xp = GhostTwinXP.speechXP(characterCount: characterCount)
+        guard xp > 0 else { return }
+
+        var profile = profileStore.load()
+        let oldXP = profile.totalXP
+        let newXP = oldXP + xp
+        let levelCheck = GhostTwinXP.checkLevelUp(oldXP: oldXP, newXP: newXP)
+
+        profile.totalXP = newXP
+        profile.level = GhostTwinXP.calculateLevel(totalXP: newXP)
+        profile.updatedAt = Date()
+
+        do {
+            try profileStore.save(profile)
+            FileLogger.log("[VIC] 🎯 Speech XP +\(xp) (total: \(newXP), Lv.\(profile.level))")
+        } catch {
+            FileLogger.log("[VIC] ❌ Failed to save speech XP: \(error)")
+            return
+        }
+
+        // 通知 UI 刷新（IncubatorViewModel 会 loadLocalData）
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .ghostTwinStatusShouldRefresh, object: nil)
+        }
+
+        // 升级时通知触发构筑
+        if levelCheck.leveledUp {
+            FileLogger.log("[VIC] 🎉 Level up via speech! Lv.\(levelCheck.oldLevel) → Lv.\(levelCheck.newLevel)")
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(
+                    name: .ghostTwinDidLevelUp,
+                    object: nil,
+                    userInfo: ["newLevel": levelCheck.newLevel]
+                )
+            }
         }
     }
 
