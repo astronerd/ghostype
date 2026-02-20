@@ -60,9 +60,15 @@ enum MemoContentFormatter {
         "**\(timeString)**\n\n\(content)\n\n"
     }
 
-    /// Apple Notes 纯文本格式：HH:mm\n{content}\n\n
+    /// Apple Notes HTML 格式：<b>HH:mm</b><br>{content}<br><br>
+    /// Apple Notes body 是 HTML，必须用 <br> 换行
     private static func formatAppleNotes(content: String, timeString: String) -> String {
-        "\(timeString)\n\(content)\n\n"
+        let escapedContent = content
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
+            .replacingOccurrences(of: "\n", with: "<br>")
+        return "<b>\(timeString)</b><br>\(escapedContent)<br><br>"
     }
 
     /// Notion paragraph block JSON 格式，时间戳为 bold text

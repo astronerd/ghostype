@@ -501,6 +501,8 @@ enum L {
         static var groupingMode: String { current.memoSync.groupingMode }
         static var titleTemplate: String { current.memoSync.titleTemplate }
         static var titleTemplatePlaceholder: String { current.memoSync.titleTemplatePlaceholder }
+        static var templateVariables: String { current.memoSync.templateVariables }
+        static var templateExample: String { current.memoSync.templateExample }
         static var vaultPath: String { current.memoSync.vaultPath }
         static var selectVault: String { current.memoSync.selectVault }
         static var folderName: String { current.memoSync.folderName }
@@ -1036,6 +1038,8 @@ protocol MemoSyncStrings {
     var groupingMode: String { get }
     var titleTemplate: String { get }
     var titleTemplatePlaceholder: String { get }
+    var templateVariables: String { get }
+    var templateExample: String { get }
     var vaultPath: String { get }
     var selectVault: String { get }
     var folderName: String { get }

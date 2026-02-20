@@ -535,6 +535,8 @@ private struct ChineseMemoSync: MemoSyncStrings {
     var groupingMode: String { "分组模式" }
     var titleTemplate: String { "标题模板" }
     var titleTemplatePlaceholder: String { "例如: GHOSTYPE Memo {date}" }
+    var templateVariables: String { "可用变量：{date}  {time}  {year}  {weekNumber}" }
+    var templateExample: String { "示例：GHOSTYPE Memo {date} → GHOSTYPE Memo 2026-02-20" }
     var vaultPath: String { "Vault 目录" }
     var selectVault: String { "选择目录" }
     var folderName: String { "文件夹名称" }

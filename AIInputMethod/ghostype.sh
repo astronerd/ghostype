@@ -167,6 +167,8 @@ write_info_plist() {
     <string>GHOSTYPE needs accessibility access to detect text fields.</string>
     <key>NSContactsUsageDescription</key>
     <string>GHOSTYPE uses contact names as hotwords to improve speech recognition accuracy.</string>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>GHOSTYPE needs Automation access to sync memos to Apple Notes, Bear and other apps.</string>
     <key>CFBundleURLTypes</key>
     <array>
         <dict>

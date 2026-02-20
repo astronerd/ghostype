@@ -429,9 +429,9 @@ struct OverlayView: View {
             commitOpacity = 0
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            // 先 hide phase，此时 commitOpacity 仍为 0，不会闪烁
             stateManager.hide()
-            commitOpacity = 1
-            showGlow = true
+            // 不在这里恢复 commitOpacity，等下次 recording 时再恢复
         }
     }
     

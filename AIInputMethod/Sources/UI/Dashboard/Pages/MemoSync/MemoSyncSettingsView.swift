@@ -195,6 +195,31 @@ struct MemoSyncSettingsView: View {
         for service in SyncServiceType.allCases {
             enabledStates[service] = SyncConfigStore.shared.isEnabled(service)
         }
+        // 自动检测已启用 adapter 的连接状态
+        for service in SyncServiceType.allCases {
+            guard SyncConfigStore.shared.isEnabled(service),
+                  SyncConfigStore.shared.config(for: service) != nil else { continue }
+            connectionStates[service] = .testing
+            let adapter: MemoSyncService
+            switch service {
+            case .obsidian: adapter = ObsidianAdapter()
+            case .appleNotes: adapter = AppleNotesAdapter()
+            case .notion: adapter = NotionAdapter()
+            case .bear: adapter = BearAdapter()
+            }
+            let config = SyncConfigStore.shared.config(for: service)!
+            Task {
+                let result = await adapter.validateConnection(config: config)
+                await MainActor.run {
+                    switch result {
+                    case .success:
+                        connectionStates[service] = .connected
+                    case .failure:
+                        connectionStates[service] = .disconnected
+                    }
+                }
+            }
+        }
     }
     
     private func testConnection(for service: SyncServiceType) {

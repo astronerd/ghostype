@@ -117,7 +117,7 @@ class BearAdapter: MemoSyncService {
         var components = URLComponents(string: "bear://x-callback-url/add-text")
         var queryItems = [
             URLQueryItem(name: "title", value: title),
-            URLQueryItem(name: "text", value: content),
+            URLQueryItem(name: "text", value: "\n" + content),
             URLQueryItem(name: "mode", value: "append")
         ]
         if let tag = tag, !tag.isEmpty {

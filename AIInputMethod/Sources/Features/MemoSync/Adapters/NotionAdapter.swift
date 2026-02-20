@@ -307,8 +307,15 @@ class NotionAdapter: MemoSyncService {
         request.setValue(apiVersion, forHTTPHeaderField: "Notion-Version")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        // 解析 content JSON 字符串为 block 对象
+        // 先插入一个空段落作为分隔，再追加内容 block
         var children: [[String: Any]] = []
+        // Empty paragraph block as separator
+        let emptyBlock: [String: Any] = [
+            "object": "block",
+            "type": "paragraph",
+            "paragraph": ["rich_text": [] as [[String: Any]]]
+        ]
+        children.append(emptyBlock)
         if let blockData = content.data(using: .utf8),
            let block = try? JSONSerialization.jsonObject(with: blockData) as? [String: Any] {
             children.append(block)

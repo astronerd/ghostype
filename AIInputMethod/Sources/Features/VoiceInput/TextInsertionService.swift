@@ -34,6 +34,12 @@ class TextInsertionService {
         FileLogger.log("[Insert] Front app: \(frontAppBundleId ?? "unknown"), Auto-enter: \(shouldAutoEnter), Method: \(sendMethod.rawValue)")
 
         let pasteboard = NSPasteboard.general
+
+        // 1. 备份当前剪贴板内容（按 type 逐个保存）
+        let backup = backupPasteboard(pasteboard)
+        FileLogger.log("[Insert] Clipboard backed up (\(backup.count) items)")
+
+        // 2. 写入要粘贴的文本
         pasteboard.clearContents()
         let success = pasteboard.setString(text, forType: .string)
         print("[Insert] Clipboard set: \(success)")
@@ -54,6 +60,12 @@ class TextInsertionService {
                 }
                 print("[Insert] Paste done")
 
+                // 3. 恢复剪贴板（延迟一点，确保目标应用已读取）
+                DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.TextInsertion.clipboardRestoreDelay) {
+                    self?.restorePasteboard(pasteboard, from: backup)
+                    FileLogger.log("[Insert] Clipboard restored")
+                }
+
                 if shouldAutoEnter {
                     self?.sendKey(method: sendMethod)
                 }
@@ -61,6 +73,41 @@ class TextInsertionService {
                 print("[Insert] ========== DONE ==========")
             }
         }
+    }
+
+    // MARK: - Clipboard Backup / Restore
+
+    /// 备份剪贴板所有 items 的所有 types 和 data
+    private func backupPasteboard(_ pasteboard: NSPasteboard) -> [[(NSPasteboard.PasteboardType, Data)]] {
+        guard let items = pasteboard.pasteboardItems else { return [] }
+        var backup: [[(NSPasteboard.PasteboardType, Data)]] = []
+        for item in items {
+            var itemData: [(NSPasteboard.PasteboardType, Data)] = []
+            for type in item.types {
+                if let data = item.data(forType: type) {
+                    itemData.append((type, data))
+                }
+            }
+            if !itemData.isEmpty {
+                backup.append(itemData)
+            }
+        }
+        return backup
+    }
+
+    /// 从备份恢复剪贴板内容
+    private func restorePasteboard(_ pasteboard: NSPasteboard, from backup: [[(NSPasteboard.PasteboardType, Data)]]) {
+        guard !backup.isEmpty else { return }
+        pasteboard.clearContents()
+        var newItems: [NSPasteboardItem] = []
+        for itemData in backup {
+            let item = NSPasteboardItem()
+            for (type, data) in itemData {
+                item.setData(data, forType: type)
+            }
+            newItems.append(item)
+        }
+        pasteboard.writeObjects(newItems)
     }
 
     /// 保存使用记录到 CoreData

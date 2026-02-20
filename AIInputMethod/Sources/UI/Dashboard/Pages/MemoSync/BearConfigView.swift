@@ -153,20 +153,32 @@ struct BearConfigView: View {
 
     private var templateSection: some View {
         MinimalSettingsSection(title: L.MemoSync.titleTemplate, icon: "textformat") {
-            HStack(spacing: DS.Spacing.md) {
-                Image(systemName: "textformat")
-                    .font(.system(size: 14))
-                    .foregroundColor(DS.Colors.icon)
-                    .frame(width: 28, height: 28)
-                    .background(DS.Colors.highlight)
-                    .cornerRadius(DS.Layout.cornerRadius)
+            VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+                HStack(spacing: DS.Spacing.md) {
+                    Image(systemName: "textformat")
+                        .font(.system(size: 14))
+                        .foregroundColor(DS.Colors.icon)
+                        .frame(width: 28, height: 28)
+                        .background(DS.Colors.highlight)
+                        .cornerRadius(DS.Layout.cornerRadius)
 
-                TextField(L.MemoSync.titleTemplatePlaceholder, text: $config.titleTemplate)
-                    .textFieldStyle(.plain)
-                    .font(DS.Typography.body)
-                    .foregroundColor(DS.Colors.text1)
-                    .onSubmit { saveConfig() }
-                    .onChange(of: config.titleTemplate) { saveConfig() }
+                    TextField(L.MemoSync.titleTemplatePlaceholder, text: $config.titleTemplate)
+                        .textFieldStyle(.plain)
+                        .font(DS.Typography.body)
+                        .foregroundColor(DS.Colors.text1)
+                        .onSubmit { saveConfig() }
+                        .onChange(of: config.titleTemplate) { saveConfig() }
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L.MemoSync.templateVariables)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text3)
+                    Text(L.MemoSync.templateExample)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text3)
+                }
+                .padding(.leading, 40)
             }
             .padding(.horizontal, DS.Spacing.lg)
             .padding(.vertical, DS.Spacing.md)

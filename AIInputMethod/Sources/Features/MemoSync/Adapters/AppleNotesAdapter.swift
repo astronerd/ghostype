@@ -139,7 +139,7 @@ class AppleNotesAdapter: MemoSyncService {
 
     /// Create a new note in the specified folder
     private func createNote(title: String, content: String, inFolder folderName: String) -> Result<Void, SyncError> {
-        let bodyContent = escapeForAppleScript(title + "\n" + content)
+        let bodyContent = escapeForAppleScript(content)
         let script = """
         tell application "Notes"
             make new note at folder "\(escapeForAppleScript(folderName))" with properties {name:"\(escapeForAppleScript(title))", body:"\(bodyContent)"}
@@ -160,7 +160,7 @@ class AppleNotesAdapter: MemoSyncService {
         tell application "Notes"
             set targetNote to first note of folder "\(escapeForAppleScript(folderName))" whose name is "\(escapeForAppleScript(title))"
             set currentBody to body of targetNote
-            set body of targetNote to currentBody & "\(escapeForAppleScript(content))"
+            set body of targetNote to currentBody & "<br>" & "\(escapeForAppleScript(content))"
         end tell
         """
         let result = executeAppleScript(script)

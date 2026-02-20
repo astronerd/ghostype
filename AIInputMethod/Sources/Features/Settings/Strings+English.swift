@@ -535,6 +535,8 @@ private struct EnglishMemoSync: MemoSyncStrings {
     var groupingMode: String { "Grouping Mode" }
     var titleTemplate: String { "Title Template" }
     var titleTemplatePlaceholder: String { "e.g. GHOSTYPE Memo {date}" }
+    var templateVariables: String { "Variables: {date}  {time}  {year}  {weekNumber}" }
+    var templateExample: String { "Example: GHOSTYPE Memo {date} → GHOSTYPE Memo 2026-02-20" }
     var vaultPath: String { "Vault Directory" }
     var selectVault: String { "Select Directory" }
     var folderName: String { "Folder Name" }

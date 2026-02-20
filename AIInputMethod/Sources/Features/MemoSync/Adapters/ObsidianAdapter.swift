@@ -75,9 +75,9 @@ class ObsidianAdapter: MemoSyncService {
         // 6. Write or append
         do {
             if fm.fileExists(atPath: fileURL.path) {
-                // Append to existing file
+                // Append to existing file (add blank line separator)
                 let existingContent = try String(contentsOf: fileURL, encoding: .utf8)
-                let combined = existingContent + formattedContent
+                let combined = existingContent + "\n" + formattedContent
                 try combined.write(to: fileURL, atomically: true, encoding: .utf8)
                 FileLogger.log("[MemoSync] ✅ Obsidian: appended to \(filename).md")
             } else {
