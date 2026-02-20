@@ -89,6 +89,7 @@ enum L {
         static var idleTextsLevel7to9: [String] { current.incubator.idleTextsLevel7to9 }
         static var idleTextsLevel10: [String] { current.incubator.idleTextsLevel10 }
         
+        static var coldStartGuide: String { current.incubator.coldStartGuide }
         static var customAnswerButton: String { current.incubator.customAnswerButton }
         static var customAnswerPlaceholder: String { current.incubator.customAnswerPlaceholder }
         static var customAnswerSubmit: String { current.incubator.customAnswerSubmit }
@@ -96,7 +97,7 @@ enum L {
         /// 根据等级返回对应的闲置文案数组
         static func idleTexts(forLevel level: Int) -> [String] {
             switch level {
-            case 1...3: return idleTextsLevel1to3
+            case 0...3: return idleTextsLevel1to3
             case 4...6: return idleTextsLevel4to6
             case 7...9: return idleTextsLevel7to9
             case 10: return idleTextsLevel10
@@ -470,6 +471,73 @@ enum L {
         static var triggerOutput3: String { current.aiPolishExamples.triggerOutput3 }
     }
 
+    // MARK: - Skill Context / Skill 上下文 Provider
+    enum SkillContext {
+        static var profileHeader: String { current.skillContext.profileHeader }
+        static var profileLevel: String { current.skillContext.profileLevel }
+        static var profileFullText: String { current.skillContext.profileFullText }
+        static var noCalibrationRecords: String { current.skillContext.noCalibrationRecords }
+        static var customAnswer: String { current.skillContext.customAnswer }
+        static var optionPrefix: String { current.skillContext.optionPrefix }
+        static var noNewCorpus: String { current.skillContext.noNewCorpus }
+    }
+
+    // MARK: - MemoSync / 笔记同步
+    enum MemoSync {
+        // Settings page
+        static var title: String { current.memoSync.title }
+        static var subtitle: String { current.memoSync.subtitle }
+        static var enableSync: String { current.memoSync.enableSync }
+        // Adapter names
+        static var obsidian: String { current.memoSync.obsidian }
+        static var appleNotes: String { current.memoSync.appleNotes }
+        static var notion: String { current.memoSync.notion }
+        static var bear: String { current.memoSync.bear }
+        // Grouping modes
+        static var perNote: String { current.memoSync.perNote }
+        static var perDay: String { current.memoSync.perDay }
+        static var perWeek: String { current.memoSync.perWeek }
+        // Config labels
+        static var groupingMode: String { current.memoSync.groupingMode }
+        static var titleTemplate: String { current.memoSync.titleTemplate }
+        static var titleTemplatePlaceholder: String { current.memoSync.titleTemplatePlaceholder }
+        static var vaultPath: String { current.memoSync.vaultPath }
+        static var selectVault: String { current.memoSync.selectVault }
+        static var folderName: String { current.memoSync.folderName }
+        static var databaseId: String { current.memoSync.databaseId }
+        static var defaultTag: String { current.memoSync.defaultTag }
+        static var token: String { current.memoSync.token }
+        // Connection status
+        static var testConnection: String { current.memoSync.testConnection }
+        static var connected: String { current.memoSync.connected }
+        static var disconnected: String { current.memoSync.disconnected }
+        static var testing: String { current.memoSync.testing }
+        // Sync status
+        static var synced: String { current.memoSync.synced }
+        static var syncFailed: String { current.memoSync.syncFailed }
+        static var notSynced: String { current.memoSync.notSynced }
+        static var syncSuccess: String { current.memoSync.syncSuccess }
+        // Error messages
+        static var errorPathNotFound: String { current.memoSync.errorPathNotFound }
+        static var errorNoPermission: String { current.memoSync.errorNoPermission }
+        static var errorBookmarkExpired: String { current.memoSync.errorBookmarkExpired }
+        static var errorAppleScript: String { current.memoSync.errorAppleScript }
+        static var errorTokenInvalid: String { current.memoSync.errorTokenInvalid }
+        static var errorDatabaseNotFound: String { current.memoSync.errorDatabaseNotFound }
+        static var errorRateLimited: String { current.memoSync.errorRateLimited }
+        static var errorBearNotInstalled: String { current.memoSync.errorBearNotInstalled }
+        static var errorNetwork: String { current.memoSync.errorNetwork }
+        static var errorUnknown: String { current.memoSync.errorUnknown }
+        // Notion setup wizard
+        static var notionSetupTitle: String { current.memoSync.notionSetupTitle }
+        static var notionStep1: String { current.memoSync.notionStep1 }
+        static var notionStep2: String { current.memoSync.notionStep2 }
+        static var notionStep3: String { current.memoSync.notionStep3 }
+        static var notionStep4: String { current.memoSync.notionStep4 }
+        static var notionStep5: String { current.memoSync.notionStep5 }
+        static var openNotionPortal: String { current.memoSync.openNotionPortal }
+    }
+
     // MARK: - Private Implementation
     
     private static var current: StringsTable {
@@ -504,6 +572,8 @@ protocol StringsTable {
     var menuBar: MenuBarStrings { get }
     var overlay: OverlayStrings { get }
     var aiPolishExamples: AIPolishExamplesStrings { get }
+    var skillContext: SkillContextStrings { get }
+    var memoSync: MemoSyncStrings { get }
 }
 
 protocol OnboardingStrings {
@@ -827,6 +897,7 @@ protocol IncubatorStrings {
     var idleTextsLevel4to6: [String] { get }
     var idleTextsLevel7to9: [String] { get }
     var idleTextsLevel10: [String] { get }
+    var coldStartGuide: String { get }
     var customAnswerButton: String { get }
     var customAnswerPlaceholder: String { get }
     var customAnswerSubmit: String { get }
@@ -935,4 +1006,69 @@ protocol AIPolishExamplesStrings {
     var triggerOutput2: String { get }
     var triggerInput3: String { get }
     var triggerOutput3: String { get }
+}
+
+protocol SkillContextStrings {
+    var profileHeader: String { get }
+    var profileLevel: String { get }
+    var profileFullText: String { get }
+    var noCalibrationRecords: String { get }
+    var customAnswer: String { get }
+    var optionPrefix: String { get }
+    var noNewCorpus: String { get }
+}
+
+protocol MemoSyncStrings {
+    // Settings page
+    var title: String { get }
+    var subtitle: String { get }
+    var enableSync: String { get }
+    // Adapter names
+    var obsidian: String { get }
+    var appleNotes: String { get }
+    var notion: String { get }
+    var bear: String { get }
+    // Grouping modes
+    var perNote: String { get }
+    var perDay: String { get }
+    var perWeek: String { get }
+    // Config labels
+    var groupingMode: String { get }
+    var titleTemplate: String { get }
+    var titleTemplatePlaceholder: String { get }
+    var vaultPath: String { get }
+    var selectVault: String { get }
+    var folderName: String { get }
+    var databaseId: String { get }
+    var defaultTag: String { get }
+    var token: String { get }
+    // Connection status
+    var testConnection: String { get }
+    var connected: String { get }
+    var disconnected: String { get }
+    var testing: String { get }
+    // Sync status
+    var synced: String { get }
+    var syncFailed: String { get }
+    var notSynced: String { get }
+    var syncSuccess: String { get }
+    // Error messages
+    var errorPathNotFound: String { get }
+    var errorNoPermission: String { get }
+    var errorBookmarkExpired: String { get }
+    var errorAppleScript: String { get }
+    var errorTokenInvalid: String { get }
+    var errorDatabaseNotFound: String { get }
+    var errorRateLimited: String { get }
+    var errorBearNotInstalled: String { get }
+    var errorNetwork: String { get }
+    var errorUnknown: String { get }
+    // Notion setup wizard
+    var notionSetupTitle: String { get }
+    var notionStep1: String { get }
+    var notionStep2: String { get }
+    var notionStep3: String { get }
+    var notionStep4: String { get }
+    var notionStep5: String { get }
+    var openNotionPortal: String { get }
 }

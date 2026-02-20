@@ -143,14 +143,13 @@ struct IncubatorPage: View {
             Divider().frame(height: 14)
             
             statusChip(label: L.Incubator.statusLevel, value: "Lv.\(viewModel.level)")
-            statusChip(label: L.Incubator.statusXP, value: "\(viewModel.currentLevelXP)/10k")
-            statusChip(label: L.Incubator.statusSync, value: "\(viewModel.syncRate)%")
+            statusChip(label: L.Incubator.statusXP, value: "\(viewModel.currentLevelXP)/\(GhostTwinXP.xpNeededForCurrentLevel(level: viewModel.level))")
             statusChip(label: L.Incubator.statusChallenges, value: "\(viewModel.challengesRemaining)")
             statusChip(
                 label: L.Incubator.statusPersonality,
-                value: viewModel.personalityTags.isEmpty
+                value: viewModel.summary.isEmpty
                     ? L.Incubator.statusNone
-                    : viewModel.personalityTags.prefix(2).joined(separator: ", ")
+                    : viewModel.summary
             )
             
             Spacer(minLength: 0)
@@ -207,8 +206,7 @@ struct IncubatorPage: View {
                     VStack {
                         LevelInfoBar(
                             level: viewModel.level,
-                            progressFraction: viewModel.progressFraction,
-                            syncRate: viewModel.syncRate
+                            progressFraction: viewModel.progressFraction
                         )
                         .padding(.horizontal, 6)
                         .padding(.top, 5)
@@ -317,6 +315,9 @@ struct IncubatorPage: View {
                 text: response,
                 textColor: Color(red: 0.4, green: 1.0, blue: 0.4)
             )
+        } else if viewModel.level == 0 {
+            // Lv.0 冷启动引导文案
+            RPGDialogView(text: L.Incubator.coldStartGuide)
         } else if viewModel.hasCompletedProfiling && viewModel.challengesRemaining > 0 && !viewModel.showReceiptSlip {
             // 校准提示：明确的 "点击此处校准 Ghost"
             RPGDialogView(
@@ -448,7 +449,7 @@ struct IncubatorPage: View {
             .font(.system(size: 10, design: .monospaced))
             
             // Status display
-            Text("Lv.\(viewModel.level) | XP: \(viewModel.currentLevelXP)/10000 | Sync: \(viewModel.syncRate)% | Phase: \(viewModel.levelUpPhase) | Challenges: \(viewModel.challengesRemaining)")
+            Text("Lv.\(viewModel.level) | XP: \(viewModel.currentLevelXP)/\(GhostTwinXP.xpNeededForCurrentLevel(level: viewModel.level)) | Phase: \(viewModel.levelUpPhase) | Challenges: \(viewModel.challengesRemaining)")
                 .font(.system(size: 9, design: .monospaced))
                 .foregroundColor(.gray)
         }

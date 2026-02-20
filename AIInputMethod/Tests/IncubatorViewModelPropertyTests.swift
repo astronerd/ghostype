@@ -29,7 +29,6 @@ private enum TestGhostTwinCacheKey: String {
     case level = "ghostTwin.level"
     case totalXP = "ghostTwin.totalXP"
     case currentLevelXP = "ghostTwin.currentLevelXP"
-    case personalityTags = "ghostTwin.personalityTags"
     case challengesRemaining = "ghostTwin.challengesRemaining"
     case activationOrder = "ghostTwin.activationOrder"
 }
@@ -281,7 +280,7 @@ final class IncubatorViewModelPropertyTests: XCTestCase {
     
     /// Property 7: Cache fallback on API failure
     /// *For any* previously cached Ghost Twin state (level, totalXP, currentLevelXP,
-    /// personalityTags, challengesRemaining), when the status API call fails,
+    /// challengesRemaining), when the status API call fails,
     /// the ViewModel shall restore state from cache such that all displayed values
     /// match the cached values.
     /// Feature: ghost-twin-incubator, Property 7: Cache fallback on API failure
@@ -295,9 +294,6 @@ final class IncubatorViewModelPropertyTests: XCTestCase {
             let cachedLevel = Int.random(in: 1...10)
             let cachedTotalXP = Int.random(in: 0...100000)
             let cachedCurrentLevelXP = Int.random(in: 0...9999)
-            let possibleTags = ["直接", "委婉", "效率至上", "冷幽默", "热情", "理性", "感性"]
-            let tagCount = Int.random(in: 0...5)
-            let cachedTags = Array(possibleTags.shuffled().prefix(tagCount))
             let cachedChallengesRemaining = Int.random(in: 0...3)
             
             // Write state to UserDefaults using the cache keys (simulating a previous save)
@@ -305,28 +301,24 @@ final class IncubatorViewModelPropertyTests: XCTestCase {
             defaults.set(cachedLevel, forKey: TestGhostTwinCacheKey.level.rawValue)
             defaults.set(cachedTotalXP, forKey: TestGhostTwinCacheKey.totalXP.rawValue)
             defaults.set(cachedCurrentLevelXP, forKey: TestGhostTwinCacheKey.currentLevelXP.rawValue)
-            defaults.set(cachedTags, forKey: TestGhostTwinCacheKey.personalityTags.rawValue)
             defaults.set(cachedChallengesRemaining, forKey: TestGhostTwinCacheKey.challengesRemaining.rawValue)
             
             // Read back from UserDefaults (simulating cache fallback)
             let restoredLevel = defaults.integer(forKey: TestGhostTwinCacheKey.level.rawValue)
             let restoredTotalXP = defaults.integer(forKey: TestGhostTwinCacheKey.totalXP.rawValue)
             let restoredCurrentLevelXP = defaults.integer(forKey: TestGhostTwinCacheKey.currentLevelXP.rawValue)
-            let restoredTags = defaults.stringArray(forKey: TestGhostTwinCacheKey.personalityTags.rawValue) ?? []
             let restoredChallengesRemaining = defaults.integer(forKey: TestGhostTwinCacheKey.challengesRemaining.rawValue)
             
             // Verify: all restored values match cached values
             guard restoredLevel == cachedLevel else { return false }
             guard restoredTotalXP == cachedTotalXP else { return false }
             guard restoredCurrentLevelXP == cachedCurrentLevelXP else { return false }
-            guard restoredTags == cachedTags else { return false }
             guard restoredChallengesRemaining == cachedChallengesRemaining else { return false }
             
             // Clean up
             defaults.removeObject(forKey: TestGhostTwinCacheKey.level.rawValue)
             defaults.removeObject(forKey: TestGhostTwinCacheKey.totalXP.rawValue)
             defaults.removeObject(forKey: TestGhostTwinCacheKey.currentLevelXP.rawValue)
-            defaults.removeObject(forKey: TestGhostTwinCacheKey.personalityTags.rawValue)
             defaults.removeObject(forKey: TestGhostTwinCacheKey.challengesRemaining.rawValue)
             
             return true
@@ -346,30 +338,24 @@ final class IncubatorViewModelPropertyTests: XCTestCase {
             let level = Int.random(in: 1...10)
             let totalXP = Int.random(in: 0...100000)
             let currentLevelXP = Int.random(in: 0...9999)
-            let possibleTags = ["直接", "委婉", "效率至上", "冷幽默", "热情", "理性"]
-            let tagCount = Int.random(in: 0...4)
-            let tags = Array(possibleTags.shuffled().prefix(tagCount))
             let challengesRemaining = Int.random(in: 0...3)
             
             // Write to isolated suite
             defaults.set(level, forKey: TestGhostTwinCacheKey.level.rawValue)
             defaults.set(totalXP, forKey: TestGhostTwinCacheKey.totalXP.rawValue)
             defaults.set(currentLevelXP, forKey: TestGhostTwinCacheKey.currentLevelXP.rawValue)
-            defaults.set(tags, forKey: TestGhostTwinCacheKey.personalityTags.rawValue)
             defaults.set(challengesRemaining, forKey: TestGhostTwinCacheKey.challengesRemaining.rawValue)
             
             // Read back
             let restoredLevel = defaults.integer(forKey: TestGhostTwinCacheKey.level.rawValue)
             let restoredTotalXP = defaults.integer(forKey: TestGhostTwinCacheKey.totalXP.rawValue)
             let restoredCurrentLevelXP = defaults.integer(forKey: TestGhostTwinCacheKey.currentLevelXP.rawValue)
-            let restoredTags = defaults.stringArray(forKey: TestGhostTwinCacheKey.personalityTags.rawValue) ?? []
             let restoredChallengesRemaining = defaults.integer(forKey: TestGhostTwinCacheKey.challengesRemaining.rawValue)
             
             // Verify all values match
             guard restoredLevel == level else { return false }
             guard restoredTotalXP == totalXP else { return false }
             guard restoredCurrentLevelXP == currentLevelXP else { return false }
-            guard restoredTags == tags else { return false }
             guard restoredChallengesRemaining == challengesRemaining else { return false }
             
             return true

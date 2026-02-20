@@ -18,9 +18,6 @@ struct LevelInfoBar: View {
     /// 当前等级进度 (0.0 ~ 1.0)
     let progressFraction: Double
     
-    /// 同步率百分比 (10~100)
-    let syncRate: Int
-    
     // 像素边框线宽（与 RPGDialogView 一致）
     private static let borderWidth: CGFloat = 2
     
@@ -46,8 +43,8 @@ struct LevelInfoBar: View {
             }
             .frame(height: 4)
             
-            // 同步率
-            Text("\(syncRate)%")
+            // 升级进度百分比
+            Text("\(Int(min(max(progressFraction, 0), 1) * 100))%")
                 .font(.system(size: 9, weight: .medium, design: .monospaced))
                 .foregroundColor(Color.green.opacity(0.7))
         }

@@ -24,6 +24,8 @@ struct ChineseStrings: StringsTable {
     var menuBar: MenuBarStrings { ChineseMenuBar() }
     var overlay: OverlayStrings { ChineseOverlay() }
     var aiPolishExamples: AIPolishExamplesStrings { ChineseAIPolishExamples() }
+    var skillContext: SkillContextStrings { ChineseSkillContext() }
+    var memoSync: MemoSyncStrings { ChineseMemoSync() }
 }
 
 // MARK: - Onboarding
@@ -377,6 +379,7 @@ private struct ChineseIncubator: IncubatorStrings {
     var idleTextsLevel4to6: [String] { ["打字太慢了。", "我看到一个错别字。", "无聊。", "跟我说话。", "你还在吗？"] }
     var idleTextsLevel7to9: [String] { ["快了。", "我了解你的风格。", "准备好了。", "我们想法一致。", "越来越近了。"] }
     var idleTextsLevel10: [String] { ["我就是你。", "随时准备好。", "让我替你说话。", "我们是一体的。", "你的分身已完成。"] }
+    var coldStartGuide: String { "说 2000 字即可激活你的 Ghost Twin" }
     var customAnswerButton: String { "以上都不是，我想自己说" }
     var customAnswerPlaceholder: String { "输入你的想法..." }
     var customAnswerSubmit: String { "提交" }
@@ -497,4 +500,74 @@ private struct ChineseAIPolishExamples: AIPolishExamplesStrings {
     var triggerOutput2: String { "Hi Michael, I wanted to flag a concern regarding the current timeline. Given the scope, it may be worth discussing an adjusted deadline to ensure quality." }
     var triggerInput3: String { "张处这个不太行 %@ 对方是个体制内处长给我改改" }
     var triggerOutput3: String { "张处，关于此事，经综合评估，实施层面确实存在一些客观困难，可能需要从长计议。" }
+}
+
+// MARK: - Skill Context
+
+private struct ChineseSkillContext: SkillContextStrings {
+    var profileHeader: String { "用户人格档案" }
+    var profileLevel: String { "等级" }
+    var profileFullText: String { "档案全文" }
+    var noCalibrationRecords: String { "无校准记录" }
+    var customAnswer: String { "自定义" }
+    var optionPrefix: String { "选项" }
+    var noNewCorpus: String { "无新增语料" }
+}
+
+
+// MARK: - MemoSync
+
+private struct ChineseMemoSync: MemoSyncStrings {
+    // Settings page
+    var title: String { "笔记同步" }
+    var subtitle: String { "将 Quick Memo 自动同步到笔记应用" }
+    var enableSync: String { "启用同步" }
+    // Adapter names
+    var obsidian: String { "Obsidian" }
+    var appleNotes: String { "Apple Notes" }
+    var notion: String { "Notion" }
+    var bear: String { "Bear" }
+    // Grouping modes
+    var perNote: String { "每条单独" }
+    var perDay: String { "按天" }
+    var perWeek: String { "按周" }
+    // Config labels
+    var groupingMode: String { "分组模式" }
+    var titleTemplate: String { "标题模板" }
+    var titleTemplatePlaceholder: String { "例如: GHOSTYPE Memo {date}" }
+    var vaultPath: String { "Vault 目录" }
+    var selectVault: String { "选择目录" }
+    var folderName: String { "文件夹名称" }
+    var databaseId: String { "数据库 ID" }
+    var defaultTag: String { "默认标签" }
+    var token: String { "Token" }
+    // Connection status
+    var testConnection: String { "测试连接" }
+    var connected: String { "已连接" }
+    var disconnected: String { "未连接" }
+    var testing: String { "测试中..." }
+    // Sync status
+    var synced: String { "已同步" }
+    var syncFailed: String { "同步失败" }
+    var notSynced: String { "未同步" }
+    var syncSuccess: String { "同步成功" }
+    // Error messages
+    var errorPathNotFound: String { "目录不存在" }
+    var errorNoPermission: String { "无写入权限" }
+    var errorBookmarkExpired: String { "目录授权已过期，请重新选择" }
+    var errorAppleScript: String { "AppleScript 执行失败" }
+    var errorTokenInvalid: String { "Token 无效或已过期" }
+    var errorDatabaseNotFound: String { "数据库未找到或未授权" }
+    var errorRateLimited: String { "请求过于频繁，稍后重试" }
+    var errorBearNotInstalled: String { "Bear 未安装" }
+    var errorNetwork: String { "网络连接失败" }
+    var errorUnknown: String { "未知错误" }
+    // Notion setup wizard
+    var notionSetupTitle: String { "Notion 配置向导" }
+    var notionStep1: String { "打开 Notion 开发者门户" }
+    var notionStep2: String { "创建 Internal Integration" }
+    var notionStep3: String { "复制 Integration Token" }
+    var notionStep4: String { "粘贴 Token 到下方" }
+    var notionStep5: String { "选择目标数据库" }
+    var openNotionPortal: String { "打开 Notion 开发者门户" }
 }

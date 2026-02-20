@@ -271,6 +271,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
                 },
                 onFloatingCard: { [weak self] result, speechText, skill, debugInfo in
                     guard let self = self else { return }
+                    OverlayStateManager.shared.hide()
                     self.overlayManager.hide()
                     FloatingResultCardController.shared.show(
                         skill: skill,

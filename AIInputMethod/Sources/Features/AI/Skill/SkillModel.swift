@@ -20,6 +20,7 @@ struct SkillModel: Identifiable, Equatable {
     var userPrompt: String                  // 用户原始指令（UI 展示用）
     var systemPrompt: String                // AI 生成的完整 prompt（实际执行用）
     var allowedTools: [String]              // 默认 ["provide_text"]
+    var contextRequires: [String]           // 声明式 context 依赖，默认 []
     var config: [String: String]            // 可选配置参数
 
     // 来自 SkillMetadataStore（UI 元数据）
@@ -76,6 +77,7 @@ extension SkillModel {
     static let builtinPromptGeneratorId = "builtin-prompt-generator"
     static let internalGhostCalibrationId = "internal-ghost-calibration"
     static let internalGhostProfilingId = "internal-ghost-profiling"
+    static let internalGhostInitialProfilingId = "internal-ghost-initial-profiling"
 }
 
 // MARK: - NSColor hex init

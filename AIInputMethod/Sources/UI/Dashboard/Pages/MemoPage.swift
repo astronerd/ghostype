@@ -225,8 +225,14 @@ struct MemoCard: View {
     let isSelected: Bool
     let onDelete: () -> Void
     
+    @ObservedObject private var syncManager = MemoSyncManager.shared
     @State private var isHovered = false
     @State private var showCopied = false
+    
+    /// 当前 Memo 的同步状态
+    private var syncStatus: SyncStatus? {
+        syncManager.syncStatus(for: memo.timestamp)
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.md) {
@@ -239,11 +245,16 @@ struct MemoCard: View {
             
             Spacer(minLength: DS.Spacing.sm)
             
-            // 底部：时间 + 操作按钮
+            // 底部：时间 + 同步状态 + 操作按钮
             HStack {
                 Text(formatDate(memo.value(forKey: "timestamp") as? Date))
                     .font(DS.Typography.caption)
                     .foregroundColor(DS.Colors.text2)
+                
+                // 同步状态图标（仅在有同步服务启用时显示）
+                if syncManager.hasAnySyncServiceEnabled {
+                    syncStatusIndicator
+                }
                 
                 Spacer()
                 
@@ -292,6 +303,36 @@ struct MemoCard: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: DS.Layout.cornerRadius))
         .onHover { hovering in isHovered = hovering }
+    }
+    
+    /// 同步状态指示器
+    @ViewBuilder
+    private var syncStatusIndicator: some View {
+        if let status = syncStatus {
+            switch status {
+            case .synced:
+                HStack(spacing: 3) {
+                    StatusDot(status: .success, size: 6)
+                    Text(L.MemoSync.synced)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.statusSuccess)
+                }
+            case .partialFail:
+                HStack(spacing: 3) {
+                    StatusDot(status: .warning, size: 6)
+                    Text(L.MemoSync.syncFailed)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.statusWarning)
+                }
+            case .failed:
+                HStack(spacing: 3) {
+                    StatusDot(status: .error, size: 6)
+                    Text(L.MemoSync.syncFailed)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.statusError)
+                }
+            }
+        }
     }
     
     private func formatDate(_ date: Date?) -> String {

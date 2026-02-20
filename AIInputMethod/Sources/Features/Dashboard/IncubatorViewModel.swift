@@ -45,7 +45,6 @@ enum GhostTwinCacheKey: String {
     case level = "ghostTwin.level"
     case totalXP = "ghostTwin.totalXP"
     case currentLevelXP = "ghostTwin.currentLevelXP"
-    case personalityTags = "ghostTwin.personalityTags"
     case challengesRemaining = "ghostTwin.challengesRemaining"
     case activationOrder = "ghostTwin.activationOrder"
 }
@@ -60,8 +59,7 @@ struct CalibrationAnalysisResponse: Decodable {
 
     struct ProfileDiff: Codable {
         let layer: String
-        let changes: [String: String]
-        let newTags: [String]
+        let description: String
     }
 }
 
@@ -76,7 +74,7 @@ class IncubatorViewModel {
     
     // MARK: - State
     
-    /// 当前等级 (1~10)
+    /// 当前等级 (0~10)
     var level: Int = 1
     
     /// 总经验值
@@ -85,8 +83,8 @@ class IncubatorViewModel {
     /// 当前等级内的经验值 (0~9999)
     var currentLevelXP: Int = 0
     
-    /// 已捕捉的人格特征标签
-    var personalityTags: [String] = []
+    /// 一句话人格画像
+    var summary: String = ""
     
     /// 今日剩余校准挑战次数
     var challengesRemaining: Int = 0
@@ -149,7 +147,9 @@ class IncubatorViewModel {
     var syncRate: Int { level * 10 }
     
     /// 当前等级进度 (0.0 ~ 1.0)
-    var progressFraction: Double { Double(currentLevelXP) / 10_000.0 }
+    var progressFraction: Double {
+        Double(currentLevelXP) / Double(GhostTwinXP.xpNeededForCurrentLevel(level: level))
+    }
     
     /// 当前动效阶段
     var animationPhase: AnimationPhase {
@@ -175,26 +175,22 @@ class IncubatorViewModel {
     /// 根据等级返回动效阶段
     static func animationPhase(forLevel level: Int) -> AnimationPhase {
         switch level {
-        case 1...3: return .glitch
+        case 0...3: return .glitch
         case 4...6: return .breathing
         case 7...9: return .awakening
         case 10: return .complete
-        default:
-            if level < 1 { return .glitch }
-            return .complete
+        default: return .complete
         }
     }
     
     /// 根据等级返回闲置文案分组索引
     static func idleTextGroup(forLevel level: Int) -> Int {
         switch level {
-        case 1...3: return 0
+        case 0...3: return 0
         case 4...6: return 1
         case 7...9: return 2
         case 10: return 3
-        default:
-            if level < 1 { return 0 }
-            return 3
+        default: return 3
         }
     }
     
@@ -251,10 +247,17 @@ class IncubatorViewModel {
     /// Validates: Requirements 5.3, 11.6
     func loadLocalData() {
         profile = profileStore.load()
+        
+        // 老用户迁移：如果 profile.level >= 1 但 totalXP < 2000，补齐到 2000
+        if profile.level >= 1 && profile.totalXP < GhostTwinXP.xpForLevel0 {
+            profile.totalXP = GhostTwinXP.xpForLevel0
+            try? profileStore.save(profile)
+        }
+        
         level = profile.level
         totalXP = profile.totalXP
         currentLevelXP = GhostTwinXP.currentLevelXP(totalXP: profile.totalXP)
-        personalityTags = profile.personalityTags
+        summary = profile.summary
         challengesRemaining = recordStore.challengesRemainingToday()
         
         // Also update cache for backward compatibility
@@ -372,30 +375,20 @@ class IncubatorViewModel {
             // 5. Parse analysis response
             let analysis: CalibrationAnalysisResponse = try LLMJsonParser.parse(result)
             
-            // 6. Merge tags
-            let newTags = analysis.profileDiff.newTags
-            var updatedTags = profile.personalityTags
-            for tag in newTags {
-                if !updatedTags.contains(tag) {
-                    updatedTags.append(tag)
-                }
-            }
-            
-            // 7. Calculate XP
+            // 6. Calculate XP
             let xpReward = GhostTwinXP.calibrationXPReward
             let oldXP = profile.totalXP
             let newXP = oldXP + xpReward
             let levelCheck = GhostTwinXP.checkLevelUp(oldXP: oldXP, newXP: newXP)
             
-            // 8. Update profile
-            profile.personalityTags = updatedTags
+            // 7. Update profile
             profile.totalXP = newXP
             profile.level = GhostTwinXP.calculateLevel(totalXP: newXP)
             profile.version += 1
             profile.updatedAt = Date()
             try profileStore.save(profile)
             
-            // 9. Save calibration record
+            // 8. Save calibration record
             let record = CalibrationRecord(
                 id: UUID(),
                 scenario: challenge.scenario,
@@ -405,22 +398,24 @@ class IncubatorViewModel {
                 xpEarned: xpReward,
                 ghostResponse: analysis.ghostResponse,
                 profileDiff: String(data: try JSONEncoder().encode(analysis.profileDiff), encoding: .utf8),
+                analysis: analysis.analysis,
+                consumedAtLevel: nil,
                 createdAt: Date()
             )
             recordStore.append(record)
             
-            // 10. Update UI state
+            // 9. Update UI state
             level = profile.level
             totalXP = profile.totalXP
             currentLevelXP = GhostTwinXP.currentLevelXP(totalXP: newXP)
-            personalityTags = profile.personalityTags
+            summary = profile.summary
             ghostResponse = analysis.ghostResponse
             challengesRemaining = recordStore.challengesRemainingToday()
             
-            // 11. Clear calibration flow state
+            // 10. Clear calibration flow state
             recoveryManager.clearCalibrationFlowState()
             
-            // 12. Check level-up → trigger ceremony + profiling
+            // 11. Check level-up → trigger ceremony + profiling
             if levelCheck.leveledUp {
                 Task {
                     await performLevelUpCeremony()
@@ -431,11 +426,11 @@ class IncubatorViewModel {
                 }
             }
             
-            // 13. Hide receipt slip
+            // 12. Hide receipt slip
             showReceiptSlip = false
             currentChallenge = nil
             
-            // 14. Save cache
+            // 13. Save cache
             saveToCacheInternal()
             
             isError = false
@@ -457,12 +452,19 @@ class IncubatorViewModel {
     /// LLM 构筑结果的 JSON 摘要部分
     private struct ProfilingSummary: Decodable {
         let summary: String
-        let refinedTags: [String]
     }
     
     /// 触发人格构筑（升级时调用，非阻塞）
     /// Validates: Requirements 7.1, 7.2, 7.5, 7.6, 7.7, 12.5, 12.7, 12.9
     private func triggerProfiling(atLevel level: Int) async {
+        // 选择 skill：首次构筑（Lv.0→Lv.1 且无档案）使用 initial-profiling
+        let skillId: String
+        if level == 1 && profile.profileText.isEmpty {
+            skillId = SkillModel.internalGhostInitialProfilingId
+        } else {
+            skillId = SkillModel.internalGhostProfilingId
+        }
+        
         // Save profiling state
         let unconsumedCorpus = corpusStore.unconsumed()
         let corpusIds = unconsumedCorpus.map { $0.id }
@@ -477,14 +479,16 @@ class IncubatorViewModel {
         recoveryManager.saveProfilingFlowState(profilingState)
         
         do {
-            guard let skill = SkillManager.shared.skill(byId: SkillModel.internalGhostProfilingId) else {
+            guard let skill = SkillManager.shared.skill(byId: skillId) else {
                 throw NSError(domain: "IncubatorViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: "构筑技能未找到"])
             }
             
-            let records = recordStore.loadAll()
+            let previousReport = profile.profileText.isEmpty ? nil : profile.profileText
+            let records = recordStore.unconsumed()
+            let recordIds = records.map { $0.id }
             let userMessage = buildProfilingUserMessage(
                 profile: profile,
-                previousReport: nil,
+                previousReport: previousReport,
                 corpus: unconsumedCorpus,
                 records: records
             )
@@ -495,24 +499,25 @@ class IncubatorViewModel {
                 context: .noInput
             )
             
-            // Parse profiling result — extract summary and refined_tags from the JSON at the end
+            // Parse profiling result — extract summary from the JSON at the end
             if let jsonStart = result.range(of: "{\"summary\""),
                let jsonEnd = result.range(of: "}", options: .backwards, range: jsonStart.lowerBound..<result.endIndex) {
-                let jsonStr = String(result[jsonStart.lowerBound...jsonEnd.upperBound])
+                let jsonStr = String(result[jsonStart.lowerBound...jsonEnd.lowerBound])
                 if let data = jsonStr.data(using: .utf8) {
                     let decoder = JSONDecoder()
                     decoder.keyDecodingStrategy = .convertFromSnakeCase
                     if let summary = try? decoder.decode(ProfilingSummary.self, from: data) {
-                        profile.personalityTags = summary.refinedTags
+                        profile.summary = summary.summary
                         profile.profileText = result
                         profile.updatedAt = Date()
                         try profileStore.save(profile)
                         
-                        // Mark corpus as consumed
+                        // Mark corpus and records as consumed
                         corpusStore.markConsumed(ids: corpusIds, atLevel: level)
+                        recordStore.markConsumed(ids: recordIds, atLevel: level)
                         
                         // Update UI
-                        personalityTags = profile.personalityTags
+                        self.summary = profile.summary
                     }
                 }
             }
@@ -562,12 +567,23 @@ class IncubatorViewModel {
         
         // Check profiling flow state (non-blocking)
         if let profState = recoveryManager.loadProfilingFlowState() {
-            if profState.phase == .pending, profState.retryCount < profState.maxRetries {
+            // Recover from both .pending (retry) and .running (crash during execution)
+            if (profState.phase == .pending || profState.phase == .running),
+               profState.retryCount < profState.maxRetries {
                 if let triggerLevel = profState.triggerLevel {
+                    FileLogger.log("[IncubatorViewModel] Recovering profiling (phase=\(profState.phase.rawValue), retry=\(profState.retryCount)) at Lv.\(triggerLevel)")
                     Task {
                         await triggerProfiling(atLevel: triggerLevel)
                     }
                 }
+            }
+        } else if profile.level >= 1 && profile.profileText.isEmpty {
+            // Fallback: level >= 1 but no profile text and no recovery state
+            // This handles cases where profiling crashed before saving recovery state,
+            // or upgrade from older version that didn't have profiling
+            FileLogger.log("[IncubatorViewModel] Fallback: Lv.\(profile.level) with empty profile, triggering profiling")
+            Task {
+                await triggerProfiling(atLevel: profile.level)
             }
         }
     }
@@ -638,7 +654,6 @@ class IncubatorViewModel {
         defaults.set(level, forKey: GhostTwinCacheKey.level.rawValue)
         defaults.set(totalXP, forKey: GhostTwinCacheKey.totalXP.rawValue)
         defaults.set(currentLevelXP, forKey: GhostTwinCacheKey.currentLevelXP.rawValue)
-        defaults.set(personalityTags, forKey: GhostTwinCacheKey.personalityTags.rawValue)
         defaults.set(challengesRemaining, forKey: GhostTwinCacheKey.challengesRemaining.rawValue)
         print("[IncubatorViewModel] 💾 Saved state to cache (Lv.\(level), XP: \(totalXP))")
     }
@@ -653,10 +668,6 @@ class IncubatorViewModel {
         
         totalXP = defaults.integer(forKey: GhostTwinCacheKey.totalXP.rawValue)
         currentLevelXP = defaults.integer(forKey: GhostTwinCacheKey.currentLevelXP.rawValue)
-        
-        if let tags = defaults.stringArray(forKey: GhostTwinCacheKey.personalityTags.rawValue) {
-            personalityTags = tags
-        }
         
         challengesRemaining = defaults.integer(forKey: GhostTwinCacheKey.challengesRemaining.rawValue)
         

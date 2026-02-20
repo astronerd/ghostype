@@ -129,10 +129,14 @@ struct DashboardView: View {
             SkillPage()
         case .memo:
             MemoPage()
+        case .memoSync:
+            MemoSyncSettingsView()
         case .library:
             LibraryPageWithData()
         case .aiPolish:
             AIPolishPage()
+        case .debugData:
+            DebugDataPage()
         case .preferences:
             PreferencesPage()
         }

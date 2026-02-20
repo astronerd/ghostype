@@ -13,6 +13,8 @@ struct CalibrationRecord: Codable, Identifiable, Equatable {
     let xpEarned: Int
     let ghostResponse: String
     let profileDiff: String?       // LLM 返回的 diff 原始文本
+    let analysis: String?          // LLM 分析推理过程
+    var consumedAtLevel: Int?      // 被哪个等级的构筑消费（nil = 未消费）
     let createdAt: Date
 }
 
@@ -99,9 +101,28 @@ class CalibrationRecordStore {
         max(Self.dailyLimit - todayCount(), 0)
     }
 
-    // MARK: - Private
+    // MARK: - Consumption Tracking
 
-    private func save(_ records: [CalibrationRecord]) throws {
+    /// 返回未消费的校准记录
+    func unconsumed() -> [CalibrationRecord] {
+        loadAll().filter { $0.consumedAtLevel == nil }
+    }
+
+    /// 标记指定记录为已消费
+    func markConsumed(ids: [UUID], atLevel: Int) {
+        var records = loadAll()
+        let idSet = Set(ids)
+        for i in records.indices {
+            if idSet.contains(records[i].id) {
+                records[i].consumedAtLevel = atLevel
+            }
+        }
+        try? save(records)
+    }
+
+    // MARK: - Internal
+
+    func save(_ records: [CalibrationRecord]) throws {
         let directory = filePath.deletingLastPathComponent()
         if !FileManager.default.fileExists(atPath: directory.path) {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

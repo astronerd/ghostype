@@ -34,31 +34,35 @@
 		</data>
 		<key>Resources/default_skills/builtin-ghost-command/SKILL.md</key>
 		<data>
-		b4bQanGCvxQ9lDAazt/FHGRGF0E=
+		a0AQq4P7JpBAPCjUzpUY9uNDACM=
 		</data>
 		<key>Resources/default_skills/builtin-ghost-twin/SKILL.md</key>
 		<data>
-		Z6bi98oz+CwVeuOuJocG6pCJLYo=
+		ja4TRqwUBBZ12FnDYWzkB4L04AE=
 		</data>
 		<key>Resources/default_skills/builtin-memo/SKILL.md</key>
 		<data>
-		i8QITNreaXxuBQ8KvsMMo1JAoAg=
+		a/zGd8ItpUGKyCCIe24PLUYGvPA=
 		</data>
 		<key>Resources/default_skills/builtin-prompt-generator/SKILL.md</key>
 		<data>
-		q6XAa/BcGlVxC+CZI9I5ck6kaHQ=
+		luBQhd46dTZPphtXHZ52IZABD9k=
 		</data>
 		<key>Resources/default_skills/builtin-translate/SKILL.md</key>
 		<data>
-		LLslBURgGvLipD2nBDSuUcl4EkQ=
+		sGm0B0s93NTOSW5JejyfUye8Z4U=
 		</data>
 		<key>Resources/default_skills/internal-ghost-calibration/SKILL.md</key>
 		<data>
-		hqiHEQY3BYkWwnTYr8c8FvszBco=
+		kGtYOqxH2vt/tdsO6y3IGcjoBxQ=
+		</data>
+		<key>Resources/default_skills/internal-ghost-initial-profiling/SKILL.md</key>
+		<data>
+		/yZ79XgzeEe5RYBR3CP2av3klUI=
 		</data>
 		<key>Resources/default_skills/internal-ghost-profiling/SKILL.md</key>
 		<data>
-		y6B7TFQifJgwnlxhNiLlgG9Gfck=
+		n79pmornoPM7kVJpwjx0N4DcQ90=
 		</data>
 		<key>Resources/ghostmask.svg</key>
 		<data>
@@ -146,49 +150,56 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			Ag8KwBJhrGRVRc5qtiMOc50rDerxANwGUlSlmcm/ZCg=
+			vuYQ/cE8cuwXfuO123GVqljBuiPjGgNja+TR3Y261zw=
 			</data>
 		</dict>
 		<key>Resources/default_skills/builtin-ghost-twin/SKILL.md</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			/WnUSpcZ6d7bEF2QNuz/695dmWrlCtU4V54sZqX9UaI=
+			Z2UnbJqZsayALJoe9hZ6pIbTRIj/f2FH6xA0vLyOp88=
 			</data>
 		</dict>
 		<key>Resources/default_skills/builtin-memo/SKILL.md</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			9XGJdMTPIn10T+SzVlUb++zWQWO912aA1B9AxpdNMqY=
+			5CnUucbVPTBshnhhVnrUC8xoR5jyrkT+8YPwX/0e52g=
 			</data>
 		</dict>
 		<key>Resources/default_skills/builtin-prompt-generator/SKILL.md</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			wRlLsi47ZzbqxbLodI1/R1t7v/d9Dy8Vb2qD6Dgq5wM=
+			6j7YDHLk+KOsYMGoy1V3sWbaqdYCeTN8ItuiFeFX33E=
 			</data>
 		</dict>
 		<key>Resources/default_skills/builtin-translate/SKILL.md</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			p8Fz1l6DjIhwx0PqwRLdMVkjrR4iFeyxHxmZksAQDwY=
+			Y6ZvXP5oS7SmW2pB3f/3cr/aMsBzgf6pBeNe2E/oj8k=
 			</data>
 		</dict>
 		<key>Resources/default_skills/internal-ghost-calibration/SKILL.md</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			vgLHvP1hfrq7VDQlDog2e8JWXpnn+5XcSK+/X4Tw1Es=
+			+rP5XZA0G7ewsk+HK9E8T6xFIVZOT900Ipy+WNT8t4o=
+			</data>
+		</dict>
+		<key>Resources/default_skills/internal-ghost-initial-profiling/SKILL.md</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			eylIiWuL/5tFecQaU1ij0q2SMpLsg5JMyrpwCFVdOv8=
 			</data>
 		</dict>
 		<key>Resources/default_skills/internal-ghost-profiling/SKILL.md</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			UwC8qGoJnjBi8pLsQ5hcG9o0eEJZMx2cDP3EjZdMdXU=
+			T8ctVSqNOa9oz4E7J9j3TKx69FQMq8+VyP1PAakGsDs=
 			</data>
 		</dict>
 		<key>Resources/ghostmask.svg</key>

@@ -141,6 +141,7 @@ struct SkillMigrationService {
                     userPrompt: parseResult.userPrompt,
                     systemPrompt: parseResult.systemPrompt,
                     allowedTools: finalAllowedTools,
+                    contextRequires: parseResult.contextRequires,
                     config: mergedConfig,
                     legacyFields: nil
                 )

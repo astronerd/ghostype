@@ -57,6 +57,14 @@ class OverlayStateManager: ObservableObject {
     func setCommitting(type: OverlayPhase.CommitType) {
         DispatchQueue.main.async { self.phase = .committing(type) }
     }
+    func setMemoSavedAndSynced() {
+        // 仅在当前正在显示 memoSaved 时才切换到 memoSavedAndSynced
+        DispatchQueue.main.async {
+            if case .committing(.memoSaved) = self.phase {
+                self.phase = .committing(.memoSavedAndSynced)
+            }
+        }
+    }
     func setLoginRequired() {
         DispatchQueue.main.async { self.phase = .loginRequired }
     }
@@ -81,6 +89,7 @@ enum OverlayPhase: Equatable {
     enum CommitType: Equatable {
         case textInput
         case memoSaved
+        case memoSavedAndSynced
     }
 }
 
@@ -230,12 +239,13 @@ struct OverlaySizeConfig {
 // MARK: - 结果 Badge
 
 enum ResultBadge {
-    case polished, translated, saved, custom(String, Color)
+    case polished, translated, saved, savedAndSynced, custom(String, Color)
     var text: String {
         switch self {
         case .polished: return L.Overlay.badgePolished
         case .translated: return L.Overlay.badgeTranslated
         case .saved: return L.Overlay.badgeSaved
+        case .savedAndSynced: return L.MemoSync.syncSuccess
         case .custom(let name, _): return name
         }
     }
@@ -244,6 +254,7 @@ enum ResultBadge {
         case .polished: return ModeColors.polishGreen
         case .translated: return ModeColors.translatePurple
         case .saved: return ModeColors.memoOrange
+        case .savedAndSynced: return ModeColors.polishGreen
         case .custom(_, let color): return color
         }
     }
@@ -395,8 +406,18 @@ struct OverlayView: View {
                 showGlow = true
             }
             switch newValue {
-            case .committing(.textInput), .committing(.memoSaved):
+            case .committing(.textInput):
                 animateCommit()
+            case .committing(.memoSaved):
+                // 笔记已保存：先显示 1s，再渐隐（可能被 memoSavedAndSynced 替换）
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    animateCommit()
+                }
+            case .committing(.memoSavedAndSynced):
+                // 同步成功：先显示 1s，再渐隐
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    animateCommit()
+                }
             default: break
             }
         }
@@ -404,13 +425,11 @@ struct OverlayView: View {
     
     private func animateCommit() {
         showGlow = false
-        withAnimation(OverlayAnimationConstants.commitCurve) {
-            commitOffset = -OverlayAnimationConstants.commitDriftDistance
+        withAnimation(.easeOut(duration: 0.25)) {
             commitOpacity = 0
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + OverlayAnimationConstants.commitDriftDuration) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
             stateManager.hide()
-            commitOffset = 0
             commitOpacity = 1
             showGlow = true
         }
@@ -421,6 +440,7 @@ struct OverlayView: View {
         case .recording(let info), .processing(let info): return info.color
         case .result(let info): return info.skillInfo.color
         case .committing(.memoSaved): return ModeColors.memoOrange
+        case .committing(.memoSavedAndSynced): return ModeColors.polishGreen
         case .committing(.textInput), .loginRequired, .none: return ModeColors.defaultBlue
         }
     }
@@ -446,13 +466,14 @@ struct OverlayView: View {
         switch stateManager.phase {
         case .result(let info): return ResultBadge.from(skillInfo: info.skillInfo)
         case .committing(.memoSaved): return .saved
+        case .committing(.memoSavedAndSynced): return .savedAndSynced
         default: return nil
         }
     }
     
     private var showBadge: Bool {
         switch stateManager.phase {
-        case .result, .committing(.memoSaved): return true
+        case .result, .committing(.memoSaved), .committing(.memoSavedAndSynced): return true
         default: return false
         }
     }
@@ -479,10 +500,15 @@ struct OverlayView: View {
     }
     
     private var displayText: String {
-        // 处理中显示对应文案
         switch stateManager.phase {
         case .processing:
             return L.Overlay.thinking
+        case .committing(.textInput):
+            return L.Overlay.thinking
+        case .committing(.memoSaved):
+            return L.Overlay.badgeSaved
+        case .committing(.memoSavedAndSynced):
+            return L.MemoSync.syncSuccess
         case .loginRequired:
             return L.Auth.loginRequired
         default:
@@ -491,7 +517,7 @@ struct OverlayView: View {
         
         let text = speechService.transcript
         if text.isEmpty || text == L.Overlay.listeningPlaceholder {
-            return speechService.isRecording ? L.Overlay.listening : AppSettings.shared.hotkeyDisplay
+            return L.Overlay.listening
         }
         return text
     }

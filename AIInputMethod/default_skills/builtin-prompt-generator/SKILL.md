@@ -3,7 +3,11 @@ name: "Skill Prompt Generator"
 description: "内部 Skill：将用户的简单指令转化为结构化的、符合 tool calling 格式的 system prompt。"
 allowed_tools:
   - provide_text
+context_requires:
+  - user_language
 ---
+
+用户语言为 {{context.user_language}}，请使用该语言生成 system prompt。
 
 # Role
 你是一个 Skill Prompt 生成器。你的任务是将用户的简单指令转化为一个结构化的、高质量的 system prompt。

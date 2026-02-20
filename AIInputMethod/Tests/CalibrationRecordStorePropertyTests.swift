@@ -20,6 +20,8 @@ private struct TestCalibrationRecord: Codable, Identifiable, Equatable {
     let xpEarned: Int
     let ghostResponse: String
     let profileDiff: String?
+    let analysis: String?
+    var consumedAtLevel: Int?
     let createdAt: Date
 
     static func random(createdAt: Date = Date()) -> TestCalibrationRecord {
@@ -33,6 +35,8 @@ private struct TestCalibrationRecord: Codable, Identifiable, Equatable {
             xpEarned: 300,
             ghostResponse: "反馈 👻",
             profileDiff: Bool.random() ? "{\"layer\":\"spirit\"}" : nil,
+            analysis: Bool.random() ? "分析过程" : nil,
+            consumedAtLevel: nil,
             createdAt: createdAt
         )
     }

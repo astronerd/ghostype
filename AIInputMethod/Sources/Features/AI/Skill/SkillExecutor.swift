@@ -17,6 +17,9 @@ class SkillExecutor {
     let contextDetector: ContextDetector
     let toolRegistry: ToolRegistry
 
+    /// Context provider 注册表：key → 数据提供闭包
+    private var contextProviders: [String: () -> String] = [:]
+
     init(
         apiClient: GhostypeAPIClient = .shared,
         contextDetector: ContextDetector = ContextDetector(),
@@ -25,6 +28,54 @@ class SkillExecutor {
         self.apiClient = apiClient
         self.contextDetector = contextDetector
         self.toolRegistry = toolRegistry
+        registerDefaultProviders()
+    }
+
+    // MARK: - Context Provider Registration
+
+    private func registerDefaultProviders() {
+        // ghost_profile: 人格档案全文 + 等级
+        contextProviders["ghost_profile"] = {
+            let profile = GhostTwinProfileStore().load()
+            guard !profile.profileText.isEmpty else { return "" }
+            return """
+            ## \(L.SkillContext.profileHeader)
+            - \(L.SkillContext.profileLevel): Lv.\(profile.level)
+            - \(L.SkillContext.profileFullText):
+            \(profile.profileText)
+            """
+        }
+
+        // user_language: 用户当前语言设置
+        contextProviders["user_language"] = {
+            let lang = LocalizationManager.shared.currentLanguage
+            return lang.displayName
+        }
+
+        // calibration_records: 校准记录（未消费的）
+        contextProviders["calibration_records"] = {
+            let records = CalibrationRecordStore().unconsumed()
+            guard !records.isEmpty else { return L.SkillContext.noCalibrationRecords }
+            return records.map { record in
+                var line = "- \(record.scenario)"
+                if let custom = record.customAnswer, !custom.isEmpty {
+                    line += " → \(L.SkillContext.customAnswer): \(custom)"
+                } else {
+                    line += " → \(L.SkillContext.optionPrefix)\(record.selectedOption)"
+                }
+                if let analysis = record.analysis, !analysis.isEmpty {
+                    line += "\n  分析: \(analysis)"
+                }
+                return line
+            }.joined(separator: "\n")
+        }
+
+        // asr_corpus: 未消费的 ASR 语料
+        contextProviders["asr_corpus"] = {
+            let corpus = ASRCorpusStore().unconsumed()
+            guard !corpus.isEmpty else { return L.SkillContext.noNewCorpus }
+            return corpus.map { "- \($0.text)" }.joined(separator: "\n")
+        }
     }
 
     // MARK: - Public API
@@ -46,21 +97,14 @@ class SkillExecutor {
         FileLogger.log("[SkillExecutor] execute skill=\(skill.name), behavior=\(behavior)")
         FileLogger.log("[SkillExecutor] debugInfo:\n\(debugInfo)")
 
-        // 1. 构建运行时 context（通用逻辑，不按 skill ID 分支）
+        // 1. 构建运行时 context（声明式：根据 skill.contextRequires 从 provider 取值）
         var runtimeContext: [String: String] = [:]
-
-        // Ghost Twin 人格档案：任何 SKILL.md 中使用 {{context.ghost_profile}} 都会被替换
-        let profile = GhostTwinProfileStore().load()
-        if !profile.profileText.isEmpty {
-            let personalityContext = """
-            ## 用户人格档案
-            - 人格标签: \(profile.personalityTags.joined(separator: ", "))
-            - 人格档案全文:
-            \(profile.profileText)
-            """
-            runtimeContext["ghost_profile"] = personalityContext
-        } else {
-            runtimeContext["ghost_profile"] = ""
+        for key in skill.contextRequires {
+            if let provider = contextProviders[key] {
+                runtimeContext[key] = provider()
+            } else {
+                FileLogger.log("[SkillExecutor] ⚠️ Unknown context key: \(key)")
+            }
         }
 
         // 2. 模板变量替换（config + context）

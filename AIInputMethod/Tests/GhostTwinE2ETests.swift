@@ -6,14 +6,14 @@ private struct TestGhostTwinProfile: Codable, Equatable {
     var version: Int
     var level: Int
     var totalXP: Int
-    var personalityTags: [String]
+    var summary: String
     var profileText: String
     var createdAt: Date
     var updatedAt: Date
 
     static let initial = TestGhostTwinProfile(
-        version: 0, level: 1, totalXP: 0,
-        personalityTags: [], profileText: "",
+        version: 0, level: 0, totalXP: 0,
+        summary: "", profileText: "",
         createdAt: Date(), updatedAt: Date()
     )
 }
@@ -33,6 +33,8 @@ private struct TestCalibrationRecord: Codable, Equatable, Identifiable {
     let xpEarned: Int
     let ghostResponse: String
     let profileDiff: String?
+    let analysis: String?
+    var consumedAtLevel: Int?
     let createdAt: Date
 }
 
@@ -43,8 +45,7 @@ private struct TestCalibrationAnalysisResponse: Codable {
 
     struct ProfileDiff: Codable {
         let layer: String
-        let changes: [String: String]
-        let newTags: [String]
+        let description: String
     }
 }
 
@@ -67,15 +68,21 @@ private struct TestCalibrationFlowState: Codable, Equatable {
 // MARK: - XP Pure Functions (test copy)
 
 private enum TestGhostTwinXP {
+    static let xpForLevel0 = 2_000
     static let xpPerLevel = 10_000
     static let maxLevel = 10
     static let calibrationXPReward = 300
 
-    static func calculateLevel(totalXP: Int) -> Int { min(totalXP / xpPerLevel + 1, maxLevel) }
+    static func calculateLevel(totalXP: Int) -> Int {
+        if totalXP < xpForLevel0 { return 0 }
+        let remaining = totalXP - xpForLevel0
+        return min(remaining / xpPerLevel + 1, maxLevel)
+    }
     static func currentLevelXP(totalXP: Int) -> Int {
+        if totalXP < xpForLevel0 { return totalXP }
         let level = calculateLevel(totalXP: totalXP)
-        if level >= maxLevel { return totalXP - (maxLevel - 1) * xpPerLevel }
-        return totalXP % xpPerLevel
+        if level >= maxLevel { return totalXP - xpForLevel0 - (maxLevel - 1) * xpPerLevel }
+        return (totalXP - xpForLevel0) % xpPerLevel
     }
     static func checkLevelUp(oldXP: Int, newXP: Int) -> (leveledUp: Bool, oldLevel: Int, newLevel: Int) {
         let oldLevel = calculateLevel(totalXP: oldXP)
@@ -225,7 +232,7 @@ final class GhostTwinE2ETests: XCTestCase {
 
     func testE2E_FullCalibrationFlow_PresetOption() throws {
         var profile = profileStore.load()
-        XCTAssertEqual(profile.level, 1)
+        XCTAssertEqual(profile.level, 0)
         XCTAssertEqual(profile.totalXP, 0)
         XCTAssertEqual(recordStore.challengesRemainingToday(), 3)
 
@@ -246,15 +253,10 @@ final class GhostTwinE2ETests: XCTestCase {
 
         // Simulate LLM analysis response (snake_case JSON)
         let mockAnalysisJSON = """
-        {"profile_diff": {"layer": "spirit", "changes": {"conflict_style": "avoidant → diplomatic"}, "new_tags": ["隐忍型", "大局观"]}, "ghost_response": "有意思，你选择了冷处理。", "analysis": "用户倾向于避免直接冲突。"}
+        {"profile_diff": {"layer": "spirit", "description": "用户倾向于避免直接冲突，选择冷处理方式，体现隐忍和大局观"}, "ghost_response": "有意思，你选择了冷处理。", "analysis": "用户倾向于避免直接冲突。"}
         """
         let analysis: TestCalibrationAnalysisResponse = try TestLLMJsonParser.parse(mockAnalysisJSON)
-        XCTAssertEqual(analysis.profileDiff.newTags, ["隐忍型", "大局观"])
-
-        // Merge tags
-        for tag in analysis.profileDiff.newTags {
-            if !profile.personalityTags.contains(tag) { profile.personalityTags.append(tag) }
-        }
+        XCTAssertEqual(analysis.profileDiff.layer, "spirit")
 
         // XP (unified 300)
         let xpReward = TestGhostTwinXP.calibrationXPReward
@@ -270,12 +272,12 @@ final class GhostTwinE2ETests: XCTestCase {
 
         let reloaded = profileStore.load()
         XCTAssertEqual(reloaded.totalXP, 300)
-        XCTAssertEqual(reloaded.personalityTags, ["隐忍型", "大局观"])
 
         let record = TestCalibrationRecord(
             id: UUID(), scenario: challenge.scenario, options: challenge.options,
             selectedOption: selectedOption, customAnswer: nil, xpEarned: xpReward,
-            ghostResponse: analysis.ghostResponse, profileDiff: mockAnalysisJSON, createdAt: Date()
+            ghostResponse: analysis.ghostResponse, profileDiff: mockAnalysisJSON,
+            analysis: analysis.analysis, consumedAtLevel: nil, createdAt: Date()
         )
         recordStore.append(record)
         XCTAssertEqual(recordStore.loadAll().count, 1)
@@ -288,20 +290,17 @@ final class GhostTwinE2ETests: XCTestCase {
     // MARK: - E2E Test 2: Custom Answer Flow
 
     func testE2E_CustomAnswerFlow() throws {
-        var profile = TestGhostTwinProfile(version: 1, level: 1, totalXP: 300, personalityTags: ["隐忍型", "大局观"], profileText: "初始档案", createdAt: Date(), updatedAt: Date())
+        var profile = TestGhostTwinProfile(version: 1, level: 1, totalXP: 2300, summary: "", profileText: "初始档案", createdAt: Date(), updatedAt: Date())
         try profileStore.save(profile)
 
         let challenge = TestLocalCalibrationChallenge(scenario: "以下哪段话更像你会说的？", options: ["我觉得这件事需要再想想", "直接干就完了"], targetField: "form")
         let customAnswer = "我会先问问朋友的意见再决定"
 
         let mockAnalysisJSON = """
-        {"profile_diff": {"layer": "form", "changes": {"decision_style": "independent → consultative"}, "new_tags": ["协商型"]}, "ghost_response": "你不走寻常路啊。", "analysis": "用户选择自定义答案。"}
+        {"profile_diff": {"layer": "form", "description": "用户倾向于咨询他人意见后再做决定，体现协商型决策风格"}, "ghost_response": "你不走寻常路啊。", "analysis": "用户选择自定义答案。"}
         """
-        let analysis: TestCalibrationAnalysisResponse = try TestLLMJsonParser.parse(mockAnalysisJSON)
+        let _: TestCalibrationAnalysisResponse = try TestLLMJsonParser.parse(mockAnalysisJSON)
 
-        for tag in analysis.profileDiff.newTags {
-            if !profile.personalityTags.contains(tag) { profile.personalityTags.append(tag) }
-        }
         profile.totalXP += TestGhostTwinXP.calibrationXPReward
         profile.level = TestGhostTwinXP.calculateLevel(totalXP: profile.totalXP)
         profile.version += 1
@@ -310,13 +309,13 @@ final class GhostTwinE2ETests: XCTestCase {
         let record = TestCalibrationRecord(
             id: UUID(), scenario: challenge.scenario, options: challenge.options,
             selectedOption: -1, customAnswer: customAnswer, xpEarned: TestGhostTwinXP.calibrationXPReward,
-            ghostResponse: analysis.ghostResponse, profileDiff: nil, createdAt: Date()
+            ghostResponse: "你不走寻常路啊。", profileDiff: nil,
+            analysis: "用户选择自定义答案。", consumedAtLevel: nil, createdAt: Date()
         )
         recordStore.append(record)
 
         let reloaded = profileStore.load()
-        XCTAssertEqual(reloaded.totalXP, 600)
-        XCTAssertEqual(reloaded.personalityTags, ["隐忍型", "大局观", "协商型"])
+        XCTAssertEqual(reloaded.totalXP, 2600)
         XCTAssertEqual(recordStore.loadAll().first?.selectedOption, -1)
         XCTAssertEqual(recordStore.loadAll().first?.customAnswer, customAnswer)
     }
@@ -324,10 +323,10 @@ final class GhostTwinE2ETests: XCTestCase {
     // MARK: - E2E Test 3: Level-Up Detection
 
     func testE2E_LevelUpDetection() throws {
-        var profile = TestGhostTwinProfile(version: 5, level: 1, totalXP: 9800, personalityTags: ["隐忍型"], profileText: "档案内容", createdAt: Date(), updatedAt: Date())
+        var profile = TestGhostTwinProfile(version: 5, level: 1, totalXP: 11800, summary: "", profileText: "档案内容", createdAt: Date(), updatedAt: Date())
         try profileStore.save(profile)
 
-        // 300 XP: 9800 + 300 = 10100 → Lv.2
+        // 300 XP: 11800 + 300 = 12100 → Lv.2
         let oldXP = profile.totalXP
         let newXP = oldXP + TestGhostTwinXP.calibrationXPReward
         let levelCheck = TestGhostTwinXP.checkLevelUp(oldXP: oldXP, newXP: newXP)
@@ -348,7 +347,8 @@ final class GhostTwinE2ETests: XCTestCase {
             recordStore.append(TestCalibrationRecord(
                 id: UUID(), scenario: "场景\(i)", options: ["A", "B"],
                 selectedOption: 0, customAnswer: nil, xpEarned: 300,
-                ghostResponse: "反馈\(i)", profileDiff: nil, createdAt: Date()
+                ghostResponse: "反馈\(i)", profileDiff: nil,
+                analysis: nil, consumedAtLevel: nil, createdAt: Date()
             ))
         }
         XCTAssertEqual(recordStore.challengesRemainingToday(), 0)
@@ -361,7 +361,8 @@ final class GhostTwinE2ETests: XCTestCase {
             recordStore.append(TestCalibrationRecord(
                 id: UUID(), scenario: "场景\(i)", options: ["A"],
                 selectedOption: 0, customAnswer: nil, xpEarned: 300,
-                ghostResponse: "反馈", profileDiff: nil, createdAt: Date()
+                ghostResponse: "反馈", profileDiff: nil,
+                analysis: nil, consumedAtLevel: nil, createdAt: Date()
             ))
         }
         let records = recordStore.loadAll()
@@ -394,20 +395,18 @@ final class GhostTwinE2ETests: XCTestCase {
         XCTAssertNil(recoveryManager.loadCalibrationFlowState())
     }
 
-    // MARK: - E2E Test 8: Multi-Round Tag Accumulation
+    // MARK: - E2E Test 8: Multi-Round XP Accumulation
 
-    func testE2E_MultiRoundTagAccumulation() throws {
+    func testE2E_MultiRoundXPAccumulation() throws {
         var profile = TestGhostTwinProfile.initial
-        let rounds: [[String]] = [["隐忍型", "大局观"], ["大局观", "协商型"], ["直觉型"]]
-        for newTags in rounds {
-            for tag in newTags { if !profile.personalityTags.contains(tag) { profile.personalityTags.append(tag) } }
+        let rounds = 3
+        for _ in 0..<rounds {
             profile.totalXP += TestGhostTwinXP.calibrationXPReward
             profile.level = TestGhostTwinXP.calculateLevel(totalXP: profile.totalXP)
             profile.version += 1
         }
         try profileStore.save(profile)
         let final = profileStore.load()
-        XCTAssertEqual(final.personalityTags, ["隐忍型", "大局观", "协商型", "直觉型"])
         XCTAssertEqual(final.totalXP, 900)
     }
 
@@ -428,8 +427,8 @@ final class GhostTwinE2ETests: XCTestCase {
 
     func testE2E_FullJourneyLv1ToLv2() throws {
         var profile = TestGhostTwinProfile.initial
-        // 300 XP × 34 rounds = 10200 XP → Lv.2
-        let roundsNeeded = 34
+        // 300 XP × 41 rounds = 12300 XP → Lv.2 (Lv.2 starts at 12000)
+        let roundsNeeded = 41
         for i in 0..<roundsNeeded {
             let oldXP = profile.totalXP
             profile.totalXP += TestGhostTwinXP.calibrationXPReward
@@ -438,7 +437,8 @@ final class GhostTwinE2ETests: XCTestCase {
             recordStore.append(TestCalibrationRecord(
                 id: UUID(), scenario: "挑战\(i)", options: ["A", "B"],
                 selectedOption: i % 2, customAnswer: nil, xpEarned: TestGhostTwinXP.calibrationXPReward,
-                ghostResponse: "反馈\(i)", profileDiff: nil, createdAt: Date()
+                ghostResponse: "反馈\(i)", profileDiff: nil,
+                analysis: nil, consumedAtLevel: nil, createdAt: Date()
             ))
             if profile.level == 2 && TestGhostTwinXP.calculateLevel(totalXP: oldXP) == 1 {
                 let check = TestGhostTwinXP.checkLevelUp(oldXP: oldXP, newXP: profile.totalXP)
@@ -448,7 +448,7 @@ final class GhostTwinE2ETests: XCTestCase {
         try profileStore.save(profile)
         let final = profileStore.load()
         XCTAssertEqual(final.level, 2)
-        XCTAssertEqual(final.totalXP, 10200)
+        XCTAssertEqual(final.totalXP, 12300)
         XCTAssertEqual(recordStore.loadAll().count, 20)
     }
 }

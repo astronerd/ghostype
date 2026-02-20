@@ -60,6 +60,8 @@ Ghost Twin 校准（Calibration）系统存在若干基础问题需要修正：
 
 **用户故事：** 作为开发者，我希望 LLMJsonParser 统一配置 convertFromSnakeCase 解码策略，所有 LLM 返回的 Decodable 结构体属性统一使用 Swift 标准的 camelCase 命名，由 JSONDecoder 自动完成 snake_case → camelCase 的映射。
 
+
+
 参考：[Apple JSONDecoder.KeyDecodingStrategy.convertFromSnakeCase](https://developer.apple.com/documentation/foundation/jsondecoder/keydecodingstrategy/convertfromsnakecase)、[Hacking with Swift](https://www.hackingwithswift.com/swift/4.1/key-decoding-strategies)、[Nil Coalescing](https://www.nilcoalescing.com/blog/AutoConvertJsonSnakeCaseToSwiftCamelCaseProperties)
 
 #### 验收标准

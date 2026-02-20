@@ -7,17 +7,16 @@ private struct TestGhostTwinProfile: Codable, Equatable {
     var version: Int
     var level: Int
     var totalXP: Int
-    var personalityTags: [String]
+    var summary: String
     var profileText: String
     var createdAt: Date
     var updatedAt: Date
 
     static func random() -> TestGhostTwinProfile {
-        let tagCount = Int.random(in: 0...5)
-        let tags = (0..<tagCount).map { _ in randomChinese(minLength: 1, maxLength: 4) }
+        let summaries = ["", "直率理性的效率主义者", "温柔但有原则的倾听者", "冷幽默型独立思考者"]
         return TestGhostTwinProfile(
-            version: Int.random(in: 0...100), level: Int.random(in: 1...10),
-            totalXP: Int.random(in: 0...100000), personalityTags: tags,
+            version: Int.random(in: 0...100), level: Int.random(in: 0...10),
+            totalXP: Int.random(in: 0...100000), summary: summaries.randomElement()!,
             profileText: randomChinese(minLength: 0, maxLength: 200),
             createdAt: Date(timeIntervalSince1970: Double.random(in: 0...2_000_000_000)),
             updatedAt: Date(timeIntervalSince1970: Double.random(in: 0...2_000_000_000))
@@ -34,6 +33,8 @@ private struct TestCalibrationRecord: Codable, Equatable {
     let xpEarned: Int
     let ghostResponse: String
     let profileDiff: String?
+    let analysis: String?
+    var consumedAtLevel: Int?
     let createdAt: Date
 
     static func random() -> TestCalibrationRecord {
@@ -47,6 +48,8 @@ private struct TestCalibrationRecord: Codable, Equatable {
             customAnswer: useCustom ? randomChinese(minLength: 2, maxLength: 30) : nil,
             xpEarned: 300, ghostResponse: randomChinese(minLength: 5, maxLength: 30),
             profileDiff: Bool.random() ? randomChinese(minLength: 10, maxLength: 50) : nil,
+            analysis: Bool.random() ? randomChinese(minLength: 5, maxLength: 30) : nil,
+            consumedAtLevel: Bool.random() ? Int.random(in: 1...10) : nil,
             createdAt: Date(timeIntervalSince1970: Double.random(in: 0...2_000_000_000))
         )
     }
@@ -98,7 +101,6 @@ private enum TestMessageBuilder {
         parts.append("## 当前用户档案")
         parts.append("- 等级: Lv.\(profile.level)")
         parts.append("- 档案版本: v\(profile.version)")
-        parts.append("- 已捕捉标签: \(profile.personalityTags.joined(separator: ", "))")
         parts.append("- 人格档案全文:")
         parts.append(profile.profileText)
         parts.append("")
@@ -107,7 +109,18 @@ private enum TestMessageBuilder {
             parts.append("无历史记录")
         } else {
             for record in records {
-                parts.append("- \(record.scenario) → 选项\(record.selectedOption)")
+                var line = "- \(record.scenario)"
+                if let custom = record.customAnswer, !custom.isEmpty {
+                    line += " → 自定义: \(custom)"
+                } else if record.selectedOption >= 0, record.selectedOption < record.options.count {
+                    line += " → \(record.options[record.selectedOption])"
+                } else {
+                    line += " → 选项\(record.selectedOption)"
+                }
+                parts.append(line)
+                if let analysis = record.analysis, !analysis.isEmpty {
+                    parts.append("  分析: \(analysis)")
+                }
             }
         }
         parts.append("")
@@ -165,19 +178,36 @@ private enum TestMessageBuilder {
         else { for entry in corpus { parts.append("- \(entry.text)") } }
         parts.append("")
         parts.append("## 当前等级校准答案")
-        if records.isEmpty { parts.append("无校准记录") }
-        else { for record in records { parts.append("- \(record.scenario) → 选项\(record.selectedOption)") } }
+        if records.isEmpty {
+            parts.append("无校准记录")
+        } else {
+            for record in records {
+                parts.append("### 校准记录")
+                parts.append("- 场景: \(record.scenario)")
+                if let custom = record.customAnswer, !custom.isEmpty {
+                    parts.append("- 用户自定义答案: \(custom)")
+                } else if record.selectedOption >= 0, record.selectedOption < record.options.count {
+                    parts.append("- 用户选择: \(record.options[record.selectedOption])")
+                }
+                if let analysis = record.analysis, !analysis.isEmpty {
+                    parts.append("- AI 分析: \(analysis)")
+                }
+                if let diff = record.profileDiff {
+                    parts.append("- 人格增量: \(diff)")
+                }
+                parts.append("")
+            }
+        }
         parts.append("")
         parts.append("## 当前人格档案")
         parts.append("- 等级: Lv.\(profile.level)")
-        parts.append("- 已捕捉标签: \(profile.personalityTags.joined(separator: ", "))")
         parts.append("- 档案全文:")
         parts.append(profile.profileText)
         parts.append("")
         parts.append("请输出完整的「形神法三位一体」分析报告。")
         parts.append("报告中对新增/修订/强化的特征使用 [NEW]、[REVISED]、[REINFORCED] 标记。")
         parts.append("最后附上 JSON 格式的结构化摘要：")
-        parts.append("{\"summary\": \"人格画像描述\", \"refined_tags\": [\"标签1\", \"[NEW] 标签2\", ...]}")
+        parts.append("{\"summary\": \"人格画像描述\"}")
         return parts.joined(separator: "\n")
     }
 }
@@ -193,7 +223,6 @@ final class MessageBuilderPropertyTests: XCTestCase {
             let message = TestMessageBuilder.buildChallengeUserMessage(profile: profile, records: records)
             guard message.contains("Lv.\(profile.level)") else { return false }
             guard message.contains("v\(profile.version)") else { return false }
-            for tag in profile.personalityTags { guard message.contains(tag) else { return false } }
             if !profile.profileText.isEmpty { guard message.contains(profile.profileText) else { return false } }
             guard message.contains("请根据以上信息生成一道校准挑战题") else { return false }
             return true

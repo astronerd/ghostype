@@ -24,6 +24,8 @@ struct EnglishStrings: StringsTable {
     var menuBar: MenuBarStrings { EnglishMenuBar() }
     var overlay: OverlayStrings { EnglishOverlay() }
     var aiPolishExamples: AIPolishExamplesStrings { EnglishAIPolishExamples() }
+    var skillContext: SkillContextStrings { EnglishSkillContext() }
+    var memoSync: MemoSyncStrings { EnglishMemoSync() }
 }
 
 // MARK: - Onboarding
@@ -377,6 +379,7 @@ private struct EnglishIncubator: IncubatorStrings {
     var idleTextsLevel4to6: [String] { ["Typing too slow.", "I saw a typo.", "Bored.", "Talk to me.", "Are you still there?"] }
     var idleTextsLevel7to9: [String] { ["Almost there.", "I know your style.", "Ready.", "We think alike.", "Getting closer."] }
     var idleTextsLevel10: [String] { ["I am you.", "Ready whenever.", "Let me talk for you.", "We are one.", "Your ghost is complete."] }
+    var coldStartGuide: String { "Speak 2000 words to activate your Ghost Twin" }
     var customAnswerButton: String { "None of the above, I want to say my own" }
     var customAnswerPlaceholder: String { "Type your thoughts..." }
     var customAnswerSubmit: String { "Submit" }
@@ -497,4 +500,74 @@ private struct EnglishAIPolishExamples: AIPolishExamplesStrings {
     var triggerOutput2: String { "Hi Michael, I wanted to flag a concern regarding the current timeline. Given the scope, it may be worth discussing an adjusted deadline to ensure quality." }
     var triggerInput3: String { "this plan has issues %@ recipient is a senior government official, make it diplomatic" }
     var triggerOutput3: String { "Regarding this matter, after comprehensive evaluation, there are indeed some practical challenges at the implementation level that may require further deliberation." }
+}
+
+// MARK: - Skill Context
+
+private struct EnglishSkillContext: SkillContextStrings {
+    var profileHeader: String { "User Personality Profile" }
+    var profileLevel: String { "Level" }
+    var profileFullText: String { "Full Profile" }
+    var noCalibrationRecords: String { "No calibration records" }
+    var customAnswer: String { "Custom" }
+    var optionPrefix: String { "Option " }
+    var noNewCorpus: String { "No new corpus" }
+}
+
+
+// MARK: - MemoSync
+
+private struct EnglishMemoSync: MemoSyncStrings {
+    // Settings page
+    var title: String { "Note Sync" }
+    var subtitle: String { "Auto-sync Quick Memo to note apps" }
+    var enableSync: String { "Enable Sync" }
+    // Adapter names
+    var obsidian: String { "Obsidian" }
+    var appleNotes: String { "Apple Notes" }
+    var notion: String { "Notion" }
+    var bear: String { "Bear" }
+    // Grouping modes
+    var perNote: String { "Per Note" }
+    var perDay: String { "Per Day" }
+    var perWeek: String { "Per Week" }
+    // Config labels
+    var groupingMode: String { "Grouping Mode" }
+    var titleTemplate: String { "Title Template" }
+    var titleTemplatePlaceholder: String { "e.g. GHOSTYPE Memo {date}" }
+    var vaultPath: String { "Vault Directory" }
+    var selectVault: String { "Select Directory" }
+    var folderName: String { "Folder Name" }
+    var databaseId: String { "Database ID" }
+    var defaultTag: String { "Default Tag" }
+    var token: String { "Token" }
+    // Connection status
+    var testConnection: String { "Test Connection" }
+    var connected: String { "Connected" }
+    var disconnected: String { "Disconnected" }
+    var testing: String { "Testing..." }
+    // Sync status
+    var synced: String { "Synced" }
+    var syncFailed: String { "Sync Failed" }
+    var notSynced: String { "Not Synced" }
+    var syncSuccess: String { "Sync Success" }
+    // Error messages
+    var errorPathNotFound: String { "Directory not found" }
+    var errorNoPermission: String { "No write permission" }
+    var errorBookmarkExpired: String { "Directory authorization expired, please reselect" }
+    var errorAppleScript: String { "AppleScript execution failed" }
+    var errorTokenInvalid: String { "Token invalid or expired" }
+    var errorDatabaseNotFound: String { "Database not found or unauthorized" }
+    var errorRateLimited: String { "Too many requests, retry later" }
+    var errorBearNotInstalled: String { "Bear not installed" }
+    var errorNetwork: String { "Network connection failed" }
+    var errorUnknown: String { "Unknown error" }
+    // Notion setup wizard
+    var notionSetupTitle: String { "Notion Setup Wizard" }
+    var notionStep1: String { "Open Notion Developer Portal" }
+    var notionStep2: String { "Create Internal Integration" }
+    var notionStep3: String { "Copy Integration Token" }
+    var notionStep4: String { "Paste Token below" }
+    var notionStep5: String { "Select target database" }
+    var openNotionPortal: String { "Open Notion Developer Portal" }
 }

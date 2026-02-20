@@ -14,17 +14,23 @@ import Foundation
 /// Since the test target cannot import the executable target,
 /// we create a test copy of the pure functions being tested.
 private enum TestGhostTwinXP {
+    static let xpForLevel0 = 2_000
     static let xpPerLevel = 10_000
     static let maxLevel = 10
 
     static func calculateLevel(totalXP: Int) -> Int {
-        min(totalXP / xpPerLevel + 1, maxLevel)
+        if totalXP < xpForLevel0 { return 0 }
+        let remaining = totalXP - xpForLevel0
+        return min(remaining / xpPerLevel + 1, maxLevel)
     }
 
     static func currentLevelXP(totalXP: Int) -> Int {
+        if totalXP < xpForLevel0 { return totalXP }
         let level = calculateLevel(totalXP: totalXP)
-        if level >= maxLevel { return totalXP - (maxLevel - 1) * xpPerLevel }
-        return totalXP % xpPerLevel
+        if level >= maxLevel {
+            return totalXP - xpForLevel0 - (maxLevel - 1) * xpPerLevel
+        }
+        return (totalXP - xpForLevel0) % xpPerLevel
     }
 
     static func checkLevelUp(oldXP: Int, newXP: Int) -> (leveledUp: Bool, oldLevel: Int, newLevel: Int) {
@@ -43,23 +49,29 @@ final class GhostTwinXPPropertyTests: XCTestCase {
 
     /// Property 4: Level calculation formula
     /// *For any* non-negative integer `totalXP`, `GhostTwinXP.calculateLevel(totalXP:)`
-    /// should equal `min(totalXP / 10000 + 1, 10)`, and the result should always be in [1, 10].
+    /// should return 0 when totalXP < 2000, otherwise min((totalXP - 2000) / 10000 + 1, 10),
+    /// and the result should always be in [0, 10].
     /// Feature: ghost-twin-on-device, Property 4: Level calculation formula
-    /// **Validates: Requirements 3.1, 3.2**
+    /// **Validates: Requirements 3.1, 3.2, AC-B1**
     func testProperty4_LevelCalculationFormula() {
         PropertyTest.verify(
-            "Level calculation matches formula and stays in [1, 10]",
+            "Level calculation matches formula and stays in [0, 10]",
             iterations: 100
         ) {
             let totalXP = Int.random(in: 0...200_000)
             let level = TestGhostTwinXP.calculateLevel(totalXP: totalXP)
 
-            // Verify formula: min(totalXP / 10000 + 1, 10)
-            let expected = min(totalXP / 10_000 + 1, 10)
+            // Verify formula
+            let expected: Int
+            if totalXP < 2_000 {
+                expected = 0
+            } else {
+                expected = min((totalXP - 2_000) / 10_000 + 1, 10)
+            }
             guard level == expected else { return false }
 
-            // Verify range [1, 10]
-            guard level >= 1 && level <= 10 else { return false }
+            // Verify range [0, 10]
+            guard level >= 0 && level <= 10 else { return false }
 
             return true
         }
@@ -69,10 +81,10 @@ final class GhostTwinXPPropertyTests: XCTestCase {
 
     /// Property 5: Current level XP formula
     /// *For any* non-negative integer `totalXP`, `GhostTwinXP.currentLevelXP(totalXP:)`
-    /// should equal `totalXP % 10000` when level < 10, and `totalXP - 90000` when level == 10.
-    /// The result should always be >= 0.
+    /// should equal `totalXP` when level == 0, `(totalXP - 2000) % 10000` when level 1~9,
+    /// and `totalXP - 2000 - 90000` when level == 10. The result should always be >= 0.
     /// Feature: ghost-twin-on-device, Property 5: Current level XP formula
-    /// **Validates: Requirements 3.3**
+    /// **Validates: Requirements 3.3, AC-B1**
     func testProperty5_CurrentLevelXPFormula() {
         PropertyTest.verify(
             "Current level XP matches formula and is non-negative",
@@ -83,10 +95,12 @@ final class GhostTwinXPPropertyTests: XCTestCase {
             let currentXP = TestGhostTwinXP.currentLevelXP(totalXP: totalXP)
 
             // Verify formula based on level
-            if level < 10 {
-                guard currentXP == totalXP % 10_000 else { return false }
+            if level == 0 {
+                guard currentXP == totalXP else { return false }
+            } else if level < 10 {
+                guard currentXP == (totalXP - 2_000) % 10_000 else { return false }
             } else {
-                guard currentXP == totalXP - 90_000 else { return false }
+                guard currentXP == totalXP - 2_000 - 90_000 else { return false }
             }
 
             // Verify non-negative

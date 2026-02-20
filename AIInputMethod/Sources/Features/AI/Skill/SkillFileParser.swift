@@ -12,6 +12,7 @@ struct SkillFileParser {
         let userPrompt: String
         let systemPrompt: String
         let allowedTools: [String]
+        let contextRequires: [String]
         let config: [String: String]
         let legacyFields: LegacyFields?
     }
@@ -66,6 +67,9 @@ struct SkillFileParser {
         // Optional: allowed_tools (string array)
         let allowedTools = parsed.arrayFields["allowed_tools"] ?? []
 
+        // Optional: context_requires (string array)
+        let contextRequires = parsed.arrayFields["context_requires"] ?? []
+
         // Optional: config (key-value pairs)
         let config = parsed.nestedFields["config"] ?? [:]
 
@@ -84,6 +88,7 @@ struct SkillFileParser {
             userPrompt: userPrompt,
             systemPrompt: systemPrompt,
             allowedTools: allowedTools,
+            contextRequires: contextRequires,
             config: config,
             legacyFields: legacyFields
         )
@@ -111,6 +116,14 @@ struct SkillFileParser {
             lines.append("allowed_tools:")
             for tool in result.allowedTools {
                 lines.append("  - \(tool)")
+            }
+        }
+
+        // Optional: context_requires (only if non-empty)
+        if !result.contextRequires.isEmpty {
+            lines.append("context_requires:")
+            for key in result.contextRequires {
+                lines.append("  - \(key)")
             }
         }
 
@@ -235,7 +248,7 @@ struct SkillFileParser {
                 currentKey = key
                 // Peek-ahead isn't easy line-by-line, so we use a heuristic:
                 // known array fields vs known nested fields
-                let knownArrayFields: Set<String> = ["allowed_tools"]
+                let knownArrayFields: Set<String> = ["allowed_tools", "context_requires"]
                 let knownNestedFields: Set<String> = ["config", "behavior_config"]
                 if knownArrayFields.contains(key) {
                     currentMode = "array"

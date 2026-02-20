@@ -19,7 +19,7 @@ private struct TestGhostTwinProfile: Codable, Equatable {
     var version: Int
     var level: Int
     var totalXP: Int
-    var personalityTags: [String]
+    var summary: String
     var profileText: String
     var createdAt: Date
     var updatedAt: Date
@@ -27,9 +27,9 @@ private struct TestGhostTwinProfile: Codable, Equatable {
     /// Generate a random instance for property testing
     static func random() -> TestGhostTwinProfile {
         let version = Int.random(in: 0...1000)
-        let level = Int.random(in: 1...10)
+        let level = Int.random(in: 0...10)
         let totalXP = Int.random(in: 0...200_000)
-        let personalityTags = generateRandomTags()
+        let summary = generateRandomSummary()
         let profileText = generateRandomProfileText()
         // Use dates with integer seconds to avoid sub-second precision loss in ISO 8601
         let createdAt = Date(timeIntervalSince1970: Double(Int.random(in: 0...2_000_000_000)))
@@ -39,22 +39,23 @@ private struct TestGhostTwinProfile: Codable, Equatable {
             version: version,
             level: level,
             totalXP: totalXP,
-            personalityTags: personalityTags,
+            summary: summary,
             profileText: profileText,
             createdAt: createdAt,
             updatedAt: updatedAt
         )
     }
 
-    /// Generate random personality tags
-    private static func generateRandomTags() -> [String] {
-        let possibleTags = [
-            "直率", "理性", "幽默", "体面", "独立思考",
-            "效率至上", "冷幽默", "热情", "感性", "简洁",
-            "casual", "professional", "creative", "analytical", "empathetic"
+    /// Generate random summary text
+    private static func generateRandomSummary() -> String {
+        let summaries = [
+            "",
+            "直率理性的效率主义者",
+            "温柔但有原则的倾听者",
+            "冷幽默型独立思考者，偏好简洁表达",
+            "A rational thinker with dry humor"
         ]
-        let count = Int.random(in: 0...6)
-        return Array(possibleTags.shuffled().prefix(count))
+        return summaries.randomElement()!
     }
 
     /// Generate random profile text (simulating 形/神/法 content)
@@ -80,8 +81,8 @@ final class GhostTwinProfilePropertyTests: XCTestCase {
     // MARK: - Property 1: Profile round-trip consistency
 
     /// Property 1: Profile round-trip consistency
-    /// *For any* valid GhostTwinProfile (with arbitrary version, level 1-10,
-    /// totalXP >= 0, any personalityTags, any profileText, and valid dates),
+    /// *For any* valid GhostTwinProfile (with arbitrary version, level 0-10,
+    /// totalXP >= 0, any summary, any profileText, and valid dates),
     /// encoding to JSON then decoding should produce an object equal to the original.
     /// Feature: ghost-twin-on-device, Property 1: Profile round-trip consistency
     /// **Validates: Requirements 1.7**
@@ -122,9 +123,9 @@ final class GhostTwinProfilePropertyTests: XCTestCase {
         let now = Date(timeIntervalSince1970: Double(Int(Date().timeIntervalSince1970)))
         let original = TestGhostTwinProfile(
             version: 0,
-            level: 1,
+            level: 0,
             totalXP: 0,
-            personalityTags: [],
+            summary: "",
             profileText: "",
             createdAt: now,
             updatedAt: now
@@ -142,9 +143,9 @@ final class GhostTwinProfilePropertyTests: XCTestCase {
 
         XCTAssertEqual(original, decoded, "Initial empty profile should round-trip correctly")
         XCTAssertEqual(decoded.version, 0)
-        XCTAssertEqual(decoded.level, 1)
+        XCTAssertEqual(decoded.level, 0)
         XCTAssertEqual(decoded.totalXP, 0)
-        XCTAssertTrue(decoded.personalityTags.isEmpty)
+        XCTAssertTrue(decoded.summary.isEmpty)
         XCTAssertEqual(decoded.profileText, "")
     }
 
@@ -160,7 +161,7 @@ final class GhostTwinProfilePropertyTests: XCTestCase {
             version: 999,
             level: 10,
             totalXP: 200_000,
-            personalityTags: ["直率", "理性", "幽默", "体面", "独立思考", "效率至上"],
+            summary: "直率理性的效率主义者，冷幽默型独立思考者",
             profileText: String(repeating: "长文本。", count: 100),
             createdAt: Date(timeIntervalSince1970: 0),
             updatedAt: Date(timeIntervalSince1970: 2_000_000_000)
@@ -179,7 +180,7 @@ final class GhostTwinProfilePropertyTests: XCTestCase {
         XCTAssertEqual(original, decoded, "Max-values profile should round-trip correctly")
         XCTAssertEqual(decoded.level, 10)
         XCTAssertEqual(decoded.totalXP, 200_000)
-        XCTAssertEqual(decoded.personalityTags.count, 6)
+        XCTAssertFalse(decoded.summary.isEmpty)
     }
 
     /// Edge case: Profile with unicode and special characters in profileText
@@ -194,7 +195,7 @@ final class GhostTwinProfilePropertyTests: XCTestCase {
             version: 5,
             level: 3,
             totalXP: 22500,
-            personalityTags: ["emoji-lover 🤖", "中文标签"],
+            summary: "emoji-lover 🤖 中文画像",
             profileText: "包含 emoji 🎭🛡️ 和特殊字符 <>&\"'\n换行\t制表符\n日本語テスト",
             createdAt: Date(timeIntervalSince1970: 1_700_000_000),
             updatedAt: Date(timeIntervalSince1970: 1_700_100_000)

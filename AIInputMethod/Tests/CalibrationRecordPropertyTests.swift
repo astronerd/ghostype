@@ -22,6 +22,8 @@ private struct TestCalibrationRecord: Codable, Equatable {
     let xpEarned: Int
     let ghostResponse: String
     let profileDiff: String?
+    let analysis: String?
+    var consumedAtLevel: Int?
     let createdAt: Date
 
     /// Generate a random instance for property testing.
@@ -46,6 +48,8 @@ private struct TestCalibrationRecord: Codable, Equatable {
         let xpEarned = 300
         let ghostResponse = randomGhostResponse()
         let profileDiff: String? = Bool.random() ? randomProfileDiff() : nil
+        let analysis: String? = Bool.random() ? "分析推理过程" : nil
+        let consumedAtLevel: Int? = Bool.random() ? Int.random(in: 1...10) : nil
         let createdAt = Date(timeIntervalSince1970: Double(Int.random(in: 0...2_000_000_000)))
 
         return TestCalibrationRecord(
@@ -57,6 +61,8 @@ private struct TestCalibrationRecord: Codable, Equatable {
             xpEarned: xpEarned,
             ghostResponse: ghostResponse,
             profileDiff: profileDiff,
+            analysis: analysis,
+            consumedAtLevel: consumedAtLevel,
             createdAt: createdAt
         )
     }
@@ -125,6 +131,7 @@ final class CalibrationRecordPropertyTests: XCTestCase {
             selectedOption: -1, customAnswer: "我觉得都不对，我会直接忽略这件事",
             xpEarned: 300, ghostResponse: "哦？自己的想法，有意思 👻",
             profileDiff: "{\"layer\":\"method\",\"changes\":{},\"new_tags\":[\"独立思考\"]}",
+            analysis: "用户选择自定义答案，体现独立思考。", consumedAtLevel: nil,
             createdAt: Date(timeIntervalSince1970: 1_700_000_000)
         )
 
@@ -148,7 +155,8 @@ final class CalibrationRecordPropertyTests: XCTestCase {
             options: ["私信提醒", "公开评论纠正", "假装没看到"],
             selectedOption: 0, customAnswer: nil,
             xpEarned: 300, ghostResponse: "嘿嘿...选择私下说，果然是个体面人 👻",
-            profileDiff: nil, createdAt: Date(timeIntervalSince1970: 1_700_000_000)
+            profileDiff: nil, analysis: nil, consumedAtLevel: nil,
+            createdAt: Date(timeIntervalSince1970: 1_700_000_000)
         )
 
         guard let data = try? encoder.encode(original),
@@ -171,6 +179,7 @@ final class CalibrationRecordPropertyTests: XCTestCase {
             selectedOption: -1, customAnswer: "自定义答案 with 日本語テスト and emoji 🤔\n多行\n答案",
             xpEarned: 300, ghostResponse: "有意思 🤖\n换行反馈",
             profileDiff: "{\"layer\":\"form\",\"changes\":{\"key\":\"值 with 特殊字符\"}}",
+            analysis: "Unicode 分析 🎭", consumedAtLevel: 2,
             createdAt: Date(timeIntervalSince1970: 0)
         )
 

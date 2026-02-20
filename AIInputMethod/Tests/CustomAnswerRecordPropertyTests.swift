@@ -11,6 +11,8 @@ private struct TestCalibrationRecord: Codable, Equatable {
     let xpEarned: Int
     let ghostResponse: String
     let profileDiff: String?
+    let analysis: String?
+    var consumedAtLevel: Int?
     let createdAt: Date
 }
 
@@ -53,14 +55,18 @@ final class CustomAnswerRecordPropertyTests: XCTestCase {
                 id: UUID(), scenario: "Test scenario \(Int.random(in: 1...1000))",
                 options: options, selectedOption: -1, customAnswer: customText,
                 xpEarned: 300, ghostResponse: "Ghost says something",
-                profileDiff: Bool.random() ? "{}" : nil, createdAt: Date()
+                profileDiff: Bool.random() ? "{}" : nil,
+                analysis: Bool.random() ? "Analysis text" : nil,
+                consumedAtLevel: nil, createdAt: Date()
             )
         } else {
             return TestCalibrationRecord(
                 id: UUID(), scenario: "Test scenario \(Int.random(in: 1...1000))",
                 options: options, selectedOption: Int.random(in: 0..<optionCount),
                 customAnswer: nil, xpEarned: 300, ghostResponse: "Ghost says something",
-                profileDiff: Bool.random() ? "{}" : nil, createdAt: Date()
+                profileDiff: Bool.random() ? "{}" : nil,
+                analysis: Bool.random() ? "Analysis text" : nil,
+                consumedAtLevel: nil, createdAt: Date()
             )
         }
     }

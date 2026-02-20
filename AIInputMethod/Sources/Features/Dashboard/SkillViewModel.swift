@@ -93,6 +93,7 @@ class SkillViewModel {
                     userPrompt: trimmedPrompt,
                     systemPrompt: systemPrompt,
                     allowedTools: ["provide_text"],
+                    contextRequires: [],
                     config: [:],
                     icon: newIcon,
                     colorHex: newColorHex,

@@ -66,6 +66,7 @@ class SkillManager {
                     userPrompt: parseResult.userPrompt,
                     systemPrompt: parseResult.systemPrompt,
                     allowedTools: parseResult.allowedTools.isEmpty ? ["provide_text"] : parseResult.allowedTools,
+                    contextRequires: parseResult.contextRequires,
                     config: parseResult.config,
                     icon: metadata.icon,
                     colorHex: metadata.colorHex,
@@ -280,6 +281,14 @@ class SkillManager {
                 isBuiltin: true, isInternal: true
             )
         ),
+        (
+            id: SkillModel.internalGhostInitialProfilingId,
+            metadata: SkillMetadata(
+                icon: "🌱", colorHex: "#34C759",
+                modifierKey: nil,
+                isBuiltin: true, isInternal: true
+            )
+        ),
     ]
 
     func ensureBuiltinSkills() {
@@ -336,6 +345,7 @@ class SkillManager {
             userPrompt: skill.userPrompt,
             systemPrompt: skill.systemPrompt,
             allowedTools: skill.allowedTools,
+            contextRequires: skill.contextRequires,
             config: skill.config,
             legacyFields: nil
         )

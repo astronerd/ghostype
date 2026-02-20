@@ -88,6 +88,11 @@ class TextInsertionService {
         do {
             try context.save()
             FileLogger.log("[Record] Saved: \(category.rawValue) skill=\(skillName ?? "nil") - \(content.prefix(30))...")
+            
+            // Memo 同步：保存成功后触发同步
+            if category == .memo {
+                MemoSyncManager.shared.syncMemo(content: content, timestamp: record.timestamp ?? Date())
+            }
         } catch {
             FileLogger.log("[Record] Save error: \(error)")
         }
