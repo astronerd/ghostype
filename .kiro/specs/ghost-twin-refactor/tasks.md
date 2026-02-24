@@ -77,4 +77,4 @@
 
 - [x] F1. build release 验证编译通过
 - [x] F2. build release --clean 验证新用户流程（Lv.0 → 说话 → 升级 → 首次构筑 → 校准）
-- [~] F3. build release 验证老用户升级兼容（已有 profile 数据不丢失）
+- [ ] F3. build release 验证老用户升级兼容（已有 profile 数据不丢失）

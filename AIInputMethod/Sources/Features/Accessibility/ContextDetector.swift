@@ -34,6 +34,17 @@ class ContextDetector {
     func detectWithDebugInfo() -> ContextDetectionResult {
         var debugLines: [String] = []
 
+        // 记录当前前台 app（不依赖 AX）
+        if let frontApp = NSWorkspace.shared.frontmostApplication {
+            debugLines.append("🖥️ 前台App: \(frontApp.localizedName ?? "?") (\(frontApp.bundleIdentifier ?? "?")) pid=\(frontApp.processIdentifier)")
+        } else {
+            debugLines.append("🖥️ 前台App: 无法获取")
+        }
+
+        // 检查 AX 权限
+        let trusted = AXIsProcessTrusted()
+        debugLines.append("🔑 AX权限: \(trusted ? "已授权" : "未授权")")
+
         let systemWide = AXUIElementCreateSystemWide()
         var focusedElement: AnyObject?
         let error = AXUIElementCopyAttributeValue(
@@ -43,7 +54,8 @@ class ContextDetector {
         )
 
         guard error == .success, let element = focusedElement else {
-            debugLines.append("❌ 无法获取焦点元素（error: \(error.rawValue)）")
+            let errorName = Self.axErrorName(error)
+            debugLines.append("❌ 无法获取焦点元素（error: \(error.rawValue) \(errorName)）")
             return ContextDetectionResult(behavior: .noInput, debugInfo: debugLines.joined(separator: "\n"))
         }
 
@@ -114,6 +126,29 @@ class ContextDetector {
         }
 
         return false
+    }
+
+    /// AXError 错误码 → 可读名称
+    private static func axErrorName(_ error: AXError) -> String {
+        switch error {
+        case .success:                      return "success"
+        case .failure:                      return "failure"
+        case .illegalArgument:              return "illegalArgument"
+        case .invalidUIElement:             return "invalidUIElement"
+        case .invalidUIElementObserver:     return "invalidUIElementObserver"
+        case .cannotComplete:               return "cannotComplete"
+        case .attributeUnsupported:         return "attributeUnsupported"
+        case .actionUnsupported:            return "actionUnsupported"
+        case .notificationUnsupported:      return "notificationUnsupported"
+        case .notImplemented:               return "notImplemented"
+        case .notificationAlreadyRegistered: return "notificationAlreadyRegistered"
+        case .notificationNotRegistered:    return "notificationNotRegistered"
+        case .apiDisabled:                  return "apiDisabled"
+        case .noValue:                      return "noValue"
+        case .parameterizedAttributeUnsupported: return "parameterizedAttributeUnsupported"
+        case .notEnoughPrecision:           return "notEnoughPrecision"
+        @unknown default:                   return "unknown(\(error.rawValue))"
+        }
     }
 
     /// 获取选中文字

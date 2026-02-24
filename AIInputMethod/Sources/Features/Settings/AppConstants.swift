@@ -56,8 +56,12 @@ enum AppConstants {
         static let keyUpDelay: TimeInterval = 0.05
         /// 自动回车延迟（秒）
         static let autoEnterDelay: TimeInterval = 0.2
-        /// 剪贴板恢复延迟（秒）- 粘贴完成后等待目标应用读取剪贴板
-        static let clipboardRestoreDelay: TimeInterval = 0.2
+        /// 剪贴板恢复：最小等待时间（秒）— 粘贴后至少等这么久再开始检查
+        static let clipboardRestoreMinDelay: TimeInterval = 0.5
+        /// 剪贴板恢复：轮询间隔（秒）
+        static let clipboardRestorePollInterval: TimeInterval = 0.05
+        /// 剪贴板恢复：最大超时（秒）— 超过这个时间强制恢复
+        static let clipboardRestoreMaxTimeout: TimeInterval = 3.0
     }
 
     // MARK: - 窗口尺寸

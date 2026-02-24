@@ -25,6 +25,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
     private var currentRawText: String = ""
     private var pendingSkill: SkillModel?
     private var waitingForFinalResult = false
+    private var savedContext: ContextBehavior?  // 按下快捷键时保存的上下文（用户还聚焦在目标输入框）
     private var cancellables = Set<AnyCancellable>()
 
     // MARK: - ASR Corpus & Profile
@@ -195,6 +196,12 @@ class VoiceInputCoordinator: ToolOutputHandler {
             self.currentRawText = ""
             self.waitingForFinalResult = false
             self.pendingSkill = nil
+
+            // 在显示 Overlay 之前保存上下文（此时用户还聚焦在目标输入框）
+            let detection = self.skillExecutor.contextDetector.detectWithDebugInfo()
+            self.savedContext = detection.behavior
+            FileLogger.log("[Hotkey] Saved context: \(detection.behavior), debugInfo:\n\(detection.debugInfo)")
+
             self.overlayManager.showNearCursor()
             self.speechService.startRecording()
             OverlayStateManager.shared.setRecording(skill: skill)
@@ -261,6 +268,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
             await self.skillExecutor.execute(
                 skill: skill,
                 speechText: text,
+                context: self.savedContext,
                 onDirectOutput: { [weak self] result in
                     guard let self = self else { return }
                     self.insertAndRecord(result, skill: skill, originalText: text)
@@ -470,8 +478,8 @@ class VoiceInputCoordinator: ToolOutputHandler {
 
     private func insertTextAtCursor(_ text: String) {
         guard !text.isEmpty else { return }
-        let context = ContextDetector().detect()
-        if case .noInput = context {
+        // 用 savedContext 判断是否需要隐藏 Overlay，不再重新检测
+        if case .noInput = savedContext {
             overlayManager.hide()
         }
         textInserter.insert(text)

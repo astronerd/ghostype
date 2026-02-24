@@ -70,7 +70,7 @@ struct FloatingResultCardView: View {
                         Text(debugInfo)
                             .font(.system(size: 11, design: .monospaced))
                             .foregroundColor(DS.Colors.text2)
-                            .lineLimit(3)
+                            .lineLimit(10)
                     }
                 }
                 .padding(DS.Spacing.sm)
@@ -210,7 +210,7 @@ class FloatingResultCardController {
     }
 
     /// 显示纯文本卡片（不依赖 Skill，用于 insertTextAtCursor 的 noInput 回退）
-    func showText(text: String) {
+    func showText(text: String, debugInfo: String = "") {
         let cardId = UUID()
 
         let view = FloatingResultCardView(
@@ -218,7 +218,7 @@ class FloatingResultCardController {
             skillName: "GHOSTYPE",
             userSpeechText: "",
             aiResult: text,
-            debugInfo: "",
+            debugInfo: debugInfo,
             onCopy: { [weak self] in
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(text, forType: .string)
