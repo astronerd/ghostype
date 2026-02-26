@@ -1,6 +1,5 @@
+import Cocoa
 import Foundation
-
-// MARK: - ToolCallResult
 
 /// Parsed tool call from model's JSON response
 struct ToolCallResult {
@@ -70,11 +69,32 @@ class SkillExecutor {
             }.joined(separator: "\n")
         }
 
-        // asr_corpus: 未消费的 ASR 语料
+        // asr_corpus: 未消费的 ASR 语料（按 app 分组）
         contextProviders["asr_corpus"] = {
             let corpus = ASRCorpusStore().unconsumed()
             guard !corpus.isEmpty else { return L.SkillContext.noNewCorpus }
-            return corpus.map { "- \($0.text)" }.joined(separator: "\n")
+            // 按 app 分组输出，让 profiling 能识别不同场景
+            var grouped: [String: [ASRCorpusEntry]] = [:]
+            for entry in corpus {
+                let key = entry.appName ?? entry.appBundleId ?? "未知应用"
+                grouped[key, default: []].append(entry)
+            }
+            if grouped.count <= 1 {
+                // 只有一个 app 或全部未知，不分组
+                return corpus.map { "- \($0.text)" }.joined(separator: "\n")
+            }
+            return grouped.map { appName, entries in
+                let lines = entries.map { "  - \($0.text)" }.joined(separator: "\n")
+                return "【\(appName)】\n\(lines)"
+            }.joined(separator: "\n")
+        }
+
+        // current_app: 当前前台应用信息
+        contextProviders["current_app"] = {
+            guard let app = NSWorkspace.shared.frontmostApplication else { return "未知" }
+            let name = app.localizedName ?? "未知"
+            let bundleId = app.bundleIdentifier ?? ""
+            return "\(name) (\(bundleId))"
         }
     }
 

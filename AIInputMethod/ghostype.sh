@@ -13,6 +13,10 @@ APP_NAME="AIInputMethod"
 DISPLAY_NAME="GHOSTYPE"
 APP_BUNDLE="$DISPLAY_NAME.app"
 
+# 签名 & 公证
+SIGN_IDENTITY="Developer ID Application: dawei geng (ZBSST9TM57)"
+NOTARY_PROFILE="GHOSTYPE_NOTARY"
+
 # ============================================================
 # 子命令解析
 # ============================================================
@@ -103,10 +107,10 @@ bundle_app() {
 
     # .env
     if [ -f ".env" ]; then
-        cp .env "$APP_BUNDLE/Contents/MacOS/.env"
+        cp .env "$APP_BUNDLE/Contents/Resources/.env"
         echo "✅ .env copied."
     elif [ -f ".env.example" ]; then
-        cp .env.example "$APP_BUNDLE/Contents/MacOS/.env"
+        cp .env.example "$APP_BUNDLE/Contents/Resources/.env"
         echo "✅ .env.example copied as .env."
     fi
 
@@ -114,9 +118,53 @@ bundle_app() {
     write_info_plist "$CONFIG"
 
     # 签名
-    echo "🔐 Signing..."
-    codesign --force --deep --sign - "$APP_BUNDLE" 2>&1
-    echo "✅ Signed."
+    if [ "$CONFIG" = "debug" ]; then
+        echo "🔐 Signing (ad-hoc)..."
+        codesign --force --deep --sign - "$APP_BUNDLE" 2>&1
+        echo "✅ Signed (ad-hoc)."
+    else
+        echo "🔐 Signing (Developer ID)..."
+        # Sparkle framework 内部组件需要单独签名
+        if [ -d "$APP_BUNDLE/Contents/Frameworks/Sparkle.framework" ]; then
+            local SPARKLE_DIR="$APP_BUNDLE/Contents/Frameworks/Sparkle.framework/Versions/B"
+            # XPC Services
+            if [ -d "$SPARKLE_DIR/XPCServices/Downloader.xpc" ]; then
+                codesign --force --options runtime --sign "$SIGN_IDENTITY" \
+                    "$SPARKLE_DIR/XPCServices/Downloader.xpc/Contents/MacOS/Downloader" 2>&1
+                codesign --force --options runtime --sign "$SIGN_IDENTITY" \
+                    "$SPARKLE_DIR/XPCServices/Downloader.xpc" 2>&1
+            fi
+            if [ -d "$SPARKLE_DIR/XPCServices/Installer.xpc" ]; then
+                codesign --force --options runtime --sign "$SIGN_IDENTITY" \
+                    "$SPARKLE_DIR/XPCServices/Installer.xpc/Contents/MacOS/Installer" 2>&1
+                codesign --force --options runtime --sign "$SIGN_IDENTITY" \
+                    "$SPARKLE_DIR/XPCServices/Installer.xpc" 2>&1
+            fi
+            # Updater.app
+            if [ -d "$SPARKLE_DIR/Updater.app" ]; then
+                codesign --force --options runtime --sign "$SIGN_IDENTITY" \
+                    "$SPARKLE_DIR/Updater.app/Contents/MacOS/Updater" 2>&1
+                codesign --force --options runtime --sign "$SIGN_IDENTITY" \
+                    "$SPARKLE_DIR/Updater.app" 2>&1
+            fi
+            # Autoupdate & Sparkle dylib
+            codesign --force --options runtime --sign "$SIGN_IDENTITY" \
+                "$SPARKLE_DIR/Autoupdate" 2>&1
+            codesign --force --options runtime --sign "$SIGN_IDENTITY" \
+                "$SPARKLE_DIR/Sparkle" 2>&1 || true
+            # Framework bundle
+            codesign --force --options runtime --sign "$SIGN_IDENTITY" \
+                "$APP_BUNDLE/Contents/Frameworks/Sparkle.framework" 2>&1
+        fi
+        # 主 app 签名（hardened runtime + entitlements）
+        codesign --force --options runtime --entitlements "GHOSTYPE.entitlements" --sign "$SIGN_IDENTITY" \
+            "$APP_BUNDLE/Contents/MacOS/$APP_NAME" 2>&1
+        codesign --force --options runtime --entitlements "GHOSTYPE.entitlements" --sign "$SIGN_IDENTITY" \
+            "$APP_BUNDLE" 2>&1
+        echo "✅ Signed (Developer ID)."
+        # 验证
+        codesign -dv --verbose=2 "$APP_BUNDLE" 2>&1 | grep -E "Authority|TeamIdentifier" || true
+    fi
 }
 
 # ============================================================
@@ -259,7 +307,7 @@ cmd_publish() {
         VERSION="0.1.$(date +%m%d%H%M)"
     fi
 
-    local ZIP_NAME="${DISPLAY_NAME}-${VERSION}.zip"
+    local DMG_NAME="${DISPLAY_NAME}-${VERSION}.dmg"
     local APPCAST_FILE="appcast.xml"
 
     # 读取当前 build number 并递增
@@ -287,18 +335,85 @@ cmd_publish() {
     echo "📦 Step 2: Bundling..."
     bundle_app release
 
-    # Step 3: 创建 zip
+    # Step 3: 创建 zip 用于公证
     echo ""
-    echo "📦 Step 3: Creating ${ZIP_NAME}..."
-    rm -f "${ZIP_NAME}"
-    ditto -c -k --sequesterRsrc --keepParent "${APP_BUNDLE}" "${ZIP_NAME}"
-    echo "   ✅ ZIP: $(du -h "${ZIP_NAME}" | cut -f1)"
+    echo "📦 Step 3: Creating zip for notarization..."
+    local NOTARY_ZIP="${DISPLAY_NAME}-notarize.zip"
+    rm -f "${NOTARY_ZIP}"
+    ditto -c -k --sequesterRsrc --keepParent "${APP_BUNDLE}" "${NOTARY_ZIP}"
+    echo "   ✅ ZIP: $(du -h "${NOTARY_ZIP}" | cut -f1)"
 
-    # Step 4: EdDSA 签名
+    # Step 4: Apple 公证
     echo ""
-    echo "🔐 Step 4: EdDSA signing..."
+    echo "📋 Step 4: Notarizing with Apple..."
+    local NOTARY_OUTPUT
+    NOTARY_OUTPUT=$(xcrun notarytool submit "${NOTARY_ZIP}" \
+        --keychain-profile "${NOTARY_PROFILE}" \
+        --wait --timeout 30m 2>&1)
+    echo "${NOTARY_OUTPUT}"
+
+    # 提取 submission ID
+    local SUBMISSION_ID
+    SUBMISSION_ID=$(echo "${NOTARY_OUTPUT}" | grep '  id:' | head -1 | awk '{print $2}')
+
+    # 检查是否成功
+    if echo "${NOTARY_OUTPUT}" | grep -q "status: Accepted"; then
+        echo "   ✅ Notarization complete"
+    else
+        echo ""
+        echo "⚠️  Notarization did not complete within 30 minutes."
+        echo "   Apple is still processing. Check status with:"
+        echo "   xcrun notarytool info ${SUBMISSION_ID} --keychain-profile ${NOTARY_PROFILE}"
+        echo ""
+        echo "   Once accepted, resume manually:"
+        echo "   xcrun stapler staple ${APP_BUNDLE}"
+        echo "   Then re-run: bash ghostype.sh publish ${VERSION}"
+        exit 1
+    fi
+
+    # Step 5: Staple 公证票据
+    echo ""
+    echo "📎 Step 5: Stapling notarization ticket..."
+    xcrun stapler staple "${APP_BUNDLE}"
+    echo "   ✅ Stapled"
+    rm -f "${NOTARY_ZIP}"
+
+    # Step 6: 创建 DMG
+    echo ""
+    echo "💿 Step 6: Creating ${DMG_NAME}..."
+    rm -f "${DMG_NAME}"
+
+    if ! command -v create-dmg &>/dev/null; then
+        echo "❌ create-dmg not found. Install: brew install create-dmg"
+        exit 1
+    fi
+
+    local BG_ARGS=()
+    if [ -f "dmg_background.tiff" ]; then
+        BG_ARGS=(--background "dmg_background.tiff")
+    elif [ -f "dmg_background.png" ]; then
+        BG_ARGS=(--background "dmg_background.png")
+    fi
+
+    create-dmg \
+        --volname "${DISPLAY_NAME}" \
+        --window-pos 200 120 \
+        --window-size 640 619 \
+        --icon-size 96 \
+        --text-size 13 \
+        "${BG_ARGS[@]}" \
+        --icon "${DISPLAY_NAME}.app" 175 325 \
+        --app-drop-link 465 325 \
+        --no-internet-enable \
+        "${DMG_NAME}" \
+        "${APP_BUNDLE}"
+    echo "   ✅ DMG: $(du -h "${DMG_NAME}" | cut -f1)"
+
+    # Step 7: EdDSA 签名 (Sparkle)
+    echo ""
+    echo "🔐 Step 7: EdDSA signing..."
     local SIGNATURE_OUTPUT
-    SIGNATURE_OUTPUT=$(Tools/sparkle/sign_update "${ZIP_NAME}" 2>&1)
+    SIGNATURE_OUTPUT=$(Tools/sparkle/sign_update "${DMG_NAME}" 2>&1)
     echo "   ${SIGNATURE_OUTPUT}"
 
     local EDDSA_SIGNATURE
@@ -312,10 +427,10 @@ cmd_publish() {
     fi
     echo "   ✅ Signed"
 
-    # Step 5: 生成 appcast.xml
+    # Step 8: 生成 appcast.xml
     echo ""
-    echo "📄 Step 5: Generating appcast.xml..."
-    local DOWNLOAD_URL="https://github.com/astronerd/ghostype/releases/download/v${VERSION}/${ZIP_NAME}"
+    echo "📄 Step 8: Generating appcast.xml..."
+    local DOWNLOAD_URL="https://github.com/astronerd/ghostype/releases/download/v${VERSION}/${DMG_NAME}"
     local PUB_DATE
     PUB_DATE=$(date -R)
 
@@ -345,9 +460,9 @@ cmd_publish() {
 APPCAST_EOF
     echo "   ✅ appcast.xml generated"
 
-    # Step 6: 提交 appcast.xml
+    # Step 9: 提交 appcast.xml
     echo ""
-    echo "📤 Step 6: Pushing appcast.xml..."
+    echo "📤 Step 9: Pushing appcast.xml..."
     cd ..
     git add AIInputMethod/${APPCAST_FILE}
     git commit -m "release: v${VERSION} appcast"
@@ -355,12 +470,12 @@ APPCAST_EOF
     cd AIInputMethod
     echo "   ✅ Pushed"
 
-    # Step 7: GitHub Release
+    # Step 10: GitHub Release
     echo ""
-    echo "🏷️ Step 7: Creating GitHub Release..."
+    echo "🏷️ Step 10: Creating GitHub Release..."
     cd ..
     gh release create "v${VERSION}" \
-        "AIInputMethod/${ZIP_NAME}" \
+        "AIInputMethod/${DMG_NAME}" \
         --title "GHOSTYPE v${VERSION}" \
         --notes "GHOSTYPE v${VERSION} 更新" \
         --latest
@@ -375,6 +490,60 @@ APPCAST_EOF
 }
 
 # ============================================================
+# 命令: dmg
+# 打包 DMG 安装镜像（拖拽安装风格）
+# 前置：先 build release，确保 GHOSTYPE.app 存在
+# ============================================================
+
+cmd_dmg() {
+    local VERSION="${1:-}"
+    if [ -z "$VERSION" ]; then
+        VERSION="0.1.$(date +%m%d%H%M)"
+    fi
+
+    local DMG_NAME="${DISPLAY_NAME}-${VERSION}.dmg"
+
+    if [ ! -d "$APP_BUNDLE" ]; then
+        echo "❌ $APP_BUNDLE not found. Run 'bash ghostype.sh release' first."
+        exit 1
+    fi
+
+    if ! command -v create-dmg &>/dev/null; then
+        echo "❌ create-dmg not found. Install: brew install create-dmg"
+        exit 1
+    fi
+
+    echo "💿 Creating DMG: ${DMG_NAME}"
+    echo "================================"
+
+    rm -f "${DMG_NAME}"
+
+    local BG_ARGS=()
+    if [ -f "dmg_background.tiff" ]; then
+        BG_ARGS=(--background "dmg_background.tiff")
+    elif [ -f "dmg_background.png" ]; then
+        BG_ARGS=(--background "dmg_background.png")
+    fi
+
+    create-dmg \
+        --volname "${DISPLAY_NAME}" \
+        --window-pos 200 120 \
+        --window-size 640 619 \
+        --icon-size 96 \
+        --text-size 13 \
+        "${BG_ARGS[@]}" \
+        --icon "${DISPLAY_NAME}.app" 175 325 \
+        --app-drop-link 465 325 \
+        --no-internet-enable \
+        "${DMG_NAME}" \
+        "${APP_BUNDLE}"
+
+    echo ""
+    echo "✅ DMG created: ${DMG_NAME} ($(du -h "${DMG_NAME}" | cut -f1))"
+    echo "📍 Location: $(pwd)/${DMG_NAME}"
+}
+
+# ============================================================
 # 路由
 # ============================================================
 
@@ -382,9 +551,10 @@ case "$COMMAND" in
     debug)   cmd_debug "$@" ;;
     release) cmd_release "$@" ;;
     publish) cmd_publish "$@" ;;
+    dmg)     cmd_dmg "$@" ;;
     *)
         echo "❌ Unknown command: $COMMAND"
-        echo "用法: bash ghostype.sh <debug|release|publish> [options]"
+        echo "用法: bash ghostype.sh <debug|release|publish|dmg> [options]"
         exit 1
         ;;
 esac

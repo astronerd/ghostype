@@ -92,6 +92,9 @@ class DashboardState {
     /// 当前选中的导航项（Normal 状态下使用）
     var selectedNavItem: NavItem = .account
     
+    /// Debug 模式是否激活（连点版本号 10 次解锁）
+    var isDebugModeEnabled: Bool = false
+    
     /// UserDefaults 实例（支持依赖注入，便于测试）
     private let userDefaults: UserDefaults
     

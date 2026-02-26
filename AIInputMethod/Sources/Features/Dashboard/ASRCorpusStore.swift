@@ -7,9 +7,8 @@
 //  Validates: Requirements 8.1, 8.2, 8.3, 8.4
 //
 
+import Cocoa
 import Foundation
-
-// MARK: - ASRCorpusEntry
 
 /// ASR 语料条目
 /// Validates: Requirements 8.2
@@ -18,6 +17,8 @@ struct ASRCorpusEntry: Codable, Identifiable, Equatable {
     let text: String
     let createdAt: Date
     var consumedAtLevel: Int?   // nil = 未消费
+    let appBundleId: String?    // 语料产生时的前台 app bundle ID
+    let appName: String?        // 语料产生时的前台 app 名称
 }
 
 // MARK: - ASRCorpusStore
@@ -57,15 +58,20 @@ class ASRCorpusStore {
         }
     }
 
-    /// 新增一条语料
+    /// 新增一条语料（自动记录当前前台 app）
     /// Validates: Requirements 8.1
-    func append(text: String) {
+    func append(text: String, appBundleId: String? = nil, appName: String? = nil) {
         var entries = loadAll()
+        // 自动检测前台 app（如果调用方未传入）
+        let bundleId = appBundleId ?? NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+        let name = appName ?? NSWorkspace.shared.frontmostApplication?.localizedName
         let entry = ASRCorpusEntry(
             id: UUID(),
             text: text,
             createdAt: Date(),
-            consumedAtLevel: nil
+            consumedAtLevel: nil,
+            appBundleId: bundleId,
+            appName: name
         )
         entries.append(entry)
         do {

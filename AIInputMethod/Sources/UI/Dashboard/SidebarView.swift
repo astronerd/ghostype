@@ -19,6 +19,7 @@ struct SidebarView: View {
     var isEnabled: Bool
     var deviceId: String
     @ObservedObject private var authManager = AuthManager.shared
+    @Environment(DashboardState.self) private var dashboardState
     
     // MARK: - Body
     
@@ -74,7 +75,7 @@ struct SidebarView: View {
     
     private var navigationSection: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.lg) {
-            ForEach(Array(NavItem.groups.enumerated()), id: \.offset) { _, group in
+            ForEach(Array(NavItem.visibleGroups(debugMode: dashboardState.isDebugModeEnabled).enumerated()), id: \.offset) { _, group in
                 VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                     ForEach(group) { item in
                         let itemEnabled = isEnabled && (!item.requiresAuth || authManager.isLoggedIn)
@@ -232,6 +233,7 @@ struct SidebarView_Previews: PreviewProvider {
             isEnabled: true,
             deviceId: "ABCD1234"
         )
+        .environment(DashboardState())
         .frame(width: DS.Layout.sidebarWidth, height: 600)
     }
 }

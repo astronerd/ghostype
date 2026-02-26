@@ -71,10 +71,20 @@ enum NavItem: String, CaseIterable, Identifiable {
     
     /// Sidebar 分组
     static var groups: [[NavItem]] {
-        [
+        return visibleGroups(debugMode: false)
+    }
+    
+    /// 根据 debug 模式返回可见的分组
+    static func visibleGroups(debugMode: Bool) -> [[NavItem]] {
+        var lastGroup: [NavItem] = [.aiPolish]
+        if debugMode {
+            lastGroup.append(.debugData)
+        }
+        lastGroup.append(.preferences)
+        return [
             [.account, .overview, .incubator],
             [.skills, .memo, .memoSync, .library],
-            [.aiPolish, .debugData, .preferences]
+            lastGroup
         ]
     }
     

@@ -533,7 +533,7 @@ private struct CRTFrameImageView: View {
             return image
         }
         // 开发时从源码目录加载
-        let devPath = "/Users/gengdawei/输入法/AIInputMethod/Sources/Resources/CRTFrame.png"
+        let devPath = FileManager.default.currentDirectoryPath + "/Sources/Resources/CRTFrame.png"
         return NSImage(contentsOfFile: devPath)
     }
 }

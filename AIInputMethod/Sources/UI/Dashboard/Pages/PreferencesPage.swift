@@ -15,6 +15,12 @@ struct PreferencesPage: View {
     @State private var viewModel = PreferencesViewModel()
     @State private var isRecordingHotkey = false
     @State private var showingAppPicker = false
+    @Environment(DashboardState.self) private var dashboardState
+    
+    // Debug 模式彩蛋：连点版本号 10 次激活
+    @State private var versionTapCount = 0
+    @State private var lastTapTime: Date = .distantPast
+    @State private var showDebugToast = false
     
     var body: some View {
         ScrollView {
@@ -502,10 +508,20 @@ struct PreferencesPage: View {
                     
                     Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—")
                         .font(DS.Typography.caption)
-                        .foregroundColor(DS.Colors.text2)
+                        .foregroundColor(dashboardState.isDebugModeEnabled ? DS.Colors.statusWarning : DS.Colors.text2)
+                        .onTapGesture {
+                            handleVersionTap()
+                        }
                 }
                 
                 Spacer()
+                
+                if showDebugToast {
+                    Text(dashboardState.isDebugModeEnabled ? "🐛 Debug ON" : "Debug OFF")
+                        .font(DS.Typography.mono(10, weight: .medium))
+                        .foregroundColor(DS.Colors.text2)
+                        .transition(.opacity)
+                }
                 
                 Button(action: {
                     NotificationCenter.default.post(name: .checkForUpdates, object: nil)
@@ -525,6 +541,27 @@ struct PreferencesPage: View {
                 .buttonStyle(.plain)
             }
             .padding(DS.Spacing.lg)
+        }
+    }
+    
+    private func handleVersionTap() {
+        let now = Date()
+        // 超过 3 秒重置计数
+        if now.timeIntervalSince(lastTapTime) > 3.0 {
+            versionTapCount = 0
+        }
+        lastTapTime = now
+        versionTapCount += 1
+        
+        if versionTapCount >= 10 {
+            versionTapCount = 0
+            withAnimation(.easeInOut(duration: 0.2)) {
+                dashboardState.isDebugModeEnabled.toggle()
+                showDebugToast = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation { showDebugToast = false }
+            }
         }
     }
     

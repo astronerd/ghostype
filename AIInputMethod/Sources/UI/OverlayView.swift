@@ -708,7 +708,7 @@ struct GhostIconView: View {
     private func loadGhostIcon() -> NSImage {
         if let path = Bundle.main.path(forResource: "GhostIcon", ofType: "png"),
            let image = NSImage(contentsOfFile: path) { return image }
-        let devPath = "/Users/gengdawei/ghostype/AIInputMethod/Sources/Resources/GhostIcon.png"
+        let devPath = FileManager.default.currentDirectoryPath + "/Sources/Resources/GhostIcon.png"
         if let image = NSImage(contentsOfFile: devPath) { return image }
         return NSImage(systemSymbolName: "waveform", accessibilityDescription: nil) ?? NSImage()
     }

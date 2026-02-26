@@ -266,7 +266,7 @@ struct SVGImageView: NSViewRepresentable {
             imageView.contentTintColor = NSColor(tintColor)
         } else {
             // 开发时从源码目录加载
-            let devPath = "/Users/gengdawei/ghostype/AIInputMethod/Sources/Resources/\(svgName).svg"
+            let devPath = FileManager.default.currentDirectoryPath + "/Sources/Resources/\(svgName).svg"
             if let image = NSImage(contentsOfFile: devPath) {
                 image.isTemplate = true
                 imageView.image = image
