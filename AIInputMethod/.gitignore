@@ -1,0 +1,15 @@
+.build/
+*.dSYM
+.DS_Store
+
+# 环境变量（含密钥，不要提交）
+.env
+
+# 发布产物
+GHOSTYPE-*.zip
+GHOSTYPE-*.dmg
+GHOSTYPE.app/
+
+# Xcode 用户数据
+xcuserdata/
+*.xcuserstate

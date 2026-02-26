@@ -1,0 +1,21 @@
+.DS_Store
+xcuserdata/
+*.xcuserstate
+.kiro/
+.vscode/
+CLAUDE.md
+
+# 笔记文件（不开源）
+Ghosttwin.md
+Ghost\ Twin\ *.md
+ghosttwin*.md
+虚拟人格构筑prompt.md
+需求池.md
+
+# Skill Prompts（不开源）
+AIInputMethod/default_skills/
+
+# 构建产物
+nextjs-boilerplate/
+dmgbackground.png
+AIInputMethod/GHOSTYPE.zip
