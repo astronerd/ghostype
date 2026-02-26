@@ -13,8 +13,8 @@
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <enclosure
                 url="https://github.com/astronerd/ghostype/releases/download/v0.1.02261545/GHOSTYPE-0.1.02261545.dmg"
-                sparkle:edSignature="KwRd6Wv3OBlflNP7cYRfg+b+z792Um0W6jkfw86SnJ/VK9gNDIhgH+wR2IOdcmnI11qmRHIBf2cKfM97bbo7DQ=="
-                length="11198468"
+                sparkle:edSignature="yrlxd4SuMAMA5ekBhHqNFdyU8fHePy9U3K7i5As/FYAH1UeR+J/F12QWQDfvibJksSeTpsx00Jx9OucVB9DlAQ=="
+                length="11198485"
                 type="application/octet-stream"
             />
         </item>
