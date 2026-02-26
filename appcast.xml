@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>GHOSTYPE Updates</title>
+        <link>https://raw.githubusercontent.com/astronerd/ghostype/main/appcast.xml</link>
+        <description>GHOSTYPE automatic updates</description>
+        <language>zh-cn</language>
+        <item>
+            <title>GHOSTYPE v0.1.02261424</title>
+            <pubDate>Thu, 26 Feb 2026 14:24:00 +0800</pubDate>
+            <sparkle:version>10</sparkle:version>
+            <sparkle:shortVersionString>0.1.02261424</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure
+                url="https://github.com/astronerd/ghostype/releases/download/v0.1.02261424/GHOSTYPE-0.1.02261424.dmg"
+                sparkle:edSignature="t02FJvYhE3lhGsMr2OdtSKVpxR3CAcrAvqFFo1wEoYPY5ZJM9szJlDKAlWh/1kteDn2iZyrPmXAbENPXQKrUCw=="
+                length="11192175"
+                type="application/octet-stream"
+            />
+        </item>
+    </channel>
+</rss>
