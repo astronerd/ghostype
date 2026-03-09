@@ -163,6 +163,7 @@ struct SkillCardView: View {
     @Bindable var viewModel: SkillViewModel
     @State private var isHovered = false
     @State private var keyMonitor: Any?
+    @State private var comboKeyMonitor: Any?
 
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.md) {
@@ -197,7 +198,11 @@ struct SkillCardView: View {
                 .lineLimit(2)
 
             HStack(spacing: DS.Spacing.sm) {
-                keyBindingButton
+                if AppSettings.shared.hotkeyMode == .singleKey {
+                    keyBindingButton
+                } else if !skill.isInternal {
+                    comboKeyBindingView
+                }
 
                 Spacer()
 
@@ -250,8 +255,16 @@ struct SkillCardView: View {
                 stopKeyMonitor()
             }
         }
+        .onChange(of: viewModel.isBindingComboKey) { _, newValue in
+            if newValue && viewModel.comboBindingSkillId == skill.id {
+                startComboKeyMonitor()
+            } else if !newValue || viewModel.comboBindingSkillId != skill.id {
+                stopComboKeyMonitor()
+            }
+        }
         .onDisappear {
             stopKeyMonitor()
+            stopComboKeyMonitor()
         }
     }
 
@@ -279,46 +292,159 @@ struct SkillCardView: View {
         }
     }
 
+    private func startComboKeyMonitor() {
+        stopComboKeyMonitor()
+        comboKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { event in
+            let kc = event.keyCode
+            if kc == 53 { // ESC
+                viewModel.cancelComboKeyBinding()
+                return nil
+            }
+            if event.type == .flagsChanged {
+                guard systemModifierKeyCodes.contains(kc) else { return event }
+            }
+            let display = displayNameForKeyCode(kc)
+            viewModel.recordComboKey(keyCode: kc, displayName: display)
+            return nil
+        }
+    }
+
+    private func stopComboKeyMonitor() {
+        if let monitor = comboKeyMonitor {
+            NSEvent.removeMonitor(monitor)
+            comboKeyMonitor = nil
+        }
+    }
+
     @ViewBuilder
     private var keyBindingButton: some View {
         let isBinding = viewModel.isBindingKey && viewModel.bindingSkillId == skill.id
 
-        Button(action: {
-            if isBinding {
-                viewModel.cancelKeyBinding()
-            } else {
-                viewModel.startKeyBinding(skillId: skill.id)
-            }
-        }) {
-            HStack(spacing: DS.Spacing.xs) {
-                Image(systemName: "keyboard")
-                    .font(.system(size: 10))
-
+        HStack(spacing: 2) {
+            Button(action: {
                 if isBinding {
-                    Text(L.Skill.pressKey)
-                        .font(DS.Typography.caption)
-                } else if let binding = skill.modifierKey {
-                    Text(binding.displayName)
-                        .font(DS.Typography.mono(11, weight: .medium))
+                    viewModel.cancelKeyBinding()
                 } else {
-                    Text(L.Skill.unboundKey)
-                        .font(DS.Typography.caption)
+                    viewModel.startKeyBinding(skillId: skill.id)
                 }
+            }) {
+                HStack(spacing: DS.Spacing.xs) {
+                    Image(systemName: "keyboard")
+                        .font(.system(size: 10))
+
+                    if isBinding {
+                        Text(L.Skill.pressKey)
+                            .font(DS.Typography.caption)
+                    } else if let binding = skill.modifierKey {
+                        Text(binding.displayName)
+                            .font(DS.Typography.mono(11, weight: .medium))
+                    } else {
+                        Text(L.Skill.unboundKey)
+                            .font(DS.Typography.caption)
+                    }
+                }
+                .foregroundColor(isBinding ? DS.Colors.statusWarning : DS.Colors.text2)
+                .padding(.horizontal, DS.Spacing.sm)
+                .padding(.vertical, DS.Spacing.xs)
+                .background(isBinding ? DS.Colors.statusWarning.opacity(0.1) : DS.Colors.highlight)
+                .cornerRadius(DS.Layout.cornerRadius)
             }
-            .foregroundColor(isBinding ? DS.Colors.statusWarning : DS.Colors.text2)
-            .padding(.horizontal, DS.Spacing.sm)
-            .padding(.vertical, DS.Spacing.xs)
-            .background(isBinding ? DS.Colors.statusWarning.opacity(0.1) : DS.Colors.highlight)
-            .cornerRadius(DS.Layout.cornerRadius)
+            .buttonStyle(.plain)
+
+            if skill.modifierKey != nil && !isBinding {
+                Button(action: { viewModel.unbindKey(skillId: skill.id) }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundColor(DS.Colors.text3)
+                        .frame(width: 16, height: 16)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var comboKeyBindingView: some View {
+        let isBinding = viewModel.isBindingComboKey && viewModel.comboBindingSkillId == skill.id
+        let step = viewModel.comboBindingStep
+
+        HStack(spacing: 2) {
+            HStack(spacing: 4) {
+                // Key 1 box
+                comboKeyBox(
+                    label: key1DisplayLabel(isBinding: isBinding, step: step),
+                    isActive: isBinding && step == 1,
+                    action: {
+                        if !isBinding {
+                            viewModel.startComboKeyBinding(skillId: skill.id)
+                        }
+                    }
+                )
+
+                Text(L.Skill.comboKeyPlus)
+                    .font(DS.Typography.mono(11, weight: .medium))
+                    .foregroundColor(DS.Colors.text2)
+
+                // Key 2 box
+                comboKeyBox(
+                    label: key2DisplayLabel(isBinding: isBinding, step: step),
+                    isActive: isBinding && step == 2,
+                    action: {
+                        if !isBinding {
+                            viewModel.startComboKeyBinding(skillId: skill.id)
+                        }
+                    }
+                )
+            }
+
+            if skill.comboHotkey != nil && !isBinding {
+                Button(action: { viewModel.unbindComboKey(skillId: skill.id) }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundColor(DS.Colors.text3)
+                        .frame(width: 16, height: 16)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func comboKeyBox(label: String, isActive: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(label)
+                .font(DS.Typography.mono(10, weight: .medium))
+                .foregroundColor(isActive ? DS.Colors.statusWarning : DS.Colors.text2)
+                .frame(minWidth: 40)
+                .padding(.horizontal, DS.Spacing.xs)
+                .padding(.vertical, DS.Spacing.xs)
+                .background(isActive ? DS.Colors.statusWarning.opacity(0.1) : DS.Colors.highlight)
+                .cornerRadius(DS.Layout.cornerRadius)
         }
         .buttonStyle(.plain)
-        .contextMenu {
-            if skill.modifierKey != nil {
-                Button(action: { viewModel.unbindKey(skillId: skill.id) }) {
-                    Label(L.Skill.unboundKey, systemImage: "xmark.circle")
-                }
-            }
+    }
+
+    private func key1DisplayLabel(isBinding: Bool, step: Int) -> String {
+        if isBinding && step == 1 {
+            return L.Skill.comboKeyRecord
         }
+        if isBinding && step == 2, let display = viewModel.pendingKey1Display {
+            return display
+        }
+        if let combo = skill.comboHotkey {
+            return displayNameForKeyCode(combo.key1)
+        }
+        return L.Skill.comboKeyEmpty
+    }
+
+    private func key2DisplayLabel(isBinding: Bool, step: Int) -> String {
+        if isBinding && step == 2 {
+            return L.Skill.comboKeyRecord
+        }
+        if let combo = skill.comboHotkey {
+            return displayNameForKeyCode(combo.key2)
+        }
+        return L.Skill.comboKeyEmpty
     }
 }
 

@@ -68,6 +68,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     let overlayManager = OverlayWindowManager()
     let menuBarManager = MenuBarManager()
     
+    // MARK: - HID
+    let hidMappingManager = HIDMappingManager()
+    private var cancellables = Set<AnyCancellable>()
+    
     // Sparkle 自动更新
     var updaterController: SPUStandardUpdaterController!
     
@@ -225,6 +229,27 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         // 语音输入协调器（hotkey、speech、auth、tool registry 全部由它管理）
         voiceCoordinator.setup()
         
+        // HID 映射：启动时加载映射 + 应用 hidutil remap
+        hidMappingManager.hotkeyManager = hotkeyManager
+        hidMappingManager.restoreAndMonitor()
+        
+        // 监听主快捷键变更，同步所有 HID 映射的 targetKeyCode
+        AppSettings.shared.$hotkeyKeyCode
+            .dropFirst()
+            .sink { [weak self] newKeyCode in
+                self?.hidMappingManager.syncTargetKeyCode(UInt32(newKeyCode))
+            }
+            .store(in: &cancellables)
+        
+        // 监听快捷键模式变更，切换 HID 映射策略
+        AppSettings.shared.$hotkeyMode
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.hidMappingManager.applyMappingsForCurrentMode()
+            }
+            .store(in: &cancellables)
+        
         // 启动 Hotkey
         print("[App] Starting hotkey manager...")
         hotkeyManager.start()
@@ -239,6 +264,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         print("[App] AI Polish: \(AppSettings.shared.enableAIPolish ? "ON" : "OFF")")
     }
     
+    func applicationWillTerminate(_ notification: Notification) {
+        // 退出时清除所有 hidutil remap，恢复外接设备正常
+        hidMappingManager.shutdown()
+    }
+
     // MARK: - Permissions
     func requestPermissions() {
         if !permissionManager.isAccessibilityTrusted {

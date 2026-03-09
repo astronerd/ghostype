@@ -7,6 +7,7 @@ struct SkillMetadata: Codable, Equatable {
     var icon: String
     var colorHex: String
     var modifierKey: ModifierKeyBinding?
+    var comboHotkey: ComboHotkey?
     var isBuiltin: Bool
     var isInternal: Bool
 
@@ -18,25 +19,28 @@ struct SkillMetadata: Codable, Equatable {
             icon: defaultIcon,
             colorHex: defaultColorHex,
             modifierKey: nil,
+            comboHotkey: nil,
             isBuiltin: false,
             isInternal: false
         )
     }
 
-    // 自定义解码：isInternal 在旧版 JSON 中不存在，默认 false
+    // 自定义解码：isInternal/comboHotkey 在旧版 JSON 中不存在，默认 false/nil
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         icon = try container.decode(String.self, forKey: .icon)
         colorHex = try container.decode(String.self, forKey: .colorHex)
         modifierKey = try container.decodeIfPresent(ModifierKeyBinding.self, forKey: .modifierKey)
+        comboHotkey = try container.decodeIfPresent(ComboHotkey.self, forKey: .comboHotkey)
         isBuiltin = try container.decode(Bool.self, forKey: .isBuiltin)
         isInternal = try container.decodeIfPresent(Bool.self, forKey: .isInternal) ?? false
     }
 
-    init(icon: String, colorHex: String, modifierKey: ModifierKeyBinding?, isBuiltin: Bool, isInternal: Bool = false) {
+    init(icon: String, colorHex: String, modifierKey: ModifierKeyBinding?, comboHotkey: ComboHotkey? = nil, isBuiltin: Bool, isInternal: Bool = false) {
         self.icon = icon
         self.colorHex = colorHex
         self.modifierKey = modifierKey
+        self.comboHotkey = comboHotkey
         self.isBuiltin = isBuiltin
         self.isInternal = isInternal
     }

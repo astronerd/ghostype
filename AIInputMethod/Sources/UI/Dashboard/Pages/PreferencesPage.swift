@@ -8,12 +8,33 @@
 import SwiftUI
 import AppKit
 
+// MARK: - KeyCode Display Name Helper (for combo key recorder)
+
+private func comboKeyDisplayName(_ keyCode: UInt16) -> String {
+    let mapping: [UInt16: String] = [
+        0: "A", 1: "S", 2: "D", 3: "F", 4: "H", 5: "G", 6: "Z", 7: "X",
+        8: "C", 9: "V", 11: "B", 12: "Q", 13: "W", 14: "E", 15: "R",
+        16: "Y", 17: "T", 31: "O", 32: "U", 34: "I", 35: "P",
+        37: "L", 38: "J", 40: "K", 45: "N", 46: "M",
+        18: "1", 19: "2", 20: "3", 21: "4", 22: "6", 23: "5",
+        25: "9", 26: "7", 28: "8", 29: "0",
+        24: "=", 27: "-", 30: "]", 33: "[", 39: "'", 41: ";",
+        42: "\\", 43: ",", 44: "/", 47: ".", 50: "`",
+        36: "\u{21A9}", 48: "\u{21E5}", 49: "Space", 51: "\u{232B}", 53: "\u{238B}",
+        54: "\u{2318}R", 55: "\u{2318}", 56: "\u{21E7}", 57: "\u{21EA}",
+        58: "\u{2325}", 59: "\u{2303}", 60: "\u{21E7}R", 61: "\u{2325}R",
+        62: "\u{2303}R", 63: "Fn",
+    ]
+    return mapping[keyCode] ?? "Key\(keyCode)"
+}
+
 // MARK: - PreferencesPage
 
 struct PreferencesPage: View {
     
     @State private var viewModel = PreferencesViewModel()
     @State private var isRecordingHotkey = false
+    @State private var comboKeyMonitor: Any?
     @State private var showingAppPicker = false
     @Environment(DashboardState.self) private var dashboardState
     
@@ -34,6 +55,7 @@ struct PreferencesPage: View {
                 languageSettingsSection
                 permissionsSection
                 hotkeySettingsSection
+                hidMappingSection
                 contactsHotwordsSection
                 autoEnterSection
                 updateSection
@@ -220,49 +242,340 @@ struct PreferencesPage: View {
     private var hotkeySettingsSection: some View {
         MinimalSettingsSection(title: L.Prefs.hotkey, icon: "keyboard") {
             VStack(spacing: DS.Spacing.md) {
+                // Hotkey mode segmented picker
+                HStack(spacing: DS.Spacing.md) {
+                    Image(systemName: "keyboard")
+                        .font(.system(size: 14))
+                        .foregroundColor(DS.Colors.icon)
+                        .frame(width: 28, height: 28)
+                        .background(DS.Colors.highlight)
+                        .cornerRadius(DS.Layout.cornerRadius)
+                    
+                    Spacer()
+                    
+                    Picker("", selection: Binding(
+                        get: { viewModel.hotkeyMode },
+                        set: { viewModel.hotkeyMode = $0 }
+                    )) {
+                        Text(L.Prefs.hotkeyModeSingle).tag(HotkeyMode.singleKey)
+                        Text(L.Prefs.hotkeyModeCombo).tag(HotkeyMode.comboKey)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 200)
+                }
+                .padding(.horizontal, DS.Spacing.lg)
+                .padding(.vertical, DS.Spacing.md)
+                
+                if viewModel.hotkeyMode == .singleKey {
+                    // Single key mode: show existing hotkey recorder and hint
+                    MinimalDivider().padding(.leading, 44)
+                    
+                    HStack {
+                        VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                            Text(L.Prefs.hotkeyTrigger)
+                                .font(DS.Typography.body)
+                                .foregroundColor(DS.Colors.text1)
+                            
+                            Text(L.Prefs.hotkeyDesc)
+                                .font(DS.Typography.caption)
+                                .foregroundColor(DS.Colors.text2)
+                        }
+                        
+                        Spacer()
+                        
+                        HotkeyRecorderView(
+                            isRecording: $isRecordingHotkey,
+                            hotkeyDisplay: Binding(
+                                get: { viewModel.hotkeyDisplay },
+                                set: { viewModel.hotkeyDisplay = $0 }
+                            ),
+                            onRecorded: { modifiers, keyCode, display in
+                                viewModel.updateHotkey(modifiers: modifiers, keyCode: keyCode, display: display)
+                            }
+                        )
+                        .frame(width: 80, height: 40)
+                    }
+                    .padding(.horizontal, DS.Spacing.lg)
+                    .padding(.vertical, DS.Spacing.md)
+                    
+                    HStack {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 11))
+                            .foregroundColor(DS.Colors.text3)
+                        
+                        Text(isRecordingHotkey ? L.Prefs.hotkeyRecording : L.Prefs.hotkeyHint)
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text3)
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, DS.Spacing.lg)
+                    .padding(.bottom, DS.Spacing.md)
+                } else {
+                    // Combo key mode: show default combo key recorder + hint
+                    MinimalDivider().padding(.leading, 44)
+                    
+                    HStack {
+                        VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                            Text(L.Prefs.defaultComboKey)
+                                .font(DS.Typography.body)
+                                .foregroundColor(DS.Colors.text1)
+                            
+                            Text(L.Prefs.defaultComboKeyDesc)
+                                .font(DS.Typography.caption)
+                                .foregroundColor(DS.Colors.text2)
+                        }
+                        
+                        Spacer()
+                        
+                        // Two-key combo recorder
+                        HStack(spacing: 4) {
+                            comboRecorderBox(
+                                label: defaultComboKey1Label,
+                                isActive: viewModel.isRecordingDefaultCombo && viewModel.defaultComboStep == 1
+                            ) {
+                                if !viewModel.isRecordingDefaultCombo {
+                                    viewModel.startDefaultComboRecording(forKey: 1)
+                                    startDefaultComboMonitor()
+                                }
+                            }
+                            
+                            Text(L.Skill.comboKeyPlus)
+                                .font(DS.Typography.mono(11, weight: .medium))
+                                .foregroundColor(DS.Colors.text2)
+                            
+                            comboRecorderBox(
+                                label: defaultComboKey2Label,
+                                isActive: viewModel.isRecordingDefaultCombo && viewModel.defaultComboStep == 2
+                            ) {
+                                if !viewModel.isRecordingDefaultCombo {
+                                    viewModel.startDefaultComboRecording(forKey: 2)
+                                    startDefaultComboMonitor()
+                                }
+                            }
+                        }
+                        .contextMenu {
+                            if viewModel.defaultComboKey1 != nil || viewModel.defaultComboKey2 != nil {
+                                Button(action: { viewModel.clearDefaultComboHotkey() }) {
+                                    Label(L.Skill.comboKeyClear, systemImage: "xmark.circle")
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal, DS.Spacing.lg)
+                    .padding(.vertical, DS.Spacing.md)
+                    .onChange(of: viewModel.isRecordingDefaultCombo) { _, newValue in
+                        if !newValue {
+                            stopDefaultComboMonitor()
+                        }
+                    }
+                    
+                    HStack(spacing: DS.Spacing.xs) {
+                        Image(systemName: "arrow.right.circle")
+                            .font(.system(size: 11))
+                            .foregroundColor(DS.Colors.accent)
+                        
+                        Text(L.Prefs.comboKeyHint)
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.accent)
+                    }
+                    .padding(.horizontal, DS.Spacing.lg)
+                    .padding(.bottom, DS.Spacing.md)
+                }
+            }
+        }
+    }
+
+    // MARK: - HID Mapping Section
+    
+    private var hidMappingSection: some View {
+        MinimalSettingsSection(title: L.Prefs.hidDevices, icon: "keyboard.badge.ellipsis") {
+            VStack(spacing: 0) {
+                // Header with add button
                 HStack {
-                    VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-                        Text(L.Prefs.hotkeyTrigger)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(L.Prefs.hidDevicesTitle)
                             .font(DS.Typography.body)
                             .foregroundColor(DS.Colors.text1)
-                        
-                        Text(L.Prefs.hotkeyDesc)
+                        Text(L.Prefs.hidDevicesDesc)
                             .font(DS.Typography.caption)
                             .foregroundColor(DS.Colors.text2)
                     }
                     
                     Spacer()
                     
-                    HotkeyRecorderView(
-                        isRecording: $isRecordingHotkey,
-                        hotkeyDisplay: Binding(
-                            get: { viewModel.hotkeyDisplay },
-                            set: { viewModel.hotkeyDisplay = $0 }
-                        ),
-                        onRecorded: { modifiers, keyCode, display in
-                            viewModel.updateHotkey(modifiers: modifiers, keyCode: keyCode, display: display)
+                    Button(action: { viewModel.openHIDDevicePicker() }) {
+                        HStack(spacing: DS.Spacing.xs) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 10))
+                            Text(L.Prefs.hidAddDevice)
+                                .font(DS.Typography.caption)
                         }
-                    )
-                    .frame(width: 80, height: 40)
+                        .foregroundColor(DS.Colors.text1)
+                        .padding(.horizontal, DS.Spacing.md)
+                        .padding(.vertical, DS.Spacing.xs)
+                        .background(DS.Colors.highlight)
+                        .cornerRadius(DS.Layout.cornerRadius)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .padding(.horizontal, DS.Spacing.lg)
-                .padding(.vertical, DS.Spacing.md)
+                .padding(DS.Spacing.lg)
                 
-                HStack {
-                    Image(systemName: "info.circle")
-                        .font(.system(size: 11))
-                        .foregroundColor(DS.Colors.text3)
+                // Mapping list
+                if !viewModel.hidMappings.isEmpty {
+                    MinimalDivider().padding(.leading, 44)
                     
-                    Text(isRecordingHotkey ? L.Prefs.hotkeyRecording : L.Prefs.hotkeyHint)
-                        .font(DS.Typography.caption)
-                        .foregroundColor(DS.Colors.text3)
-                    
-                    Spacer()
+                    ForEach(viewModel.hidMappings) { mapping in
+                        HStack(spacing: DS.Spacing.md) {
+                            Image(systemName: mapping.isConnected ? "keyboard" : "keyboard.badge.ellipsis")
+                                .font(.system(size: 14))
+                                .foregroundColor(mapping.isConnected ? DS.Colors.icon : DS.Colors.text3)
+                                .frame(width: 28, height: 28)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(mapping.deviceName)
+                                    .font(DS.Typography.body)
+                                    .foregroundColor(DS.Colors.text1)
+                                Text(mapping.sourceKeyName)
+                                    .font(DS.Typography.caption)
+                                    .foregroundColor(DS.Colors.text2)
+                            }
+                            
+                            Spacer()
+                            
+                            if !mapping.isConnected {
+                                Text(L.Prefs.hidDisconnected)
+                                    .font(DS.Typography.caption)
+                                    .foregroundColor(DS.Colors.text3)
+                            }
+                            
+                            Button(action: { viewModel.removeHIDMapping(mapping) }) {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(DS.Colors.text3)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .padding(.horizontal, DS.Spacing.lg)
+                        .padding(.vertical, DS.Spacing.sm)
+                    }
                 }
-                .padding(.horizontal, DS.Spacing.lg)
-                .padding(.bottom, DS.Spacing.md)
             }
         }
+        .sheet(isPresented: $viewModel.showHIDDevicePicker) {
+            hidDevicePickerSheet
+        }
+    }
+    
+    // MARK: - HID Device Picker Sheet
+    
+    private var hidDevicePickerSheet: some View {
+        VStack(spacing: 0) {
+            // Title bar
+            HStack {
+                Text(L.Prefs.hidPickerTitle)
+                    .font(DS.Typography.body)
+                    .foregroundColor(DS.Colors.text1)
+                Spacer()
+                Button(action: { viewModel.closeHIDDevicePicker() }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(DS.Colors.text3)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(DS.Spacing.lg)
+            
+            MinimalDivider()
+            
+            // Hint
+            Text(L.Prefs.hidPickerHint)
+                .font(DS.Typography.caption)
+                .foregroundColor(DS.Colors.text2)
+                .padding(.horizontal, DS.Spacing.lg)
+                .padding(.top, DS.Spacing.md)
+                .padding(.bottom, DS.Spacing.sm)
+            
+            // Device list
+            if viewModel.hidConnectedDevices.isEmpty {
+                VStack(spacing: DS.Spacing.md) {
+                    Image(systemName: "keyboard")
+                        .font(.system(size: 28))
+                        .foregroundColor(DS.Colors.text3)
+                    Text(L.Prefs.hidNoDevices)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text3)
+                }
+                .frame(maxWidth: .infinity, minHeight: 120)
+                .padding(DS.Spacing.lg)
+            } else {
+                ScrollView {
+                    VStack(spacing: 1) {
+                        ForEach(viewModel.hidConnectedDevices) { device in
+                            hidDeviceRow(device)
+                        }
+                    }
+                    .padding(.horizontal, DS.Spacing.lg)
+                    .padding(.vertical, DS.Spacing.sm)
+                }
+                .frame(maxHeight: 300)
+            }
+            
+            // 蓝牙设备不支持提示
+            HStack(spacing: DS.Spacing.xs) {
+                Image(systemName: "info.circle")
+                    .font(.system(size: 11))
+                    .foregroundColor(DS.Colors.text3)
+                Text(L.Prefs.hidBluetoothNotSupported)
+                    .font(DS.Typography.caption)
+                    .foregroundColor(DS.Colors.text3)
+            }
+            .padding(.horizontal, DS.Spacing.lg)
+            .padding(.top, DS.Spacing.xs)
+            
+            Spacer(minLength: DS.Spacing.md)
+        }
+        .frame(width: 380, height: 320)
+        .background(DS.Colors.bg1)
+    }
+    
+    private func hidDeviceRow(_ device: HIDDeviceInfo) -> some View {
+        let isSelected = viewModel.selectedHIDDevice?.id == device.id
+        
+        return Button(action: { viewModel.selectHIDDevice(device) }) {
+            VStack(spacing: 0) {
+                HStack(spacing: DS.Spacing.md) {
+                    // 活动指示灯
+                    Circle()
+                        .fill(device.isActive ? Color.green : DS.Colors.text3.opacity(0.3))
+                        .frame(width: 8, height: 8)
+                        .animation(.easeInOut(duration: 0.2), value: device.isActive)
+                    
+                    Image(systemName: "keyboard")
+                        .font(.system(size: 14))
+                        .foregroundColor(isSelected ? DS.Colors.text1 : DS.Colors.icon)
+                        .frame(width: 24)
+                    
+                    Text(device.name)
+                        .font(DS.Typography.body)
+                        .foregroundColor(DS.Colors.text1)
+                        .lineLimit(1)
+                    
+                    Spacer()
+                    
+                    if isSelected {
+                        Text(L.Prefs.hidPressKey)
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.statusWarning)
+                    }
+                }
+                .padding(.horizontal, DS.Spacing.md)
+                .padding(.vertical, DS.Spacing.sm + 2)
+                .background(isSelected ? DS.Colors.highlight : Color.clear)
+                .cornerRadius(DS.Layout.cornerRadius)
+            }
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Contacts Hotwords Section
@@ -577,6 +890,68 @@ struct PreferencesPage: View {
             Spacer()
         }
         .padding(.top, DS.Spacing.sm)
+    }
+
+    // MARK: - Default Combo Key Helpers
+
+    private var defaultComboKey1Label: String {
+        if viewModel.isRecordingDefaultCombo && viewModel.defaultComboStep == 1 {
+            return L.Skill.comboKeyRecord
+        }
+        if let k1 = viewModel.defaultComboKey1 {
+            return comboKeyDisplayName(k1)
+        }
+        return L.Skill.comboKeyEmpty
+    }
+
+    private var defaultComboKey2Label: String {
+        if viewModel.isRecordingDefaultCombo && viewModel.defaultComboStep == 2 {
+            return L.Skill.comboKeyRecord
+        }
+        if let k2 = viewModel.defaultComboKey2 {
+            return comboKeyDisplayName(k2)
+        }
+        return L.Skill.comboKeyEmpty
+    }
+
+    @ViewBuilder
+    private func comboRecorderBox(label: String, isActive: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(label)
+                .font(DS.Typography.mono(10, weight: .medium))
+                .foregroundColor(isActive ? DS.Colors.statusWarning : DS.Colors.text2)
+                .frame(minWidth: 40)
+                .padding(.horizontal, DS.Spacing.xs)
+                .padding(.vertical, DS.Spacing.xs)
+                .background(isActive ? DS.Colors.statusWarning.opacity(0.1) : DS.Colors.highlight)
+                .cornerRadius(DS.Layout.cornerRadius)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func startDefaultComboMonitor() {
+        stopDefaultComboMonitor()
+        comboKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { event in
+            let kc = event.keyCode
+            if kc == 53 { // ESC
+                viewModel.cancelDefaultComboRecording()
+                return nil
+            }
+            let modifierKeyCodes: Set<UInt16> = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
+            if event.type == .flagsChanged {
+                guard modifierKeyCodes.contains(kc) else { return event }
+            }
+            let display = comboKeyDisplayName(kc)
+            viewModel.recordDefaultComboKey(keyCode: kc, displayName: display)
+            return nil
+        }
+    }
+
+    private func stopDefaultComboMonitor() {
+        if let monitor = comboKeyMonitor {
+            NSEvent.removeMonitor(monitor)
+            comboKeyMonitor = nil
+        }
     }
 }
 

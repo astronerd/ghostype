@@ -1,5 +1,6 @@
 import Cocoa
 import Carbon
+import Combine
 
 /// 全局快捷键管理器 - 按住说话，松开插入文字
 /// 修饰键切换逻辑：录音中按一次修饰键即切换 Skill，不需要按住
@@ -13,11 +14,22 @@ class HotkeyManager {
     var onHotkeyDown: (() -> Void)?
     var onHotkeyUp: ((SkillModel?) -> Void)?
     var onSkillChanged: ((SkillModel?) -> Void)?
+    var onEscCancel: (() -> Void)?
 
     // MARK: - State
 
     private var isHotkeyPressed = false
+    /// 外部可读：当前是否处于按住状态（HID toggle 模式需要）
+    var isHotkeyCurrentlyPressed: Bool { isHotkeyPressed }
     private(set) var currentSkill: SkillModel? = nil
+
+    // MARK: - Combo Key Mode State
+    private var pressedKeys: Set<UInt16> = []
+    private var activeCombo: ComboHotkey? = nil
+    private var cancellables = Set<AnyCancellable>()
+
+    /// 录制快捷键时抑制 hotkey 触发（设置页面录制新快捷键时使用）
+    var isSuppressed: Bool = false
 
     private var pendingModifierDown: DispatchWorkItem?
     private let modifierDebounceMs: Double = AppConstants.Hotkey.modifierDebounceMs
@@ -41,10 +53,35 @@ class HotkeyManager {
     // MARK: - Permission Retry
     private var permissionTimer: DispatchSourceTimer?
 
+    // MARK: - Simulate (for HID device mapping — CGEvent post doesn't reach same-process tap)
+
+    /// 外部设备映射触发：模拟快捷键按下
+    func simulateHotkeyDown() {
+        guard !isHotkeyPressed else { return }
+        isHotkeyPressed = true
+        currentSkill = nil
+        activeModifierKeys = []
+        FileLogger.log("[Hotkey] DOWN (HID simulate)")
+        onHotkeyDown?()
+    }
+
+    /// 外部设备映射触发：模拟快捷键松开
+    func simulateHotkeyUp() {
+        guard isHotkeyPressed else { return }
+        isHotkeyPressed = false
+        let finalSkill = currentSkill
+        let skillName = finalSkill?.name ?? "polish"
+        FileLogger.log("[Hotkey] UP (HID simulate), skill: \(skillName)")
+        onHotkeyUp?(finalSkill)
+        currentSkill = nil
+        activeModifierKeys = []
+    }
+
     // MARK: - Public Methods
 
     func start() {
         FileLogger.log("[Hotkey] Starting event tap...")
+        setupModeSwitchObserver()
 
         guard AXIsProcessTrusted() else {
             FileLogger.log("[Hotkey] No accessibility permission, starting retry timer...")
@@ -82,7 +119,8 @@ class HotkeyManager {
     private func setupEventTap() {
         let eventMask = (1 << CGEventType.keyDown.rawValue) |
                         (1 << CGEventType.keyUp.rawValue) |
-                        (1 << CGEventType.flagsChanged.rawValue)
+                        (1 << CGEventType.flagsChanged.rawValue) |
+                        (1 << CGEventType.tapDisabledByTimeout.rawValue)
 
         guard let tap = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
@@ -110,11 +148,14 @@ class HotkeyManager {
 
     func stop() {
         stopPermissionRetry()
+        cancellables.removeAll()
         if let tap = eventTap { CGEvent.tapEnable(tap: tap, enable: false) }
         if let source = runLoopSource { CFRunLoopRemoveSource(CFRunLoopGetCurrent(), source, .commonModes) }
         eventTap = nil
         runLoopSource = nil
         cancelPendingModifier()
+        pressedKeys.removeAll()
+        activeCombo = nil
     }
 
     private func cancelPendingModifier() {
@@ -123,9 +164,48 @@ class HotkeyManager {
         pendingModifiers = []
     }
 
+    // MARK: - Mode Switch Observer
+
+    private func setupModeSwitchObserver() {
+        AppSettings.shared.$hotkeyMode
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.handleModeSwitchDuringRecording()
+            }
+            .store(in: &cancellables)
+    }
+
+    private func handleModeSwitchDuringRecording() {
+        if isHotkeyPressed || activeCombo != nil {
+            FileLogger.log("[Hotkey] Mode switched during active recording, cancelling")
+            onEscCancel?()
+        }
+        isHotkeyPressed = false
+        currentSkill = nil
+        activeModifierKeys = []
+        pressedKeys.removeAll()
+        activeCombo = nil
+        cancelPendingModifier()
+    }
+
     // MARK: - Event Handling
 
     private func handleEvent(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
+        // Re-enable tap if system disabled it due to timeout
+        if type == .tapDisabledByTimeout {
+            FileLogger.log("[Hotkey] ⚠️ Event tap disabled by timeout, re-enabling...")
+            if let tap = eventTap {
+                CGEvent.tapEnable(tap: tap, enable: true)
+            }
+            return Unmanaged.passRetained(event)
+        }
+
+        // 录制快捷键时，放行所有事件，不触发 hotkey
+        if isSuppressed {
+            return Unmanaged.passRetained(event)
+        }
+
         let keyCode = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
         let flags = event.flags
 
@@ -135,6 +215,24 @@ class HotkeyManager {
         if flags.contains(.maskControl) { modifiers.insert(.control) }
         if flags.contains(.maskShift) { modifiers.insert(.shift) }
         if flags.contains(.maskSecondaryFn) { modifiers.insert(.function) }
+
+        // Branch on hotkey mode
+        if AppSettings.shared.hotkeyMode == .comboKey {
+            return handleComboKeyEvent(type: type, keyCode: keyCode, modifiers: modifiers, event: event)
+        }
+
+        // --- Single Key Mode (existing logic) ---
+
+        // ESC cancel: when recording and ESC keyDown arrives, cancel and swallow the event
+        if type == .keyDown && keyCode == 53 && isHotkeyPressed {
+            FileLogger.log("[Hotkey] ESC pressed during recording, cancelling")
+            isHotkeyPressed = false
+            currentSkill = nil
+            activeModifierKeys = []
+            cancelPendingModifier()
+            DispatchQueue.main.async { self.onEscCancel?() }
+            return nil  // swallow ESC event
+        }
 
         if isTargetAModifierKey {
             return handleModifierOnlyHotkey(type: type, keyCode: keyCode, modifiers: modifiers, event: event)
@@ -223,6 +321,7 @@ class HotkeyManager {
             }
 
             if isHotkeyPressed {
+                // Check if this key is bound to a skill → switch skill
                 if let skill = getSkillFromKeyCode(keyCode) {
                     if skill.id != currentSkill?.id {
                         currentSkill = skill
@@ -231,6 +330,14 @@ class HotkeyManager {
                     }
                     return nil
                 }
+                // Non-skill key pressed while modifier hotkey held → user wants a shortcut (e.g. Cmd+C)
+                // Cancel recording and pass through
+                FileLogger.log("[Hotkey] Non-skill keyDown (keyCode=\(keyCode)) during modifier hotkey, cancelling")
+                isHotkeyPressed = false
+                currentSkill = nil
+                activeModifierKeys = []
+                DispatchQueue.main.async { self.onEscCancel?() }
+                return Unmanaged.passRetained(event)
             }
         }
 
@@ -301,6 +408,102 @@ class HotkeyManager {
                 }
                 return nil
             }
+        }
+
+        return Unmanaged.passRetained(event)
+    }
+
+    // MARK: - Combo Key Mode
+
+    private func handleComboKeyEvent(type: CGEventType, keyCode: UInt16, modifiers: NSEvent.ModifierFlags, event: CGEvent) -> Unmanaged<CGEvent>? {
+        // ESC cancel during active combo recording
+        if type == .keyDown && keyCode == 53 && activeCombo != nil {
+            FileLogger.log("[Hotkey] ESC pressed during combo recording, cancelling")
+            activeCombo = nil
+            pressedKeys.removeAll()
+            currentSkill = nil
+            DispatchQueue.main.async { self.onEscCancel?() }
+            return nil  // swallow ESC
+        }
+
+        // Determine if this is a key-down or key-up event
+        let isKeyDown: Bool
+        let isKeyUp: Bool
+
+        if type == .keyDown {
+            isKeyDown = true
+            isKeyUp = false
+        } else if type == .keyUp {
+            isKeyDown = false
+            isKeyUp = true
+        } else if type == .flagsChanged {
+            // For modifier keys, check if the key is currently pressed or released
+            if modifierKeyCodes.contains(keyCode) {
+                let down = isModifierKeyDown(keyCode: keyCode, modifiers: modifiers)
+                isKeyDown = down
+                isKeyUp = !down
+            } else {
+                return Unmanaged.passRetained(event)
+            }
+        } else {
+            return Unmanaged.passRetained(event)
+        }
+
+        // Track key presses
+        if isKeyDown {
+            pressedKeys.insert(keyCode)
+
+            // If combo already active, suppress combo key events
+            if let combo = activeCombo {
+                if keyCode == combo.key1 || keyCode == combo.key2 {
+                    return nil
+                }
+                return Unmanaged.passRetained(event)
+            }
+
+            // Check if any registered combo matches (both keys pressed)
+            for (combo, skillId) in SkillManager.shared.comboBindings {
+                if pressedKeys.contains(combo.key1) && pressedKeys.contains(combo.key2) {
+                    if let skill = SkillManager.shared.skills.first(where: { $0.id == skillId }) {
+                        activeCombo = combo
+                        currentSkill = skill
+                        FileLogger.log("[Hotkey] COMBO DOWN: \(combo.key1)+\(combo.key2) → \(skill.name)")
+                        DispatchQueue.main.async { self.onHotkeyDown?() }
+                        return nil
+                    }
+                }
+            }
+
+            // Check default combo hotkey (triggers default polish, currentSkill = nil)
+            if let defaultCombo = AppSettings.shared.defaultComboHotkey {
+                FileLogger.log("[Hotkey] Checking default combo: \(defaultCombo.key1)+\(defaultCombo.key2), pressed: \(pressedKeys)")
+                if pressedKeys.contains(defaultCombo.key1) && pressedKeys.contains(defaultCombo.key2) {
+                    activeCombo = defaultCombo
+                    currentSkill = nil
+                    FileLogger.log("[Hotkey] DEFAULT COMBO DOWN: \(defaultCombo.key1)+\(defaultCombo.key2)")
+                    DispatchQueue.main.async { self.onHotkeyDown?() }
+                    return nil
+                }
+            }
+
+            return Unmanaged.passRetained(event)
+        }
+
+        // Track key releases
+        if isKeyUp {
+            pressedKeys.remove(keyCode)
+
+            // If active combo and either key released → end recording
+            if let combo = activeCombo, (keyCode == combo.key1 || keyCode == combo.key2) {
+                let skill = currentSkill
+                FileLogger.log("[Hotkey] COMBO UP: \(combo.key1)+\(combo.key2), skill: \(skill?.name ?? "nil")")
+                activeCombo = nil
+                currentSkill = nil
+                DispatchQueue.main.async { self.onHotkeyUp?(skill) }
+                return nil
+            }
+
+            return Unmanaged.passRetained(event)
         }
 
         return Unmanaged.passRetained(event)

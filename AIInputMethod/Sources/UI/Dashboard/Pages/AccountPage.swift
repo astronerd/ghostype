@@ -304,20 +304,12 @@ struct AccountPage: View {
     }
     
     private func openManageSubscription() {
-        #if DEBUG
-        let url = URL(string: "http://localhost:3000/pricing")!
-        #else
-        let url = URL(string: "https://ghostype.com/pricing")!
-        #endif
+        let url = URL(string: "https://ghostype.one/pricing")!
         NSWorkspace.shared.open(url)
     }
     
     private func openUpgrade() {
-        #if DEBUG
-        let url = URL(string: "http://localhost:3000/pricing")!
-        #else
-        let url = URL(string: "https://ghostype.com/pricing")!
-        #endif
+        let url = URL(string: "https://ghostype.one/pricing")!
         NSWorkspace.shared.open(url)
     }
 }

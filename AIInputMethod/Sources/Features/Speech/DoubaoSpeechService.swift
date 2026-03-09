@@ -40,9 +40,10 @@ class DoubaoSpeechService: ObservableObject {
     private var appId: String { cachedAppId }
     private var accessToken: String { cachedAccessToken }
     
-    // 音频缓冲
+    // 音频缓冲（所有读写必须在 audioQueue 上执行）
     private var audioBuffer = Data()
     private var sendTimer: DispatchSourceTimer?
+    private let audioQueue = DispatchQueue(label: "com.ghostype.audio", qos: .userInitiated)
     
     init() {}
     
@@ -99,7 +100,7 @@ class DoubaoSpeechService: ObservableObject {
         closeWorkItem = nil
         
         sequenceNumber = 1
-        audioBuffer = Data()
+        audioQueue.sync { audioBuffer = Data() }
         isRecording = true
         transcript = AppConstants.Speech.listeningSentinel
         
@@ -366,7 +367,7 @@ class DoubaoSpeechService: ObservableObject {
                 }
             }
             
-            DispatchQueue.main.async {
+            self.audioQueue.async {
                 self.audioBuffer.append(int16Data)
                 if tapCallCount <= 3 {
                     logToFile("[Doubao] Buffer now: \(self.audioBuffer.count) bytes (\(outputBuffer.frameLength) frames)")
@@ -380,7 +381,7 @@ class DoubaoSpeechService: ObservableObject {
             logToFile("[Doubao] ✅ Audio engine started!")
             
             // 🔥 优化：使用 200ms 发送间隔（文档推荐，双向流式模式性能最优）
-            let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.main)
+            let timer = DispatchSource.makeTimerSource(queue: self.audioQueue)
             timer.schedule(deadline: .now() + 0.2, repeating: 0.2)
             timer.setEventHandler { [weak self] in
                 self?.sendAudioChunk()
@@ -406,8 +407,12 @@ class DoubaoSpeechService: ObservableObject {
     private var closeWorkItem: DispatchWorkItem?
     
     private func sendLastAudioPacket() {
-        let chunkData = audioBuffer
-        audioBuffer = Data()
+        // 在 audioQueue 上同步读取并清空 buffer，避免与 tap 回调竞争
+        let chunkData = audioQueue.sync {
+            let data = audioBuffer
+            audioBuffer = Data()
+            return data
+        }
         logToFile("[Doubao] sendLastAudioPacket: sending \(chunkData.count) bytes, seq=-\(sequenceNumber)")
         sendAudioPacket(data: chunkData, isLast: true)
         

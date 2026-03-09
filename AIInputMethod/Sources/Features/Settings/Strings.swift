@@ -210,6 +210,11 @@ enum L {
         static var triggerWord: String { current.aiPolish.triggerWord }
         static var triggerWordDesc: String { current.aiPolish.triggerWordDesc }
         static var triggerExamplesTitle: String { current.aiPolish.triggerExamplesTitle }
+        static var punctuation: String { current.aiPolish.punctuation }
+        static var punctuationDesc: String { current.aiPolish.punctuationDesc }
+        static var punctuationFull: String { current.aiPolish.punctuationFull }
+        static var punctuationNoEnd: String { current.aiPolish.punctuationNoEnd }
+        static var punctuationSpaces: String { current.aiPolish.punctuationSpaces }
     }
     
     // MARK: - Preferences Page / 偏好设置页
@@ -269,6 +274,25 @@ enum L {
         static var checkUpdate: String { current.prefs.checkUpdate }
         static var currentVersion: String { current.prefs.currentVersion }
         static var reset: String { current.prefs.reset }
+        // HID Devices
+        static var hidDevices: String { current.prefs.hidDevices }
+        static var hidDevicesTitle: String { current.prefs.hidDevicesTitle }
+        static var hidDevicesDesc: String { current.prefs.hidDevicesDesc }
+        static var hidAddDevice: String { current.prefs.hidAddDevice }
+        static var hidRecording: String { current.prefs.hidRecording }
+        static var hidDisconnected: String { current.prefs.hidDisconnected }
+        static var hidPickerTitle: String { current.prefs.hidPickerTitle }
+        static var hidPickerHint: String { current.prefs.hidPickerHint }
+        static var hidNoDevices: String { current.prefs.hidNoDevices }
+        static var hidPressKey: String { current.prefs.hidPressKey }
+        static var hidBluetoothNotSupported: String { current.prefs.hidBluetoothNotSupported }
+        // Combo Hotkey Mode
+        static var hotkeyModeSingle: String { current.prefs.hotkeyModeSingle }
+        static var hotkeyModeCombo: String { current.prefs.hotkeyModeCombo }
+        static var comboKeyHint: String { current.prefs.comboKeyHint }
+        static var comboKeyDesc: String { current.prefs.comboKeyDesc }
+        static var defaultComboKey: String { current.prefs.defaultComboKey }
+        static var defaultComboKeyDesc: String { current.prefs.defaultComboKeyDesc }
     }
     
     // MARK: - Common / 通用
@@ -428,6 +452,15 @@ enum L {
         static var langGerman: String { current.skill.langGerman }
         static var langSpanish: String { current.skill.langSpanish }
         static var langRussian: String { current.skill.langRussian }
+        // Combo Hotkey
+        static var comboKey: String { current.skill.comboKey }
+        static var comboKeyRecord: String { current.skill.comboKeyRecord }
+        static var comboKeyKey1: String { current.skill.comboKeyKey1 }
+        static var comboKeyKey2: String { current.skill.comboKeyKey2 }
+        static var comboKeyConflict: String { current.skill.comboKeyConflict }
+        static var comboKeyClear: String { current.skill.comboKeyClear }
+        static var comboKeyEmpty: String { current.skill.comboKeyEmpty }
+        static var comboKeyPlus: String { current.skill.comboKeyPlus }
     }
 
     // MARK: - Menu Bar / 菜单栏
@@ -735,6 +768,11 @@ protocol AIPolishStrings {
     var triggerWord: String { get }
     var triggerWordDesc: String { get }
     var triggerExamplesTitle: String { get }
+    var punctuation: String { get }
+    var punctuationDesc: String { get }
+    var punctuationFull: String { get }
+    var punctuationNoEnd: String { get }
+    var punctuationSpaces: String { get }
 }
 
 protocol PrefsStrings {
@@ -793,6 +831,25 @@ protocol PrefsStrings {
     var checkUpdate: String { get }
     var currentVersion: String { get }
     var reset: String { get }
+    // HID Devices
+    var hidDevices: String { get }
+    var hidDevicesTitle: String { get }
+    var hidDevicesDesc: String { get }
+    var hidAddDevice: String { get }
+    var hidRecording: String { get }
+    var hidDisconnected: String { get }
+    var hidPickerTitle: String { get }
+    var hidPickerHint: String { get }
+    var hidNoDevices: String { get }
+    var hidPressKey: String { get }
+    var hidBluetoothNotSupported: String { get }
+    // Combo Hotkey Mode
+    var hotkeyModeSingle: String { get }
+    var hotkeyModeCombo: String { get }
+    var comboKeyHint: String { get }
+    var comboKeyDesc: String { get }
+    var defaultComboKey: String { get }
+    var defaultComboKeyDesc: String { get }
 }
 
 protocol CommonStrings {
@@ -970,6 +1027,15 @@ protocol SkillStrings {
     var langGerman: String { get }
     var langSpanish: String { get }
     var langRussian: String { get }
+    // Combo Hotkey
+    var comboKey: String { get }
+    var comboKeyRecord: String { get }
+    var comboKeyKey1: String { get }
+    var comboKeyKey2: String { get }
+    var comboKeyConflict: String { get }
+    var comboKeyClear: String { get }
+    var comboKeyEmpty: String { get }
+    var comboKeyPlus: String { get }
 }
 
 protocol MenuBarStrings {

@@ -111,21 +111,19 @@ class VoiceInputCoordinator: ToolOutputHandler {
                 self.awardSpeechXP(characterCount: trimmed.count)
             }
 
-            if self.waitingForFinalResult, let skill = self.pendingSkill {
-                FileLogger.log("[Speech] Processing immediately after final result")
+            if self.waitingForFinalResult {
+                let skill = self.pendingSkill
                 self.waitingForFinalResult = false
                 self.pendingSkill = nil
+                FileLogger.log("[Speech] Processing final result via PTT path")
                 self.processWithSkill(skill, speechText: text)
-            } else if self.waitingForFinalResult {
-                FileLogger.log("[Speech] Processing immediately after final result (default polish)")
-                self.waitingForFinalResult = false
-                self.pendingSkill = nil
-                self.processWithSkill(nil, speechText: text)
             }
         }
 
-        speechService.onPartialResult = { text in
+        speechService.onPartialResult = { [weak self] text in
+            guard let self = self else { return }
             FileLogger.log("[Speech] Partial result: \(text)")
+            // Push_To_Talk 模式不使用 partial results 显示（Overlay 显示录音状态）
         }
     }
 
@@ -188,27 +186,13 @@ class VoiceInputCoordinator: ToolOutputHandler {
                 return
             }
 
-            print("[Hotkey] ========== DOWN ==========")
-            let skill = self.hotkeyManager.currentSkill
-            let skillName = skill?.name ?? "润色"
-            print("[Hotkey] Starting recording, skill: \(skillName)")
-            self.currentSkill = skill
-            self.currentRawText = ""
-            self.waitingForFinalResult = false
-            self.pendingSkill = nil
-
-            // 在显示 Overlay 之前保存上下文（此时用户还聚焦在目标输入框）
-            let detection = self.skillExecutor.contextDetector.detectWithDebugInfo()
-            self.savedContext = detection.behavior
-            FileLogger.log("[Hotkey] Saved context: \(detection.behavior), debugInfo:\n\(detection.debugInfo)")
-
-            self.overlayManager.showNearCursor()
-            self.speechService.startRecording()
-            OverlayStateManager.shared.setRecording(skill: skill)
+            self.handlePushToTalkHotkeyDown()
         }
 
         hotkeyManager.onSkillChanged = { [weak self] skill in
             guard let self = self else { return }
+            // In combo mode, skill is determined by the combo key binding, not modifier switching
+            guard AppSettings.shared.hotkeyMode == .singleKey else { return }
             let skillName = skill?.name ?? "润色"
             print("[Hotkey] Skill changed to: \(skillName)")
             self.currentSkill = skill
@@ -217,30 +201,82 @@ class VoiceInputCoordinator: ToolOutputHandler {
 
         hotkeyManager.onHotkeyUp = { [weak self] skill in
             guard let self = self else { return }
-            print("[Hotkey] ========== UP ==========")
-            let skillName = skill?.name ?? "润色"
-            print("[Hotkey] Stopping recording, final skill: \(skillName)")
-            self.speechService.stopRecording()
-            OverlayStateManager.shared.setProcessing(skill: skill)
+            self.handlePushToTalkHotkeyUp(skill: skill)
+        }
 
-            if !self.currentRawText.isEmpty {
-                FileLogger.log("[Hotkey] Final result already available, processing now")
-                self.processWithSkill(skill, speechText: self.currentRawText)
-            } else {
-                FileLogger.log("[Hotkey] Waiting for final result...")
-                self.waitingForFinalResult = true
-                self.pendingSkill = skill
+        hotkeyManager.onEscCancel = { [weak self] in
+            guard let self = self else { return }
+            self.handleEscCancel()
+        }
+    }
 
-                DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.Overlay.speechTimeoutSeconds) { [weak self] in
-                    guard let self = self, self.waitingForFinalResult else { return }
-                    FileLogger.log("[Hotkey] ⚠️ Timeout waiting for final result")
-                    self.waitingForFinalResult = false
-                    let pendingSkill = self.pendingSkill
-                    self.pendingSkill = nil
-                    self.processWithSkill(pendingSkill, speechText: self.currentRawText)
-                }
+    // MARK: - Push_To_Talk Hotkey Handlers
+
+    /// Push_To_Talk 模式按下快捷键
+    private func handlePushToTalkHotkeyDown() {
+        print("[Hotkey] ========== DOWN ==========")
+        let skill = hotkeyManager.currentSkill
+        let skillName = skill?.name ?? "润色"
+        print("[Hotkey] Starting recording, skill: \(skillName)")
+        currentSkill = skill
+        currentRawText = ""
+        waitingForFinalResult = false
+        pendingSkill = nil
+
+        // 在显示 Overlay 之前保存上下文（此时用户还聚焦在目标输入框）
+        let detection = skillExecutor.contextDetector.detectWithDebugInfo()
+        savedContext = detection.behavior
+        FileLogger.log("[Hotkey] Saved context: \(detection.behavior), debugInfo:\n\(detection.debugInfo)")
+
+        overlayManager.showNearCursor()
+        speechService.startRecording()
+        OverlayStateManager.shared.setRecording(skill: skill)
+    }
+
+    /// Push_To_Talk 模式松开快捷键
+    private func handlePushToTalkHotkeyUp(skill: SkillModel?) {
+        print("[Hotkey] ========== UP ==========")
+        let skillName = skill?.name ?? "润色"
+        print("[Hotkey] Stopping recording, final skill: \(skillName)")
+        speechService.stopRecording()
+        OverlayStateManager.shared.setProcessing(skill: skill)
+
+        if !currentRawText.isEmpty {
+            FileLogger.log("[Hotkey] Final result already available, processing now")
+            processWithSkill(skill, speechText: currentRawText)
+        } else {
+            FileLogger.log("[Hotkey] Waiting for final result...")
+            waitingForFinalResult = true
+            pendingSkill = skill
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.Overlay.speechTimeoutSeconds) { [weak self] in
+                guard let self = self, self.waitingForFinalResult else { return }
+                FileLogger.log("[Hotkey] ⚠️ Timeout waiting for final result")
+                self.waitingForFinalResult = false
+                let pendingSkill = self.pendingSkill
+                self.pendingSkill = nil
+                self.processWithSkill(pendingSkill, speechText: self.currentRawText)
             }
         }
+    }
+
+    // MARK: - ESC Cancel
+
+    /// ESC 取消输入：停止录音 → 丢弃文本 → 隐藏 Overlay
+    func handleEscCancel() {
+        FileLogger.log("[VIC] ESC cancel triggered")
+
+        // 停止录音
+        speechService.stopRecording()
+
+        // 清除状态
+        currentRawText = ""
+        waitingForFinalResult = false
+        pendingSkill = nil
+
+        // 隐藏 Overlay
+        OverlayStateManager.shared.hide()
+        overlayManager.hide()
     }
 
     // MARK: - AI Processing (Skill-based)
@@ -256,7 +292,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
 
         guard let skill = skill else {
             FileLogger.log("[Process] No skill (default polish)")
-            processWithMode(.polish)
+            processPolish(text)
             return
         }
 
@@ -329,43 +365,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
         }
     }
 
-    // MARK: - AI Processing (Legacy modes)
-
-    func processWithMode(_ mode: InputMode) {
-        let text = currentRawText.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        guard !text.isEmpty else {
-            FileLogger.log("[Process] Empty text, skipping")
-            overlayManager.hide()
-            return
-        }
-
-        FileLogger.log("[Process] Processing with mode: \(mode.displayName)")
-        FileLogger.log("[Process] AI Polish enabled: \(AppSettings.shared.enableAIPolish)")
-
-        switch mode {
-        case .polish:
-            if AppSettings.shared.enableAIPolish {
-                processPolish(text)
-            } else {
-                FileLogger.log("[Process] AI Polish OFF, inserting raw text")
-                insertTextAtCursor(text)
-                textInserter.saveUsageRecord(
-                    content: text, category: .polish, originalContent: text,
-                    skillId: SkillModel.builtinGhostCommandId, skillName: L.Overlay.defaultSkillName
-                )
-                Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
-                OverlayStateManager.shared.setCommitting(type: .textInput)
-                DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.Overlay.commitDismissDelay) {
-                    self.overlayManager.hide()
-                }
-            }
-        case .translate:
-            processTranslate(text)
-        case .memo:
-            processMemo(text)
-        }
-    }
+    // MARK: - AI Processing (Polish fallback)
 
     private func processPolish(_ text: String) {
         print("[Polish] Starting AI polish with GhostypeAPI...")
@@ -425,88 +425,68 @@ class VoiceInputCoordinator: ToolOutputHandler {
         }
     }
 
-    private func processTranslate(_ text: String) {
-        print("[Translate] Starting AI translate with GhostypeAPI...")
+    // MARK: - Punctuation
 
-        let settings = AppSettings.shared
-
-        Task { @MainActor in
-            do {
-                let translatedText = try await GhostypeAPIClient.shared.translate(
-                    text: text,
-                    language: settings.translateLanguage.rawValue
-                )
-                print("[Translate] Success: \(translatedText)")
-                self.insertTextAtCursor(translatedText)
-                self.textInserter.saveUsageRecord(
-                    content: translatedText, category: .translate, originalContent: text,
-                    skillId: SkillModel.builtinTranslateId, skillName: L.Skill.builtinTranslateName
-                )
-                Task { await QuotaManager.shared.reportAndRefresh(characters: translatedText.count) }
-                NotificationCenter.default.post(name: .ghostTwinStatusShouldRefresh, object: nil)
-            } catch {
-                print("[Translate] Error: \(error.localizedDescription)")
-                FileLogger.log("[Translate] API error, falling back to original text")
-                self.insertTextAtCursor(text)
+    static func applyPunctuationMode(_ text: String) -> String {
+        let mode = AppSettings.shared.punctuationMode
+        switch mode {
+        case "noEnd":
+            // 去掉末尾标点（中英文句号、问号、感叹号）
+            var result = text
+            while let last = result.last,
+                  "。.！!？?".contains(last) {
+                result.removeLast()
             }
-
-            OverlayStateManager.shared.setCommitting(type: .textInput)
-            DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.Overlay.commitDismissDelay) {
-                self.overlayManager.hide()
-            }
+            return result
+        case "spaces":
+            // 去掉所有标点，用空格分隔
+            let punctuations = CharacterSet.punctuationCharacters.union(.symbols)
+            let cleaned = text.unicodeScalars.map { punctuations.contains($0) ? " " : String($0) }.joined()
+            return cleaned.components(separatedBy: .whitespaces).filter { !$0.isEmpty }.joined(separator: " ")
+        default:
+            return text
         }
     }
 
-    private func processMemo(_ text: String) {
-        FileLogger.log("[Memo] Saving memo directly...")
+    // MARK: - Text Insertion
 
-        textInserter.saveUsageRecord(
-            content: text, category: .memo, originalContent: text,
-            skillId: SkillModel.builtinMemoId, skillName: L.Skill.builtinMemoName
-        )
-        FileLogger.log("[Memo] Saved to notes")
-        Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
+    func insertTextAtCursor(_ text: String) {
+        let finalText = VoiceInputCoordinator.applyPunctuationMode(text)
+        FileLogger.log("[Insert] Inserting text: \(finalText.prefix(50))...")
 
-        OverlayStateManager.shared.setCommitting(type: .memoSaved)
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.Overlay.memoDismissDelay) {
-            self.overlayManager.hide()
-        }
-    }
-
-    // MARK: - Text Insertion (with noInput detection)
-
-    private func insertTextAtCursor(_ text: String) {
-        guard !text.isEmpty else { return }
-        // 用 savedContext 判断是否需要隐藏 Overlay，不再重新检测
-        if case .noInput = savedContext {
-            overlayManager.hide()
-        }
-        textInserter.insert(text)
+        textInserter.insert(finalText)
     }
 
     // MARK: - ToolOutputHandler
 
     func handleTextOutput(context: ToolContext) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            self.insertAndRecord(context.text, skill: context.skill, originalText: self.currentRawText)
+        insertTextAtCursor(context.text)
+        textInserter.saveUsageRecord(
+            content: context.text,
+            category: .polish,
+            originalContent: context.speechText,
+            skillId: context.skill.id,
+            skillName: context.skill.localizedName
+        )
+        Task { await QuotaManager.shared.reportAndRefresh(characters: context.text.count) }
+        NotificationCenter.default.post(name: .ghostTwinStatusShouldRefresh, object: nil)
+        OverlayStateManager.shared.setCommitting(type: .textInput)
+        DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.Overlay.commitDismissDelay) {
+            self.overlayManager.hide()
         }
     }
 
     func handleMemoSave(text: String) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            self.textInserter.saveUsageRecord(
-                content: text, category: .memo, originalContent: self.currentRawText.isEmpty ? text : self.currentRawText,
-                skillId: SkillModel.builtinMemoId, skillName: L.Skill.builtinMemoName
-            )
-            FileLogger.log("[Memo] Saved via ToolRegistry")
-            Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
-            OverlayStateManager.shared.setCommitting(type: .memoSaved)
-            DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.Overlay.memoDismissDelay) {
-                self.overlayManager.hide()
-            }
+        // Memo 保存通过 CoreData UsageRecord 记录，不再依赖 MemoStore
+        textInserter.saveUsageRecord(
+            content: text, category: .memo, originalContent: nil,
+            skillId: SkillModel.builtinMemoId, skillName: L.Skill.builtinMemoName
+        )
+        Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
+        NotificationCenter.default.post(name: .ghostTwinStatusShouldRefresh, object: nil)
+        OverlayStateManager.shared.setCommitting(type: .memoSaved)
+        DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.Overlay.commitDismissDelay) {
+            self.overlayManager.hide()
         }
     }
 }

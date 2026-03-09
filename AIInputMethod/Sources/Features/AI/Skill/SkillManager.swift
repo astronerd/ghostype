@@ -9,6 +9,7 @@ class SkillManager {
 
     private(set) var skills: [SkillModel] = []
     private(set) var keyBindings: [UInt16: String] = [:]
+    private(set) var comboBindings: [ComboHotkey: String] = [:]
 
     let storageDirectory: URL
     let metadataStore: SkillMetadataStore
@@ -31,6 +32,7 @@ class SkillManager {
         let fm = FileManager.default
         skills = []
         keyBindings = [:]
+        comboBindings = [:]
 
         guard let entries = try? fm.contentsOfDirectory(at: storageDirectory, includingPropertiesForKeys: [.isDirectoryKey]) else {
             FileLogger.log("[SkillManager] No skills directory found at \(storageDirectory.path)")
@@ -71,6 +73,7 @@ class SkillManager {
                     icon: metadata.icon,
                     colorHex: metadata.colorHex,
                     modifierKey: metadata.modifierKey,
+                    comboHotkey: metadata.comboHotkey,
                     isBuiltin: metadata.isBuiltin,
                     isInternal: metadata.isInternal
                 )
@@ -78,6 +81,9 @@ class SkillManager {
                 skills.append(skill)
                 if let binding = skill.modifierKey {
                     keyBindings[binding.keyCode] = skill.id
+                }
+                if let combo = skill.comboHotkey {
+                    comboBindings[combo] = skill.id
                 }
             } catch {
                 FileLogger.log("[SkillManager] Failed to parse \(skillFile.path): \(error)")
@@ -107,6 +113,9 @@ class SkillManager {
         if let binding = skill.modifierKey {
             keyBindings[binding.keyCode] = skill.id
         }
+        if let combo = skill.comboHotkey {
+            comboBindings[combo] = skill.id
+        }
     }
 
     func updateSkill(_ skill: SkillModel) throws {
@@ -131,9 +140,15 @@ class SkillManager {
         if let oldBinding = oldSkill.modifierKey {
             keyBindings.removeValue(forKey: oldBinding.keyCode)
         }
+        if let oldCombo = oldSkill.comboHotkey {
+            comboBindings.removeValue(forKey: oldCombo)
+        }
         skills[index] = skill
         if let newBinding = skill.modifierKey {
             keyBindings[newBinding.keyCode] = skill.id
+        }
+        if let newCombo = skill.comboHotkey {
+            comboBindings[newCombo] = skill.id
         }
     }
 
@@ -155,6 +170,9 @@ class SkillManager {
 
         if let binding = skill.modifierKey {
             keyBindings.removeValue(forKey: binding.keyCode)
+        }
+        if let combo = skill.comboHotkey {
+            comboBindings.removeValue(forKey: combo)
         }
         skills.remove(at: index)
     }
@@ -213,6 +231,32 @@ class SkillManager {
             if skill.id == excludingSkillId { continue }
             guard let existingBinding = skill.modifierKey else { continue }
             if existingBinding.keyCode == binding.keyCode {
+                return skill
+            }
+        }
+        return nil
+    }
+
+    // MARK: - Combo Key Binding Queries
+
+    func skillForComboHotkey(_ combo: ComboHotkey) -> SkillModel? {
+        guard let skillId = comboBindings[combo] else { return nil }
+        return skills.first(where: { $0.id == skillId })
+    }
+
+    func rebindComboKey(skillId: String, newCombo: ComboHotkey?) throws {
+        guard var skill = skills.first(where: { $0.id == skillId }) else {
+            throw SkillManagerError.skillNotFound(skillId)
+        }
+        skill.comboHotkey = newCombo
+        try updateSkill(skill)
+    }
+
+    func hasComboKeyConflict(_ combo: ComboHotkey, excludingSkillId: String? = nil) -> SkillModel? {
+        for skill in skills {
+            if skill.id == excludingSkillId { continue }
+            guard let existingCombo = skill.comboHotkey else { continue }
+            if existingCombo.key1 == combo.key1 && existingCombo.key2 == combo.key2 {
                 return skill
             }
         }
@@ -325,6 +369,7 @@ class SkillManager {
             let existing = metadataStore.get(skillId: definition.id)
             var meta = definition.metadata
             meta.modifierKey = existing.modifierKey ?? definition.metadata.modifierKey
+            meta.comboHotkey = existing.comboHotkey ?? definition.metadata.comboHotkey
             metadataStore.update(skillId: definition.id, metadata: meta)
         }
     }
@@ -356,6 +401,7 @@ class SkillManager {
             icon: skill.icon,
             colorHex: skill.colorHex,
             modifierKey: skill.modifierKey,
+            comboHotkey: skill.comboHotkey,
             isBuiltin: skill.isBuiltin,
             isInternal: skill.isInternal
         )

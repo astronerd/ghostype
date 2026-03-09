@@ -199,6 +199,11 @@ private struct ChineseAIPolish: AIPolishStrings {
     var triggerWord: String { "唤醒词" }
     var triggerWordDesc: String { "在句尾说出唤醒词后跟指令" }
     var triggerExamplesTitle: String { "示例（使用唤醒词「%@」）" }
+    var punctuation: String { "标点符号" }
+    var punctuationDesc: String { "控制润色结果中的标点符号风格" }
+    var punctuationFull: String { "完整标点" }
+    var punctuationNoEnd: String { "句末无标点" }
+    var punctuationSpaces: String { "仅空格" }
 }
 
 // MARK: - Preferences
@@ -259,6 +264,25 @@ private struct ChinesePrefs: PrefsStrings {
     var checkUpdate: String { "检查更新" }
     var currentVersion: String { "当前版本" }
     var reset: String { "恢复默认设置" }
+    // HID Devices
+    var hidDevices: String { "外接设备快捷键" }
+    var hidDevicesTitle: String { "外接设备快捷键" }
+    var hidDevicesDesc: String { "将外接键盘按键映射为 GHOSTYPE 触发键" }
+    var hidAddDevice: String { "添加设备" }
+    var hidRecording: String { "录制中..." }
+    var hidDisconnected: String { "未连接" }
+    var hidPickerTitle: String { "选择外接设备" }
+    var hidPickerHint: String { "按下任意键，对应设备会亮起。点击设备后按下要映射的按键。" }
+    var hidNoDevices: String { "未检测到外接键盘设备" }
+    var hidPressKey: String { "请按键..." }
+    var hidBluetoothNotSupported: String { "暂不支持蓝牙输入设备" }
+    // Combo Hotkey Mode
+    var hotkeyModeSingle: String { "单键模式" }
+    var hotkeyModeCombo: String { "组合键模式" }
+    var comboKeyHint: String { "请在「技能」页面为每个 Skill 配置组合快捷键" }
+    var comboKeyDesc: String { "组合键模式下，按住两个键触发对应技能的语音录入，松开结束" }
+    var defaultComboKey: String { "默认录音组合键" }
+    var defaultComboKeyDesc: String { "按住两个键开始录音（默认润色），松开结束" }
 }
 
 // MARK: - Common
@@ -456,6 +480,15 @@ private struct ChineseSkill: SkillStrings {
     var langGerman: String { "德文" }
     var langSpanish: String { "西班牙文" }
     var langRussian: String { "俄文" }
+    // Combo Hotkey
+    var comboKey: String { "组合快捷键" }
+    var comboKeyRecord: String { "录制中..." }
+    var comboKeyKey1: String { "按键 1" }
+    var comboKeyKey2: String { "按键 2" }
+    var comboKeyConflict: String { "组合键冲突" }
+    var comboKeyClear: String { "清除组合键" }
+    var comboKeyEmpty: String { "未设置" }
+    var comboKeyPlus: String { "+" }
 }
 
 // MARK: - Menu Bar

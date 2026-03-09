@@ -8,11 +8,7 @@ enum AppConfig {
 
     /// API base URL（统一配置源）
     static var apiBaseURL: String {
-        #if DEBUG
-        return "http://localhost:3000"
-        #else
         return "https://www.ghostype.one"
-        #endif
     }
 
     /// 认证回调 URL scheme

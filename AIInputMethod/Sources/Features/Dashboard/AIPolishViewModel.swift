@@ -72,6 +72,15 @@ class AIPolishViewModel {
         }
     }
     
+    // MARK: - 标点符号
+    
+    /// 标点符号模式
+    var punctuationMode: String {
+        didSet {
+            AppSettings.shared.punctuationMode = punctuationMode
+        }
+    }
+    
     // MARK: - Initialization
     
     init() {
@@ -90,6 +99,7 @@ class AIPolishViewModel {
         self.enableInSentencePatterns = settings.enableInSentencePatterns
         self.enableTriggerCommands = settings.enableTriggerCommands
         self.triggerWord = settings.triggerWord
+        self.punctuationMode = settings.punctuationMode
     }
     
     // MARK: - Profile Selection

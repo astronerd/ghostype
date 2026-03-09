@@ -141,6 +141,13 @@ class AppSettings: ObservableObject {
         didSet { saveToUserDefaults() }
     }
     
+    // MARK: - 标点符号设置
+    
+    /// 标点符号模式（full/noEnd/spaces）
+    @Published var punctuationMode: String {
+        didSet { saveToUserDefaults() }
+    }
+    
     // MARK: - 自动回车设置
     
     /// 是否启用自动回车
@@ -151,6 +158,36 @@ class AppSettings: ObservableObject {
     /// 自动回车的应用配置 [BundleID: SendMethod rawValue]
     @Published var autoEnterApps: [String: String] {
         didSet { saveToUserDefaults() }
+    }
+    
+    // MARK: - HID 映射设置
+    
+    /// HID 映射数据（JSON 编码的 [HIDMapping]）
+    @Published var hidMappingsData: Data? {
+        didSet { saveToUserDefaults() }
+    }
+    
+    // MARK: - 快捷键模式设置
+    
+    /// 快捷键模式（单键 / 组合键）
+    @Published var hotkeyMode: HotkeyMode {
+        didSet { saveToUserDefaults() }
+    }
+    
+    /// 组合键模式下的默认录音组合键 key1
+    @Published var defaultComboKey1: UInt16? {
+        didSet { saveToUserDefaults() }
+    }
+    
+    /// 组合键模式下的默认录音组合键 key2
+    @Published var defaultComboKey2: UInt16? {
+        didSet { saveToUserDefaults() }
+    }
+    
+    /// 组合键（只有两个都设置了才返回有效值）
+    var defaultComboHotkey: ComboHotkey? {
+        guard let k1 = defaultComboKey1, let k2 = defaultComboKey2 else { return nil }
+        return ComboHotkey(key1: k1, key2: k2)
     }
     
     // MARK: - 语言设置
@@ -187,9 +224,14 @@ class AppSettings: ObservableObject {
         static let playStartSound = "playStartSound"
         static let hapticFeedback = "hapticFeedback"
         static let enableContactsHotwords = "enableContactsHotwords"
+        static let punctuationMode = "punctuationMode"
         static let enableAutoEnter = "enableAutoEnter"
         static let autoEnterApps = "autoEnterApps"
         static let appLanguage = "appLanguage"
+        static let hidMappingsData = "hidMappings"
+        static let hotkeyMode = "hotkeyMode"
+        static let defaultComboKey1 = "defaultComboKey1"
+        static let defaultComboKey2 = "defaultComboKey2"
     }
     
     // MARK: - Initialization
@@ -289,6 +331,9 @@ class AppSettings: ObservableObject {
         // 加载通讯录热词设置（默认关闭）
         enableContactsHotwords = defaults.bool(forKey: Keys.enableContactsHotwords)
         
+        // 加载标点符号模式（默认完整标点）
+        punctuationMode = defaults.string(forKey: Keys.punctuationMode) ?? "full"
+        
         // 加载自动回车设置（默认关闭）
         enableAutoEnter = defaults.bool(forKey: Keys.enableAutoEnter)
         if let dict = defaults.dictionary(forKey: Keys.autoEnterApps) as? [String: String] {
@@ -303,6 +348,29 @@ class AppSettings: ObservableObject {
         } else {
             autoEnterApps = [:]
         }
+        
+        // 加载快捷键模式（默认 singleKey）
+        if let savedHotkeyMode = defaults.string(forKey: Keys.hotkeyMode),
+           let mode = HotkeyMode(rawValue: savedHotkeyMode) {
+            hotkeyMode = mode
+        } else {
+            hotkeyMode = .singleKey
+        }
+        
+        // 加载默认组合键（独立存储）
+        if defaults.object(forKey: Keys.defaultComboKey1) != nil {
+            defaultComboKey1 = UInt16(defaults.integer(forKey: Keys.defaultComboKey1))
+        } else {
+            defaultComboKey1 = nil
+        }
+        if defaults.object(forKey: Keys.defaultComboKey2) != nil {
+            defaultComboKey2 = UInt16(defaults.integer(forKey: Keys.defaultComboKey2))
+        } else {
+            defaultComboKey2 = nil
+        }
+        
+        // 加载 HID 映射数据
+        hidMappingsData = defaults.data(forKey: Keys.hidMappingsData)
         
         // 加载语言设置（默认跟随系统）
         if let savedLanguage = defaults.string(forKey: Keys.appLanguage),
@@ -340,9 +408,22 @@ class AppSettings: ObservableObject {
         defaults.set(playStartSound, forKey: Keys.playStartSound)
         defaults.set(hapticFeedback, forKey: Keys.hapticFeedback)
         defaults.set(enableContactsHotwords, forKey: Keys.enableContactsHotwords)
+        defaults.set(punctuationMode, forKey: Keys.punctuationMode)
         defaults.set(enableAutoEnter, forKey: Keys.enableAutoEnter)
         defaults.set(autoEnterApps as [String: String], forKey: Keys.autoEnterApps)
         defaults.set(appLanguage.rawValue, forKey: Keys.appLanguage)
+        defaults.set(hotkeyMode.rawValue, forKey: Keys.hotkeyMode)
+        if let k1 = defaultComboKey1 {
+            defaults.set(Int(k1), forKey: Keys.defaultComboKey1)
+        } else {
+            defaults.removeObject(forKey: Keys.defaultComboKey1)
+        }
+        if let k2 = defaultComboKey2 {
+            defaults.set(Int(k2), forKey: Keys.defaultComboKey2)
+        } else {
+            defaults.removeObject(forKey: Keys.defaultComboKey2)
+        }
+        defaults.set(hidMappingsData, forKey: Keys.hidMappingsData)
     }
     
     // MARK: - Reset

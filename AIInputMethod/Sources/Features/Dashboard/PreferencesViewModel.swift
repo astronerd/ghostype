@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import ServiceManagement
+import Combine
 
 // MARK: - PreferencesViewModel
 
@@ -139,6 +140,144 @@ class PreferencesViewModel {
         }
     }
     
+    // MARK: - 快捷键模式
+    
+    /// 快捷键模式（单键 / 组合键）
+    var hotkeyMode: HotkeyMode {
+        didSet {
+            AppSettings.shared.hotkeyMode = hotkeyMode
+        }
+    }
+    
+    /// 默认组合键 key1
+    var defaultComboKey1: UInt16? {
+        get { AppSettings.shared.defaultComboKey1 }
+        set { AppSettings.shared.defaultComboKey1 = newValue }
+    }
+    
+    /// 默认组合键 key2
+    var defaultComboKey2: UInt16? {
+        get { AppSettings.shared.defaultComboKey2 }
+        set { AppSettings.shared.defaultComboKey2 = newValue }
+    }
+    
+    /// 完整组合键（只有两个都设置了才有值）
+    var defaultComboHotkey: ComboHotkey? {
+        AppSettings.shared.defaultComboHotkey
+    }
+    
+    /// 默认组合键录制状态
+    var isRecordingDefaultCombo = false
+    var defaultComboStep: Int = 0  // 0=idle, 1=recording key1, 2=recording key2
+    
+    func startDefaultComboRecording(forKey step: Int) {
+        // 开始录制时清空现有设置
+        defaultComboKey1 = nil
+        defaultComboKey2 = nil
+        isRecordingDefaultCombo = true
+        defaultComboStep = step
+    }
+    
+    func recordDefaultComboKey(keyCode: UInt16, displayName: String) {
+        if defaultComboStep == 1 {
+            defaultComboKey1 = keyCode
+        } else if defaultComboStep == 2 {
+            defaultComboKey2 = keyCode
+        }
+        cancelDefaultComboRecording()
+    }
+    
+    func cancelDefaultComboRecording() {
+        isRecordingDefaultCombo = false
+        defaultComboStep = 0
+    }
+    
+    func clearDefaultComboHotkey() {
+        defaultComboKey1 = nil
+        defaultComboKey2 = nil
+    }
+    
+    // MARK: - HID 设备映射
+    
+    /// HID 映射管理器（共用 AppDelegate 的实例，确保 hotkeyManager 引用存在）
+    var hidMappingManager: HIDMappingManager!
+    
+    /// HID 映射列表（从 manager 同步）
+    var hidMappings: [HIDMapping] = []
+    
+    /// 已连接的 HID 设备列表（镜像 hidMappingManager.connectedDevices）
+    /// @Observable 不会自动追踪嵌套 ObservableObject 的 @Published，所以需要手动同步
+    var hidConnectedDevices: [HIDDeviceInfo] = []
+    
+    /// Combine 订阅
+    private var hidCancellables = Set<AnyCancellable>()
+    
+    /// 是否显示设备选择面板
+    var showHIDDevicePicker: Bool = false
+    
+    /// 当前选中的设备（准备录制按键）
+    var selectedHIDDevice: HIDDeviceInfo? = nil
+    
+    /// 是否正在录制 HID 按键
+    var isHIDRecording: Bool = false
+    
+    /// 打开设备选择面板
+    func openHIDDevicePicker() {
+        // 先启动 IOHIDManager（用于活动监听 + 设备枚举）
+        // startActivityMonitoring 内部会自动枚举设备并更新 connectedDevices
+        hidMappingManager.startActivityMonitoring()
+        showHIDDevicePicker = true
+        selectedHIDDevice = nil
+        isHIDRecording = false
+    }
+    
+    /// 关闭设备选择面板
+    func closeHIDDevicePicker() {
+        hidMappingManager.stopActivityMonitoring()
+        hidMappingManager.stopRecording()
+        showHIDDevicePicker = false
+        selectedHIDDevice = nil
+        isHIDRecording = false
+    }
+    
+    /// 选中某个设备，开始录制按键
+    func selectHIDDevice(_ device: HIDDeviceInfo) {
+        if selectedHIDDevice?.id == device.id {
+            // 再次点击取消选中
+            selectedHIDDevice = nil
+            isHIDRecording = false
+            hidMappingManager.stopRecording()
+            return
+        }
+        selectedHIDDevice = device
+        isHIDRecording = true
+        hidMappingManager.startRecording(forDeviceID: device.id) { [weak self] usagePage, usage, keyName in
+            guard let self = self else { return }
+            let mapping = HIDMapping(
+                deviceName: device.name,
+                vendorID: device.vendorID,
+                productID: device.productID,
+                sourceUsagePage: usagePage,
+                sourceUsage: usage,
+                sourceKeyName: keyName,
+                targetKeyCode: AppSettings.shared.hotkeyKeyCode
+            )
+            self.hidMappingManager.applyMapping(mapping)
+            self.hidMappingManager.save()
+            self.hidMappings = self.hidMappingManager.mappings
+            self.isHIDRecording = false
+            self.selectedHIDDevice = nil
+            self.closeHIDDevicePicker()
+        }
+    }
+    
+    /// 删除 HID 映射
+    func removeHIDMapping(_ mapping: HIDMapping) {
+        hidMappingManager.removeMapping(mapping)
+        hidMappingManager.save()
+        hidMappings = hidMappingManager.mappings
+    }
+    
     /// 请求 AppleScript 自动化权限（用户点击授权按钮时调用）
     func requestAppleScriptPermission() {
         // 执行一个 osascript 命令来触发系统权限弹窗
@@ -170,6 +309,23 @@ class PreferencesViewModel {
         self.enableContactsHotwords = AppSettings.shared.enableContactsHotwords
         self.enableAutoEnter = AppSettings.shared.enableAutoEnter
         self.appLanguage = AppSettings.shared.appLanguage
+        self.hotkeyMode = AppSettings.shared.hotkeyMode
+        
+        // 加载 HID 映射（共用 AppDelegate 的 hidMappingManager）
+        if let appDelegate = NSApp.delegate as? AppDelegate {
+            self.hidMappingManager = appDelegate.hidMappingManager
+        } else {
+            self.hidMappingManager = HIDMappingManager()
+        }
+        self.hidMappings = hidMappingManager.mappings
+        
+        // 订阅 HID 设备列表变化（ObservableObject → @Observable 桥接）
+        hidMappingManager.$connectedDevices
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] devices in
+                self?.hidConnectedDevices = devices
+            }
+            .store(in: &hidCancellables)
         
         loadContactsStatus()
         loadAutoEnterApps()
@@ -226,6 +382,7 @@ class PreferencesViewModel {
         polishThreshold = 20
         enableContactsHotwords = false
         enableAutoEnter = false
+        hotkeyMode = .singleKey
         
         AppSettings.shared.hotkeyModifiers = hotkeyModifiers
         AppSettings.shared.hotkeyKeyCode = hotkeyKeyCode
@@ -235,6 +392,7 @@ class PreferencesViewModel {
         AppSettings.shared.memoModifier = memoModifier
         AppSettings.shared.translateLanguage = translateLanguage
         AppSettings.shared.autoEnterApps = [:]
+        AppSettings.shared.hotkeyMode = hotkeyMode
         
         loadAutoEnterApps()
     }

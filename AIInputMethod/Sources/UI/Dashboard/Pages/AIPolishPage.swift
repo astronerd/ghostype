@@ -56,7 +56,50 @@ struct AIPolishPage: View {
                     set: { viewModel.enableAIPolish = $0 }
                 )
             )
+            
+            // 标点符号选项（仅中文显示）
+            if LocalizationManager.shared.currentLanguage == .chinese {
+                MinimalDivider()
+                    .padding(.leading, 44)
+                
+                punctuationRow
+            }
         }
+    }
+    
+    // MARK: - Punctuation Row
+    
+    private var punctuationRow: some View {
+        HStack(spacing: DS.Spacing.md) {
+            Image(systemName: "pencil.and.outline")
+                .font(.system(size: 14))
+                .foregroundColor(DS.Colors.icon)
+                .frame(width: 28, height: 28)
+                .background(DS.Colors.highlight)
+                .cornerRadius(DS.Layout.cornerRadius)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(L.AIPolish.punctuation)
+                    .font(DS.Typography.body)
+                    .foregroundColor(DS.Colors.text1)
+                Text(L.AIPolish.punctuationDesc)
+                    .font(DS.Typography.caption)
+                    .foregroundColor(DS.Colors.text2)
+            }
+            Spacer()
+            Picker("", selection: Binding(
+                get: { viewModel.punctuationMode },
+                set: { viewModel.punctuationMode = $0 }
+            )) {
+                Text(L.AIPolish.punctuationFull).tag("full")
+                Text(L.AIPolish.punctuationNoEnd).tag("no_end")
+                Text(L.AIPolish.punctuationSpaces).tag("spaces")
+            }
+            .pickerStyle(.menu)
+            .frame(width: 120)
+        }
+        .padding(.horizontal, DS.Spacing.lg)
+        .padding(.vertical, DS.Spacing.md)
+        .opacity(viewModel.enableAIPolish ? 1.0 : 0.5)
     }
     
     // MARK: - Profile Cards Section (Task 9.1)

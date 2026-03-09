@@ -146,6 +146,7 @@ enum MessageBuilder {
         }
 
         // 当前等级新增 ASR 语料（截断保护：取最新的，总字符数不超限）
+        // 按 app 分组输出，便于 LLM 分析场景覆盖率
         parts.append("")
         parts.append("## 当前等级新增 ASR 语料")
         if corpus.isEmpty {
@@ -155,15 +156,17 @@ enum MessageBuilder {
             var includedCount = 0
             // 倒序取最新的语料
             for entry in corpus.reversed() {
-                let line = "- \(entry.text)"
+                let appLabel = entry.appName ?? "未知应用"
+                let line = "- 【\(appLabel)】\(entry.text)"
                 if charCount + line.count > maxCorpusChars { break }
                 charCount += line.count
                 includedCount += 1
             }
-            // 正序输出（取最新的 includedCount 条）
+            // 正序输出（取最新的 includedCount 条，带 app 标签）
             let startIdx = max(0, corpus.count - includedCount)
             for i in startIdx..<corpus.count {
-                parts.append("- \(corpus[i].text)")
+                let appLabel = corpus[i].appName ?? "未知应用"
+                parts.append("- 【\(appLabel)】\(corpus[i].text)")
             }
             if includedCount < corpus.count {
                 parts.append("（共 \(corpus.count) 条语料，已截取最新 \(includedCount) 条）")

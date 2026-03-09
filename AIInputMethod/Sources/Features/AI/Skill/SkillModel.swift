@@ -27,6 +27,7 @@ struct SkillModel: Identifiable, Equatable {
     var icon: String                        // emoji，默认 "✨"
     var colorHex: String                    // 颜色，默认 "#5AC8FA"
     var modifierKey: ModifierKeyBinding?    // 快捷键绑定
+    var comboHotkey: ComboHotkey?           // 组合快捷键绑定（组合键模式）
     var isBuiltin: Bool                     // 是否内置
     var isInternal: Bool                    // 是否内部 skill（不对用户展示）
 

@@ -199,6 +199,11 @@ private struct EnglishAIPolish: AIPolishStrings {
     var triggerWord: String { "Trigger Word" }
     var triggerWordDesc: String { "Say trigger word at end followed by command" }
     var triggerExamplesTitle: String { "Examples (using trigger word \"%@\")" }
+    var punctuation: String { "Punctuation" }
+    var punctuationDesc: String { "Control punctuation style in polished output" }
+    var punctuationFull: String { "Full Punctuation" }
+    var punctuationNoEnd: String { "No End Punctuation" }
+    var punctuationSpaces: String { "Spaces Only" }
 }
 
 // MARK: - Preferences
@@ -259,6 +264,25 @@ private struct EnglishPrefs: PrefsStrings {
     var checkUpdate: String { "Check for Updates" }
     var currentVersion: String { "Current Version" }
     var reset: String { "Reset to Defaults" }
+    // HID Devices
+    var hidDevices: String { "External Device Shortcuts" }
+    var hidDevicesTitle: String { "External Device Shortcuts" }
+    var hidDevicesDesc: String { "Map external keyboard keys as GHOSTYPE trigger" }
+    var hidAddDevice: String { "Add Device" }
+    var hidRecording: String { "Recording..." }
+    var hidDisconnected: String { "Disconnected" }
+    var hidPickerTitle: String { "Select External Device" }
+    var hidPickerHint: String { "Press any key to identify a device. Click a device, then press the key to map." }
+    var hidNoDevices: String { "No external keyboards detected" }
+    var hidPressKey: String { "Press a key..." }
+    var hidBluetoothNotSupported: String { "Bluetooth input devices are not supported" }
+    // Combo Hotkey Mode
+    var hotkeyModeSingle: String { "Single Key" }
+    var hotkeyModeCombo: String { "Combo Key" }
+    var comboKeyHint: String { "Configure combo hotkeys per skill on the Skills page" }
+    var comboKeyDesc: String { "In combo mode, hold two keys to trigger voice input for the bound skill, release to finish" }
+    var defaultComboKey: String { "Default Recording Combo" }
+    var defaultComboKeyDesc: String { "Hold two keys to start recording (default polish), release to finish" }
 }
 
 // MARK: - Common
@@ -456,6 +480,15 @@ private struct EnglishSkill: SkillStrings {
     var langGerman: String { "German" }
     var langSpanish: String { "Spanish" }
     var langRussian: String { "Russian" }
+    // Combo Hotkey
+    var comboKey: String { "Combo Hotkey" }
+    var comboKeyRecord: String { "Recording..." }
+    var comboKeyKey1: String { "Key 1" }
+    var comboKeyKey2: String { "Key 2" }
+    var comboKeyConflict: String { "Combo Key Conflict" }
+    var comboKeyClear: String { "Clear Combo Key" }
+    var comboKeyEmpty: String { "Not Set" }
+    var comboKeyPlus: String { "+" }
 }
 
 // MARK: - Menu Bar

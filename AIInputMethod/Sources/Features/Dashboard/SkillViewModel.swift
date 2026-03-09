@@ -98,6 +98,7 @@ class SkillViewModel {
                     icon: newIcon,
                     colorHex: newColorHex,
                     modifierKey: nil,
+                    comboHotkey: nil,
                     isBuiltin: false,
                     isInternal: false
                 )
@@ -241,6 +242,70 @@ class SkillViewModel {
     func cancelKeyBinding() {
         isBindingKey = false
         bindingSkillId = nil
+    }
+
+    // MARK: - Combo Key Binding State
+
+    var isBindingComboKey = false
+    var comboBindingSkillId: String?
+    var comboBindingStep: Int = 0  // 0=idle, 1=recording key1, 2=recording key2
+    var pendingKey1: UInt16?
+    var pendingKey1Display: String?
+
+    // MARK: - Combo Key Binding Actions
+
+    func startComboKeyBinding(skillId: String) {
+        comboBindingSkillId = skillId
+        comboBindingStep = 1
+        pendingKey1 = nil
+        pendingKey1Display = nil
+        isBindingComboKey = true
+    }
+
+    func recordComboKey(keyCode: UInt16, displayName: String) {
+        if comboBindingStep == 1 {
+            pendingKey1 = keyCode
+            pendingKey1Display = displayName
+            comboBindingStep = 2
+        } else if comboBindingStep == 2 {
+            guard let key1 = pendingKey1, let skillId = comboBindingSkillId else {
+                cancelComboKeyBinding()
+                return
+            }
+            let combo = ComboHotkey(key1: key1, key2: keyCode)
+
+            // Check conflict
+            if let conflict = SkillManager.shared.hasComboKeyConflict(combo, excludingSkillId: skillId) {
+                errorMessage = "\(L.Skill.comboKeyConflict): \(conflict.localizedName)"
+                cancelComboKeyBinding()
+                return
+            }
+
+            do {
+                try SkillManager.shared.rebindComboKey(skillId: skillId, newCombo: combo)
+                errorMessage = nil
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+            cancelComboKeyBinding()
+        }
+    }
+
+    func cancelComboKeyBinding() {
+        isBindingComboKey = false
+        comboBindingSkillId = nil
+        comboBindingStep = 0
+        pendingKey1 = nil
+        pendingKey1Display = nil
+    }
+
+    func unbindComboKey(skillId: String) {
+        do {
+            try SkillManager.shared.rebindComboKey(skillId: skillId, newCombo: nil)
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     // MARK: - Color
