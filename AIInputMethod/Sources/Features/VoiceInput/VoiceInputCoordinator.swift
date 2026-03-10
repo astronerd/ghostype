@@ -224,13 +224,19 @@ class VoiceInputCoordinator: ToolOutputHandler {
         pendingSkill = nil
 
         // 在显示 Overlay 之前保存上下文（此时用户还聚焦在目标输入框）
-        let detection = skillExecutor.contextDetector.detectWithDebugInfo()
-        savedContext = detection.behavior
-        FileLogger.log("[Hotkey] Saved context: \(detection.behavior), debugInfo:\n\(detection.debugInfo)")
-
+        // AX 检测移到后台线程，避免阻塞热键响应路径 50-200ms
         overlayManager.showNearCursor()
-        speechService.startRecording()
         OverlayStateManager.shared.setRecording(skill: skill)
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            let detection = self.skillExecutor.contextDetector.detectWithDebugInfo()
+            DispatchQueue.main.async {
+                self.savedContext = detection.behavior
+                FileLogger.log("[Hotkey] Saved context: \(detection.behavior), debugInfo:\n\(detection.debugInfo)")
+                self.speechService.startRecording()
+            }
+        }
     }
 
     /// Push_To_Talk 模式松开快捷键
@@ -342,7 +348,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
         insertTextAtCursor(text)
         // 始终保存 ASR 原始文本，优先用传入的 originalText，否则用 currentRawText
         let rawASR = originalText ?? currentRawText
-        textInserter.saveUsageRecord(
+        saveUsageRecord(
             content: text,
             category: categoryForSkill(skill),
             originalContent: rawASR.isEmpty ? nil : rawASR,
@@ -354,6 +360,38 @@ class VoiceInputCoordinator: ToolOutputHandler {
         OverlayStateManager.shared.setCommitting(type: .textInput)
         DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.Overlay.commitDismissDelay) {
             self.overlayManager.hide()
+        }
+    }
+
+    func saveUsageRecord(content: String, category: RecordCategory, originalContent: String? = nil, skillId: String? = nil, skillName: String? = nil) {
+        let context = PersistenceController.shared.container.viewContext
+        let record = UsageRecord(context: context)
+        record.id = UUID()
+        record.content = content
+        record.originalContent = originalContent
+        record.category = category.rawValue
+        record.skillId = skillId
+        record.skillName = skillName
+        record.timestamp = Date()
+        record.deviceId = DeviceIdManager.shared.deviceId
+
+        if let frontApp = NSWorkspace.shared.frontmostApplication {
+            record.sourceApp = frontApp.localizedName ?? "Unknown"
+            record.sourceAppBundleId = frontApp.bundleIdentifier ?? ""
+        } else {
+            record.sourceApp = "Unknown"
+            record.sourceAppBundleId = ""
+        }
+        record.duration = 0
+
+        do {
+            try context.save()
+            FileLogger.log("[Record] Saved: \(category.rawValue) skill=\(skillName ?? "nil") - \(content.prefix(30))...")
+            if category == .memo {
+                MemoSyncManager.shared.syncMemo(content: content, timestamp: record.timestamp ?? Date())
+            }
+        } catch {
+            FileLogger.log("[Record] Save error: \(error)")
         }
     }
 
@@ -375,7 +413,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
         if text.count < polishThreshold {
             print("[Polish] Text too short (\(text.count) < \(polishThreshold)), skipping AI")
             insertTextAtCursor(text)
-            textInserter.saveUsageRecord(
+            saveUsageRecord(
                 content: text, category: .polish, originalContent: text,
                 skillId: SkillModel.builtinGhostCommandId, skillName: L.Overlay.defaultSkillName
             )
@@ -406,7 +444,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
                 )
                 print("[Polish] Success: \(polishedText)")
                 self.insertTextAtCursor(polishedText)
-                self.textInserter.saveUsageRecord(
+                self.saveUsageRecord(
                     content: polishedText, category: .polish, originalContent: text,
                     skillId: SkillModel.builtinGhostCommandId, skillName: L.Overlay.defaultSkillName
                 )
@@ -461,7 +499,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
 
     func handleTextOutput(context: ToolContext) {
         insertTextAtCursor(context.text)
-        textInserter.saveUsageRecord(
+        saveUsageRecord(
             content: context.text,
             category: .polish,
             originalContent: context.speechText,
@@ -478,7 +516,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
 
     func handleMemoSave(text: String) {
         // Memo 保存通过 CoreData UsageRecord 记录，不再依赖 MemoStore
-        textInserter.saveUsageRecord(
+        saveUsageRecord(
             content: text, category: .memo, originalContent: nil,
             skillId: SkillModel.builtinMemoId, skillName: L.Skill.builtinMemoName
         )

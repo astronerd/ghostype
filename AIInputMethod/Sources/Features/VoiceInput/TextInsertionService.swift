@@ -121,41 +121,6 @@ class TextInsertionService {
         FileLogger.log("[Insert] Clipboard restored")
     }
 
-    /// 保存使用记录到 CoreData
-    func saveUsageRecord(content: String, category: RecordCategory, originalContent: String? = nil, skillId: String? = nil, skillName: String? = nil) {
-        let context = PersistenceController.shared.container.viewContext
-        let record = UsageRecord(context: context)
-        record.id = UUID()
-        record.content = content
-        record.originalContent = originalContent
-        record.category = category.rawValue
-        record.skillId = skillId
-        record.skillName = skillName
-        record.timestamp = Date()
-        record.deviceId = DeviceIdManager.shared.deviceId
-
-        if let frontApp = NSWorkspace.shared.frontmostApplication {
-            record.sourceApp = frontApp.localizedName ?? "Unknown"
-            record.sourceAppBundleId = frontApp.bundleIdentifier ?? ""
-        } else {
-            record.sourceApp = "Unknown"
-            record.sourceAppBundleId = ""
-        }
-        record.duration = 0
-
-        do {
-            try context.save()
-            FileLogger.log("[Record] Saved: \(category.rawValue) skill=\(skillName ?? "nil") - \(content.prefix(30))...")
-            
-            // Memo 同步：保存成功后触发同步
-            if category == .memo {
-                MemoSyncManager.shared.syncMemo(content: content, timestamp: record.timestamp ?? Date())
-            }
-        } catch {
-            FileLogger.log("[Record] Save error: \(error)")
-        }
-    }
-
     // MARK: - Private
 
     private func sendKey(method: SendMethod) {
