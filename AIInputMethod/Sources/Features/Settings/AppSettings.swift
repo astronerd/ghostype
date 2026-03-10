@@ -26,162 +26,164 @@ enum SendMethod: String, CaseIterable, Identifiable, Codable {
 /// 支持用户自定义快捷键、Prompt、模式配置等
 class AppSettings: ObservableObject {
     static let shared = AppSettings()
+
+    private var saveDebounceTimer: DispatchSourceTimer?
     
     // MARK: - 快捷键设置
     
     /// 主触发键修饰符
     @Published var hotkeyModifiers: NSEvent.ModifierFlags {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     /// 主触发键 keyCode
     @Published var hotkeyKeyCode: UInt16 {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     /// 快捷键显示文本
     @Published var hotkeyDisplay: String {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     // MARK: - 模式修饰键设置
     
     /// 翻译模式修饰键 (默认 Shift)
     @Published var translateModifier: NSEvent.ModifierFlags {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     /// 随心记模式修饰键 (默认 Command)
     @Published var memoModifier: NSEvent.ModifierFlags {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     // MARK: - AI 功能开关
     
     /// 是否启用 AI 润色（关闭则直接粘贴原文）
     @Published var enableAIPolish: Bool {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     /// 自动润色长度阈值（默认 20 字符）
     @Published var polishThreshold: Int {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     // MARK: - AI 润色配置文件
     
     /// 默认润色配置（兼容旧版，读取用）
     @Published var defaultProfile: String {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     /// 当前选中的配置 ID（预设 rawValue 或自定义 UUID 字符串）
     @Published var selectedProfileId: String {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     /// 应用专属配置映射 [BundleID: ProfileID]
     @Published var appProfileMapping: [String: String] {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     /// 自定义润色风格列表（JSON 编码存储到 UserDefaults）
     @Published var customProfiles: [CustomProfile] {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     // MARK: - 智能指令设置
     
     /// 是否启用句内模式识别（默认 true）
     @Published var enableInSentencePatterns: Bool {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     /// 是否启用句尾唤醒指令（默认 true）
     @Published var enableTriggerCommands: Bool {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     /// 唤醒词（默认「Ghost」）
     @Published var triggerWord: String {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     /// 翻译语言选项（中英互译、中日互译）
     @Published var translateLanguage: TranslateLanguage {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     // MARK: - 其他设置
     
     /// 自动模式（聚焦输入框时自动录音）
     @Published var autoStartOnFocus: Bool {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     /// 开机自启动
     @Published var launchAtLogin: Bool {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     /// 录音开始提示音
     @Published var playStartSound: Bool {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     /// 上屏成功触觉反馈
     @Published var hapticFeedback: Bool {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     // MARK: - 通讯录热词设置
     
     /// 是否启用通讯录热词
     @Published var enableContactsHotwords: Bool {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     // MARK: - 标点符号设置
     
     /// 标点符号模式（full/noEnd/spaces）
     @Published var punctuationMode: String {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     // MARK: - 自动回车设置
     
     /// 是否启用自动回车
     @Published var enableAutoEnter: Bool {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     /// 自动回车的应用配置 [BundleID: SendMethod rawValue]
     @Published var autoEnterApps: [String: String] {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     // MARK: - HID 映射设置
     
     /// HID 映射数据（JSON 编码的 [HIDMapping]）
     @Published var hidMappingsData: Data? {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     // MARK: - 快捷键模式设置
     
     /// 快捷键模式（单键 / 组合键）
     @Published var hotkeyMode: HotkeyMode {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     /// 组合键模式下的默认录音组合键 key1
     @Published var defaultComboKey1: UInt16? {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     /// 组合键模式下的默认录音组合键 key2
     @Published var defaultComboKey2: UInt16? {
-        didSet { saveToUserDefaults() }
+        didSet { debouncedSave() }
     }
     
     /// 组合键（只有两个都设置了才返回有效值）
@@ -382,7 +384,19 @@ class AppSettings: ObservableObject {
     }
     
     // MARK: - Persistence
-    
+
+    private func debouncedSave() {
+        saveDebounceTimer?.cancel()
+        let timer = DispatchSource.makeTimerSource(queue: .main)
+        timer.schedule(deadline: .now() + 0.1)
+        timer.setEventHandler { [weak self] in
+            self?.saveToUserDefaults()
+            self?.saveDebounceTimer = nil
+        }
+        timer.resume()
+        saveDebounceTimer = timer
+    }
+
     private func saveToUserDefaults() {
         let defaults = UserDefaults.standard
         
