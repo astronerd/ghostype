@@ -466,11 +466,30 @@ class PreferencesViewModel {
     func addCurrentFrontmostApp() {
         guard let frontApp = NSWorkspace.shared.frontmostApplication,
               let bundleId = frontApp.bundleIdentifier else { return }
-        
+
         // 不添加自己
         if bundleId == Bundle.main.bundleIdentifier { return }
-        
+
         addAutoEnterApp(bundleId: bundleId)
+    }
+
+    // MARK: - ASR Engine Settings
+
+    var asrEngine: ASREngine {
+        get { AppSettings.shared.asrEngine }
+        set { AppSettings.shared.asrEngine = newValue }
+    }
+    var whisperModelId: String {
+        get { AppSettings.shared.whisperModelId }
+        set { AppSettings.shared.whisperModelId = newValue }
+    }
+    var whisperLanguage: String {
+        get { AppSettings.shared.whisperLanguage }
+        set { AppSettings.shared.whisperLanguage = newValue }
+    }
+    var whisperTemperature: Double {
+        get { AppSettings.shared.whisperTemperature }
+        set { AppSettings.shared.whisperTemperature = newValue }
     }
 }
 
