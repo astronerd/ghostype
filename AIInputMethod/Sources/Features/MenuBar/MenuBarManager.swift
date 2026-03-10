@@ -8,6 +8,7 @@ import AppKit
 class MenuBarManager {
 
     private(set) var statusItem: NSStatusItem!
+    weak var permissionManager: PermissionManager?
 
     // MARK: - Callbacks
 
@@ -20,6 +21,7 @@ class MenuBarManager {
     // MARK: - Setup
 
     func setup(permissionManager: PermissionManager) {
+        self.permissionManager = permissionManager
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem.button {
             if let iconPath = Bundle.main.path(forResource: "MenuBarIcon", ofType: "pdf"),
@@ -133,7 +135,7 @@ class MenuBarManager {
     }
 
     @objc private func requestMic() {
-        PermissionManager().requestMicrophoneAccess()
+        permissionManager?.requestMicrophoneAccess()
     }
 
     @objc private func showOverlayTestWindow() {

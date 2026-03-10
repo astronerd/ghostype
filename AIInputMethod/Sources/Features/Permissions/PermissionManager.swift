@@ -77,15 +77,17 @@ class PermissionManager {
         return isAccessibilityTrusted && isMicrophoneGranted
     }
     
-    /// 开始自动轮询权限状态（每 2 秒检查一次，全部授权后自动停止）
+    /// 开始自动轮询权限状态（每 2 秒检查一次，最多 150 次 / 5 分钟，全部授权后自动停止）
     func startPolling(onAllGranted: (() -> Void)? = nil) {
         stopPolling()
+        var attempts = 0
         pollTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
             guard let self = self else { return }
+            attempts += 1
             let allGranted = self.refreshAll()
-            if allGranted {
+            if allGranted || attempts >= 150 {
                 self.stopPolling()
-                onAllGranted?()
+                if allGranted { onAllGranted?() }
             }
         }
     }

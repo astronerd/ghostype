@@ -233,10 +233,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         hidMappingManager.hotkeyManager = hotkeyManager
         hidMappingManager.restoreAndMonitor()
         
-        // 监听主快捷键变更，同步所有 HID 映射的 targetKeyCode
-        AppSettings.shared.$hotkeyKeyCode
+        // 监听主快捷键变更（keyCode 或 modifiers），同步所有 HID 映射的 targetKeyCode
+        Publishers.CombineLatest(AppSettings.shared.$hotkeyKeyCode, AppSettings.shared.$hotkeyModifiers)
             .dropFirst()
-            .sink { [weak self] newKeyCode in
+            .sink { [weak self] newKeyCode, _ in
                 self?.hidMappingManager.syncTargetKeyCode(UInt32(newKeyCode))
             }
             .store(in: &cancellables)

@@ -19,6 +19,17 @@ class SkillExecutor {
     /// Context provider 注册表：key → 数据提供闭包
     private var contextProviders: [String: () -> String] = [:]
 
+    /// Context 结果缓存（带 per-key TTL，避免每次执行都重查 CoreData）
+    private var contextCache: [String: (value: String, expiry: Date)] = [:]
+    /// Per-key TTL（秒）；未声明的 key 使用默认 30 秒
+    private let contextCacheTTLByKey: [String: TimeInterval] = [
+        "calibration_records": 5,
+        "asr_corpus": 10,
+        "ghost_profile": 60,
+        "current_app": 2,
+    ]
+    private let contextCacheTTLDefault: TimeInterval = 30
+
     init(
         apiClient: GhostypeAPIClient = .shared,
         contextDetector: ContextDetector = ContextDetector(),
@@ -98,6 +109,18 @@ class SkillExecutor {
         }
     }
 
+    // MARK: - Context Cache
+
+    private func getCachedContext(key: String, provider: () -> String) -> String {
+        if let cached = contextCache[key], cached.expiry > Date() {
+            return cached.value
+        }
+        let value = provider()
+        let ttl = contextCacheTTLByKey[key] ?? contextCacheTTLDefault
+        contextCache[key] = (value: value, expiry: Date().addingTimeInterval(ttl))
+        return value
+    }
+
     // MARK: - Public API
 
     /// 统一执行入口
@@ -117,11 +140,11 @@ class SkillExecutor {
         FileLogger.log("[SkillExecutor] execute skill=\(skill.name), behavior=\(behavior)")
         FileLogger.log("[SkillExecutor] debugInfo:\n\(debugInfo)")
 
-        // 1. 构建运行时 context（声明式：根据 skill.contextRequires 从 provider 取值）
+        // 1. 构建运行时 context（声明式：根据 skill.contextRequires 从 provider 取值，带 TTL 缓存）
         var runtimeContext: [String: String] = [:]
         for key in skill.contextRequires {
             if let provider = contextProviders[key] {
-                runtimeContext[key] = provider()
+                runtimeContext[key] = getCachedContext(key: key, provider: provider)
             } else {
                 FileLogger.log("[SkillExecutor] ⚠️ Unknown context key: \(key)")
             }
