@@ -68,6 +68,18 @@ final class AppBootstrapper {
         delegate.focusObserver.startObserving()
         print("[App] FocusObserver started")
 
+        // 根据设置选择 ASR 引擎（默认豆包，热切换到 Whisper）
+        if AppSettings.shared.asrEngine == .whisper {
+            let svc = WhisperSpeechService(
+                modelId: AppSettings.shared.whisperModelId,
+                language: AppSettings.shared.whisperLanguage,
+                temperature: Float(AppSettings.shared.whisperTemperature)
+            )
+            Task { try? await svc.preload() }
+            delegate.voiceCoordinator.updateSpeechService(svc)
+            FileLogger.log("[App] Using Whisper ASR engine: \(AppSettings.shared.whisperModelId)")
+        }
+
         // 语音输入协调器（hotkey、speech、auth、tool registry）
         delegate.voiceCoordinator.setup()
 
@@ -93,6 +105,29 @@ final class AppBootstrapper {
             .receive(on: DispatchQueue.main)
             .sink { [weak delegate] _ in
                 delegate?.hidMappingManager.applyMappingsForCurrentMode()
+            }
+            .store(in: &cancellables)
+
+        // 监听 ASR 引擎变更，热切换（仅在 .idle 时生效）
+        AppSettings.shared.$asrEngine
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak delegate] newEngine in
+                guard let delegate else { return }
+                switch newEngine {
+                case .doubao:
+                    delegate.voiceCoordinator.updateSpeechService(delegate.speechService)
+                    FileLogger.log("[App] Switched to Doubao ASR engine")
+                case .whisper:
+                    let svc = WhisperSpeechService(
+                        modelId: AppSettings.shared.whisperModelId,
+                        language: AppSettings.shared.whisperLanguage,
+                        temperature: Float(AppSettings.shared.whisperTemperature)
+                    )
+                    Task { try? await svc.preload() }
+                    delegate.voiceCoordinator.updateSpeechService(svc)
+                    FileLogger.log("[App] Switched to Whisper ASR engine: \(AppSettings.shared.whisperModelId)")
+                }
             }
             .store(in: &cancellables)
 

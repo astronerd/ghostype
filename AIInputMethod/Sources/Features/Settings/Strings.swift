@@ -573,6 +573,29 @@ enum L {
         static var openNotionPortal: String { current.memoSync.openNotionPortal }
     }
 
+    // MARK: - Whisper ASR
+
+    enum Whisper {
+        static var whisperSectionTitle: String { current.whisper.whisperSectionTitle }
+        static var whisperEngineLabel: String { current.whisper.whisperEngineLabel }
+        static var whisperEngineDoubao: String { current.whisper.whisperEngineDoubao }
+        static var whisperEngineLocal: String { current.whisper.whisperEngineLocal }
+        static var whisperModelLabel: String { current.whisper.whisperModelLabel }
+        static var whisperLanguageLabel: String { current.whisper.whisperLanguageLabel }
+        static var whisperLanguageAuto: String { current.whisper.whisperLanguageAuto }
+        static var whisperLanguageZh: String { current.whisper.whisperLanguageZh }
+        static var whisperLanguageEn: String { current.whisper.whisperLanguageEn }
+        static var whisperLanguageJa: String { current.whisper.whisperLanguageJa }
+        static var whisperTemperatureLabel: String { current.whisper.whisperTemperatureLabel }
+        static var whisperDownload: String { current.whisper.whisperDownload }
+        static var whisperCancelDownload: String { current.whisper.whisperCancelDownload }
+        static var whisperDelete: String { current.whisper.whisperDelete }
+        static var whisperDownloaded: String { current.whisper.whisperDownloaded }
+        static var whisperDownloadError: String { current.whisper.whisperDownloadError }
+        static var whisperNoModelWarning: String { current.whisper.whisperNoModelWarning }
+        static var whisperAppleSiliconTip: String { current.whisper.whisperAppleSiliconTip }
+    }
+
     // MARK: - Private Implementation
     
     private static var current: StringsTable {
@@ -609,6 +632,7 @@ protocol StringsTable {
     var aiPolishExamples: AIPolishExamplesStrings { get }
     var skillContext: SkillContextStrings { get }
     var memoSync: MemoSyncStrings { get }
+    var whisper: WhisperStrings { get }
 }
 
 protocol OnboardingStrings {
@@ -1141,4 +1165,25 @@ protocol MemoSyncStrings {
     var notionStep4: String { get }
     var notionStep5: String { get }
     var openNotionPortal: String { get }
+}
+
+protocol WhisperStrings {
+    var whisperSectionTitle: String { get }
+    var whisperEngineLabel: String { get }
+    var whisperEngineDoubao: String { get }
+    var whisperEngineLocal: String { get }
+    var whisperModelLabel: String { get }
+    var whisperLanguageLabel: String { get }
+    var whisperLanguageAuto: String { get }
+    var whisperLanguageZh: String { get }
+    var whisperLanguageEn: String { get }
+    var whisperLanguageJa: String { get }
+    var whisperTemperatureLabel: String { get }
+    var whisperDownload: String { get }
+    var whisperCancelDownload: String { get }
+    var whisperDelete: String { get }
+    var whisperDownloaded: String { get }
+    var whisperDownloadError: String { get }
+    var whisperNoModelWarning: String { get }
+    var whisperAppleSiliconTip: String { get }
 }

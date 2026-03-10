@@ -55,6 +55,7 @@ struct PreferencesPage: View {
                 languageSettingsSection
                 permissionsSection
                 hotkeySettingsSection
+                asrSettingsSection
                 hidMappingSection
                 contactsHotwordsSection
                 autoEnterSection
@@ -237,8 +238,275 @@ struct PreferencesPage: View {
         .padding(.vertical, DS.Spacing.md)
     }
 
+    // MARK: - ASR Settings Section
+
+    @State private var modelManager = WhisperModelManager.shared
+
+    private var asrSettingsSection: some View {
+        MinimalSettingsSection(title: L.Whisper.whisperSectionTitle, icon: "waveform.badge.mic") {
+            VStack(spacing: 0) {
+                // Engine picker row
+                HStack(spacing: DS.Spacing.md) {
+                    Image(systemName: "waveform.badge.mic")
+                        .font(.system(size: 14))
+                        .foregroundColor(DS.Colors.icon)
+                        .frame(width: 28, height: 28)
+                        .background(DS.Colors.highlight)
+                        .cornerRadius(DS.Layout.cornerRadius)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(L.Whisper.whisperEngineLabel)
+                            .font(DS.Typography.body)
+                            .foregroundColor(DS.Colors.text1)
+                    }
+
+                    Spacer()
+
+                    Picker("", selection: Binding(
+                        get: { viewModel.asrEngine },
+                        set: { viewModel.asrEngine = $0 }
+                    )) {
+                        ForEach(ASREngine.allCases, id: \.self) { engine in
+                            Text(engine.displayName).tag(engine)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .frame(width: 160)
+                }
+                .padding(DS.Spacing.lg)
+
+                // Whisper-specific settings (expanded when whisper is selected)
+                if viewModel.asrEngine == .whisper {
+                    Divider()
+                        .padding(.horizontal, DS.Spacing.lg)
+
+                    // No model warning
+                    let hasDownloaded = WhisperModelManager.supportedModels.contains { modelManager.isDownloaded($0.id) }
+                    if !hasDownloaded {
+                        HStack(spacing: DS.Spacing.sm) {
+                            Image(systemName: "exclamationmark.triangle")
+                                .foregroundColor(.orange)
+                                .font(.system(size: 13))
+                            Text(L.Whisper.whisperNoModelWarning)
+                                .font(DS.Typography.caption)
+                                .foregroundColor(.orange)
+                        }
+                        .padding(DS.Spacing.lg)
+                    }
+
+                    // Model list header
+                    HStack {
+                        Text(L.Whisper.whisperModelLabel)
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text2)
+                        Spacer()
+                    }
+                    .padding(.horizontal, DS.Spacing.lg)
+                    .padding(.top, DS.Spacing.sm)
+
+                    // Model rows
+                    ForEach(WhisperModelManager.supportedModels) { model in
+                        whisperModelRow(model: model)
+                        if model.id != WhisperModelManager.supportedModels.last?.id {
+                            Divider().padding(.leading, 44)
+                        }
+                    }
+
+                    Divider()
+                        .padding(.horizontal, DS.Spacing.lg)
+
+                    // Language picker
+                    HStack(spacing: DS.Spacing.md) {
+                        Image(systemName: "character.bubble")
+                            .font(.system(size: 14))
+                            .foregroundColor(DS.Colors.icon)
+                            .frame(width: 28, height: 28)
+                            .background(DS.Colors.highlight)
+                            .cornerRadius(DS.Layout.cornerRadius)
+
+                        Text(L.Whisper.whisperLanguageLabel)
+                            .font(DS.Typography.body)
+                            .foregroundColor(DS.Colors.text1)
+
+                        Spacer()
+
+                        Picker("", selection: Binding(
+                            get: { viewModel.whisperLanguage },
+                            set: { viewModel.whisperLanguage = $0 }
+                        )) {
+                            Text(L.Whisper.whisperLanguageAuto).tag("auto")
+                            Text(L.Whisper.whisperLanguageZh).tag("zh")
+                            Text(L.Whisper.whisperLanguageEn).tag("en")
+                            Text(L.Whisper.whisperLanguageJa).tag("ja")
+                        }
+                        .pickerStyle(.menu)
+                        .frame(width: 130)
+                    }
+                    .padding(DS.Spacing.lg)
+
+                    Divider()
+                        .padding(.horizontal, DS.Spacing.lg)
+
+                    // Temperature slider
+                    HStack(spacing: DS.Spacing.md) {
+                        Image(systemName: "dial.medium")
+                            .font(.system(size: 14))
+                            .foregroundColor(DS.Colors.icon)
+                            .frame(width: 28, height: 28)
+                            .background(DS.Colors.highlight)
+                            .cornerRadius(DS.Layout.cornerRadius)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(L.Whisper.whisperTemperatureLabel)
+                                .font(DS.Typography.body)
+                                .foregroundColor(DS.Colors.text1)
+                        }
+
+                        Spacer()
+
+                        Slider(
+                            value: Binding(
+                                get: { viewModel.whisperTemperature },
+                                set: { viewModel.whisperTemperature = $0 }
+                            ),
+                            in: 0.0...1.0,
+                            step: 0.1
+                        )
+                        .frame(width: 120)
+
+                        Text(String(format: "%.1f", viewModel.whisperTemperature))
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text2)
+                            .frame(width: 28, alignment: .trailing)
+                    }
+                    .padding(DS.Spacing.lg)
+
+                    // Intel Mac tip
+                    if !isAppleSilicon {
+                        HStack(spacing: DS.Spacing.sm) {
+                            Image(systemName: "info.circle")
+                                .foregroundColor(DS.Colors.text2)
+                                .font(.system(size: 12))
+                            Text(L.Whisper.whisperAppleSiliconTip)
+                                .font(DS.Typography.caption)
+                                .foregroundColor(DS.Colors.text2)
+                        }
+                        .padding(.horizontal, DS.Spacing.lg)
+                        .padding(.bottom, DS.Spacing.md)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func whisperModelRow(model: WhisperModelInfo) -> some View {
+        let status = modelManager.statuses[model.id] ?? .notDownloaded
+        let isSelected = viewModel.whisperModelId == model.id
+
+        HStack(spacing: DS.Spacing.md) {
+            // Selection radio
+            Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
+                .font(.system(size: 16))
+                .foregroundColor(isSelected ? DS.Colors.accent : DS.Colors.text2)
+                .frame(width: 28)
+                .onTapGesture {
+                    if modelManager.isDownloaded(model.id) {
+                        viewModel.whisperModelId = model.id
+                    }
+                }
+
+            // Model info
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: DS.Spacing.sm) {
+                    Text(model.displayName)
+                        .font(DS.Typography.body)
+                        .foregroundColor(DS.Colors.text1)
+                    Text(model.sizeEstimate)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(DS.Colors.text2)
+                }
+                Text(model.qualityNote)
+                    .font(DS.Typography.caption)
+                    .foregroundColor(DS.Colors.text2)
+            }
+
+            Spacer()
+
+            // Status / action
+            switch status {
+            case .notDownloaded:
+                Button(L.Whisper.whisperDownload) {
+                    modelManager.download(modelId: model.id)
+                }
+                .buttonStyle(.bordered)
+                .font(DS.Typography.caption)
+                .controlSize(.small)
+
+            case .downloading(let progress):
+                HStack(spacing: DS.Spacing.sm) {
+                    ProgressView(value: progress)
+                        .frame(width: 80)
+                    Button(L.Whisper.whisperCancelDownload) {
+                        modelManager.cancelDownload(modelId: model.id)
+                    }
+                    .buttonStyle(.bordered)
+                    .font(DS.Typography.caption)
+                    .controlSize(.mini)
+                }
+
+            case .downloaded:
+                HStack(spacing: DS.Spacing.sm) {
+                    Text(L.Whisper.whisperDownloaded)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(.green)
+                    Button(action: {
+                        try? modelManager.delete(modelId: model.id)
+                        if viewModel.whisperModelId == model.id {
+                            // Switch to next downloaded model or empty
+                            viewModel.whisperModelId = WhisperModelManager.supportedModels
+                                .first { modelManager.isDownloaded($0.id) && $0.id != model.id }?.id
+                                ?? "openai_whisper-small"
+                        }
+                    }) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 12))
+                            .foregroundColor(DS.Colors.text2)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+            case .error(let msg):
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(L.Whisper.whisperDownloadError)
+                        .font(DS.Typography.caption)
+                        .foregroundColor(.red)
+                    Button(L.Whisper.whisperDownload) {
+                        modelManager.download(modelId: model.id)
+                    }
+                    .buttonStyle(.bordered)
+                    .font(DS.Typography.caption)
+                    .controlSize(.small)
+                }
+                .help(msg)
+            }
+        }
+        .padding(.horizontal, DS.Spacing.lg)
+        .padding(.vertical, DS.Spacing.md)
+    }
+
+    private var isAppleSilicon: Bool {
+        var sysinfo = utsname()
+        uname(&sysinfo)
+        let machine = withUnsafeBytes(of: &sysinfo.machine) { bytes -> String in
+            let data = bytes.prefix(while: { $0 != 0 })
+            return String(bytes: data, encoding: .utf8) ?? ""
+        }
+        return machine.hasPrefix("arm64")
+    }
+
     // MARK: - Hotkey Settings Section
-    
+
     private var hotkeySettingsSection: some View {
         MinimalSettingsSection(title: L.Prefs.hotkey, icon: "keyboard") {
             VStack(spacing: DS.Spacing.md) {

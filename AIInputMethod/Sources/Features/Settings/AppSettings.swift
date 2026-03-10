@@ -1,6 +1,20 @@
 import SwiftUI
 import AppKit
 
+// MARK: - ASR Engine
+
+enum ASREngine: String, CaseIterable {
+    case doubao = "doubao"
+    case whisper = "whisper"
+
+    var displayName: String {
+        switch self {
+        case .doubao: return L.Whisper.whisperEngineDoubao
+        case .whisper: return L.Whisper.whisperEngineLocal
+        }
+    }
+}
+
 // MARK: - Send Method
 
 /// 自动发送的按键方式
@@ -192,8 +206,23 @@ class AppSettings: ObservableObject {
         return ComboHotkey(key1: k1, key2: k2)
     }
     
+    // MARK: - ASR 引擎设置
+
+    @Published var asrEngine: ASREngine {
+        didSet { debouncedSave() }
+    }
+    @Published var whisperModelId: String {
+        didSet { debouncedSave() }
+    }
+    @Published var whisperLanguage: String {
+        didSet { debouncedSave() }
+    }
+    @Published var whisperTemperature: Double {
+        didSet { debouncedSave() }
+    }
+
     // MARK: - 语言设置
-    
+
     /// 应用语言
     @Published var appLanguage: AppLanguage {
         didSet {
@@ -234,6 +263,10 @@ class AppSettings: ObservableObject {
         static let hotkeyMode = "hotkeyMode"
         static let defaultComboKey1 = "defaultComboKey1"
         static let defaultComboKey2 = "defaultComboKey2"
+        static let asrEngine = "asrEngine"
+        static let whisperModelId = "whisperModelId"
+        static let whisperLanguage = "whisperLanguage"
+        static let whisperTemperature = "whisperTemperature"
     }
     
     // MARK: - Initialization
@@ -381,6 +414,17 @@ class AppSettings: ObservableObject {
         } else {
             appLanguage = AppLanguage.systemDefault
         }
+
+        // 加载 ASR 引擎设置
+        if let raw = defaults.string(forKey: Keys.asrEngine),
+           let engine = ASREngine(rawValue: raw) {
+            asrEngine = engine
+        } else {
+            asrEngine = .doubao
+        }
+        whisperModelId = defaults.string(forKey: Keys.whisperModelId) ?? "openai_whisper-small"
+        whisperLanguage = defaults.string(forKey: Keys.whisperLanguage) ?? "auto"
+        whisperTemperature = defaults.object(forKey: Keys.whisperTemperature) as? Double ?? 0.0
     }
     
     // MARK: - Persistence
@@ -438,6 +482,10 @@ class AppSettings: ObservableObject {
             defaults.removeObject(forKey: Keys.defaultComboKey2)
         }
         defaults.set(hidMappingsData, forKey: Keys.hidMappingsData)
+        defaults.set(asrEngine.rawValue, forKey: Keys.asrEngine)
+        defaults.set(whisperModelId, forKey: Keys.whisperModelId)
+        defaults.set(whisperLanguage, forKey: Keys.whisperLanguage)
+        defaults.set(whisperTemperature, forKey: Keys.whisperTemperature)
     }
     
     // MARK: - Reset

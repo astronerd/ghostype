@@ -20,7 +20,7 @@ struct ASRCredentialsResponse: Codable {
     let access_token: String
 }
 
-class DoubaoSpeechService: ObservableObject {
+class DoubaoSpeechService: ObservableObject, SpeechServiceProtocol {
     @Published var transcript: String = ""
     @Published var isRecording: Bool = false
     
@@ -132,6 +132,10 @@ class DoubaoSpeechService: ObservableObject {
         logToFile("[Doubao] Recording stopped")
     }
     
+    func cancelRecording() {
+        stopRecording()
+    }
+
     // MARK: - WebSocket 连接
     
     private func connectWebSocket() {
