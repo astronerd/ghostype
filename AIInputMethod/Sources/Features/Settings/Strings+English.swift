@@ -26,6 +26,7 @@ struct EnglishStrings: StringsTable {
     var aiPolishExamples: AIPolishExamplesStrings { EnglishAIPolishExamples() }
     var skillContext: SkillContextStrings { EnglishSkillContext() }
     var memoSync: MemoSyncStrings { EnglishMemoSync() }
+    var whisper: WhisperStrings { EnglishWhisper() }
 }
 
 // MARK: - Onboarding
@@ -605,4 +606,27 @@ private struct EnglishMemoSync: MemoSyncStrings {
     var notionStep4: String { "Paste Token below" }
     var notionStep5: String { "Select target database" }
     var openNotionPortal: String { "Open Notion Developer Portal" }
+}
+
+// MARK: - Whisper ASR
+
+private struct EnglishWhisper: WhisperStrings {
+    var whisperSectionTitle: String { "Speech Recognition Engine" }
+    var whisperEngineLabel: String { "Engine" }
+    var whisperEngineDoubao: String { "Doubao Cloud" }
+    var whisperEngineLocal: String { "Local Whisper" }
+    var whisperModelLabel: String { "Model" }
+    var whisperLanguageLabel: String { "Language" }
+    var whisperLanguageAuto: String { "Auto Detect" }
+    var whisperLanguageZh: String { "Chinese" }
+    var whisperLanguageEn: String { "English" }
+    var whisperLanguageJa: String { "Japanese" }
+    var whisperTemperatureLabel: String { "Accuracy" }
+    var whisperDownload: String { "Download" }
+    var whisperCancelDownload: String { "Cancel" }
+    var whisperDelete: String { "Delete" }
+    var whisperDownloaded: String { "Downloaded" }
+    var whisperDownloadError: String { "Download Failed" }
+    var whisperNoModelWarning: String { "Please download a Whisper model first" }
+    var whisperAppleSiliconTip: String { "Whisper inference is slower on Intel Macs. Consider using Doubao Cloud engine." }
 }

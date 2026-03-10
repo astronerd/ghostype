@@ -26,6 +26,7 @@ struct ChineseStrings: StringsTable {
     var aiPolishExamples: AIPolishExamplesStrings { ChineseAIPolishExamples() }
     var skillContext: SkillContextStrings { ChineseSkillContext() }
     var memoSync: MemoSyncStrings { ChineseMemoSync() }
+    var whisper: WhisperStrings { ChineseWhisper() }
 }
 
 // MARK: - Onboarding
@@ -605,4 +606,27 @@ private struct ChineseMemoSync: MemoSyncStrings {
     var notionStep4: String { "粘贴 Token 到下方" }
     var notionStep5: String { "选择目标数据库" }
     var openNotionPortal: String { "打开 Notion 开发者门户" }
+}
+
+// MARK: - Whisper ASR
+
+private struct ChineseWhisper: WhisperStrings {
+    var whisperSectionTitle: String { "语音识别引擎" }
+    var whisperEngineLabel: String { "识别引擎" }
+    var whisperEngineDoubao: String { "豆包云端" }
+    var whisperEngineLocal: String { "本地 Whisper" }
+    var whisperModelLabel: String { "模型" }
+    var whisperLanguageLabel: String { "识别语言" }
+    var whisperLanguageAuto: String { "自动检测" }
+    var whisperLanguageZh: String { "中文" }
+    var whisperLanguageEn: String { "英文" }
+    var whisperLanguageJa: String { "日文" }
+    var whisperTemperatureLabel: String { "精确度" }
+    var whisperDownload: String { "下载" }
+    var whisperCancelDownload: String { "取消" }
+    var whisperDelete: String { "删除" }
+    var whisperDownloaded: String { "已下载" }
+    var whisperDownloadError: String { "下载失败" }
+    var whisperNoModelWarning: String { "请先下载一个 Whisper 模型" }
+    var whisperAppleSiliconTip: String { "Intel Mac 上 Whisper 推理速度较慢，建议使用豆包云端引擎" }
 }
