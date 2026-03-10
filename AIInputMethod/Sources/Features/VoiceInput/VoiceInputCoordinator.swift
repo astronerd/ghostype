@@ -25,7 +25,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
 
     // MARK: - Dependencies
 
-    let speechService: DoubaoSpeechService
+    var speechService: any SpeechServiceProtocol
     let skillExecutor: SkillExecutor
     let toolRegistry: ToolRegistry
     let textInserter: TextInsertionService
@@ -48,7 +48,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
 
     // MARK: - Init
 
-    init(speechService: DoubaoSpeechService,
+    init(speechService: any SpeechServiceProtocol,
          skillExecutor: SkillExecutor,
          toolRegistry: ToolRegistry,
          textInserter: TextInsertionService,
@@ -96,7 +96,9 @@ class VoiceInputCoordinator: ToolOutputHandler {
                 guard let self = self else { return }
                 self.isVoiceInputEnabled = true
                 print("[VIC] ✅ User logged in, voice input enabled")
-                Task { try? await self.speechService.fetchCredentials() }
+                if let doubao = self.speechService as? DoubaoSpeechService {
+                    Task { try? await doubao.fetchCredentials() }
+                }
                 Task { await QuotaManager.shared.refresh() }
             }
             .store(in: &cancellables)
@@ -287,7 +289,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
     func handleEscCancel() {
         FileLogger.log("[VIC] ESC cancel triggered")
 
-        speechService.stopRecording()
+        speechService.cancelRecording()
 
         // 取消等待超时
         if case .waitingForResult(_, let timeout) = recordingState {
@@ -299,6 +301,17 @@ class VoiceInputCoordinator: ToolOutputHandler {
 
         OverlayStateManager.shared.hide()
         overlayManager.hide()
+    }
+
+    // MARK: - Engine Hot-Swap
+
+    func updateSpeechService(_ newService: any SpeechServiceProtocol) {
+        guard case .idle = recordingState else {
+            FileLogger.log("[VIC] ⚠️ Cannot switch engine while recording")
+            return
+        }
+        speechService = newService
+        setupSpeechCallbacks()
     }
 
     // MARK: - AI Processing (Skill-based)
