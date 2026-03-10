@@ -43,8 +43,8 @@ class VoiceInputCoordinator: ToolOutputHandler {
 
     // MARK: - ASR Corpus & Profile
 
-    private let corpusStore = ASRCorpusStore()
-    private let profileStore = GhostTwinProfileStore()
+    private let corpusStore: ASRCorpusStore
+    private let profileStore: GhostTwinProfileStore
 
     // MARK: - Init
 
@@ -53,13 +53,17 @@ class VoiceInputCoordinator: ToolOutputHandler {
          toolRegistry: ToolRegistry,
          textInserter: TextInsertionService,
          overlayManager: OverlayWindowManager,
-         hotkeyManager: HotkeyManager) {
+         hotkeyManager: HotkeyManager,
+         corpusStore: ASRCorpusStore = ASRCorpusStore(),
+         profileStore: GhostTwinProfileStore = GhostTwinProfileStore()) {
         self.speechService = speechService
         self.skillExecutor = skillExecutor
         self.toolRegistry = toolRegistry
         self.textInserter = textInserter
         self.overlayManager = overlayManager
         self.hotkeyManager = hotkeyManager
+        self.corpusStore = corpusStore
+        self.profileStore = profileStore
     }
 
     // MARK: - Setup
