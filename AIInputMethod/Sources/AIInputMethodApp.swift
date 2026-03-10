@@ -71,6 +71,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     // MARK: - HID
     let hidMappingManager = HIDMappingManager()
     private var cancellables = Set<AnyCancellable>()
+    private var bootstrapper: AppBootstrapper?
     
     // Sparkle 自动更新
     var updaterController: SPUStandardUpdaterController!
@@ -186,82 +187,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     
     func startApp() {
         print("[App] ========== STARTING APP ==========")
-        
-        // Skill 系统初始化
-        SkillMigrationService.migrateIfNeeded()
-        SkillManager.shared.ensureBuiltinSkills()
-        SkillManager.shared.loadAllSkills()
-        FileLogger.log("[App] Skill system initialized, \(SkillManager.shared.skills.count) skills loaded")
-        
-        // 菜单栏设置
-        menuBarManager.setup(permissionManager: permissionManager)
-        menuBarManager.onToggleDashboard = { [weak self] in
-            self?.dashboardController.toggle()
-        }
-        menuBarManager.onShowDashboard = { [weak self] in
-            self?.dashboardController.show()
-        }
-        menuBarManager.onCheckForUpdates = { [weak self] in
-            self?.updaterController.checkForUpdates(nil)
-        }
-        
-        // 偏好设置页面的检查更新通知
-        NotificationCenter.default.addObserver(forName: .checkForUpdates, object: nil, queue: .main) { [weak self] _ in
-            self?.updaterController.checkForUpdates(nil)
-        }
-        menuBarManager.onShowOverlayTest = {
-            OverlayTestWindowController.shared.show()
-        }
-        menuBarManager.onShowSizeDebug = {
-            OverlaySizeTestWindowController.shared.show()
-        }
-        statusItem = menuBarManager.statusItem
-        
-        // Overlay 窗口设置
-        overlayManager.setup(speechService: speechService)
-        overlayWindow = overlayManager.overlayWindow
-        overlayManager.hide()
-        print("[App] UI setup done")
-        
-        focusObserver.startObserving()
-        print("[App] FocusObserver started")
-        
-        // 语音输入协调器（hotkey、speech、auth、tool registry 全部由它管理）
-        voiceCoordinator.setup()
-        
-        // HID 映射：启动时加载映射 + 应用 hidutil remap
-        hidMappingManager.hotkeyManager = hotkeyManager
-        hidMappingManager.restoreAndMonitor()
-        
-        // 监听主快捷键变更（keyCode 或 modifiers），同步所有 HID 映射的 targetKeyCode
-        Publishers.CombineLatest(AppSettings.shared.$hotkeyKeyCode, AppSettings.shared.$hotkeyModifiers)
-            .dropFirst()
-            .sink { [weak self] newKeyCode, _ in
-                self?.hidMappingManager.syncTargetKeyCode(UInt32(newKeyCode))
-            }
-            .store(in: &cancellables)
-        
-        // 监听快捷键模式变更，切换 HID 映射策略
-        AppSettings.shared.$hotkeyMode
-            .dropFirst()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.hidMappingManager.applyMappingsForCurrentMode()
-            }
-            .store(in: &cancellables)
-        
-        // 启动 Hotkey
-        print("[App] Starting hotkey manager...")
-        hotkeyManager.start()
-        print("[App] Hotkey manager started")
-        
-        // 预加载通讯录热词缓存
-        if AppSettings.shared.enableContactsHotwords {
-            ContactsManager.shared.refreshCache()
-        }
-        
-        print("[App] ========== APP STARTED ==========")
-        print("[App] AI Polish: \(AppSettings.shared.enableAIPolish ? "ON" : "OFF")")
+        let b = AppBootstrapper()
+        b.bootstrap(delegate: self)
+        bootstrapper = b  // retain to keep Combine subscriptions alive
     }
     
     func applicationWillTerminate(_ notification: Notification) {
