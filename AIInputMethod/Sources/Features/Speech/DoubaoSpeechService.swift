@@ -30,6 +30,7 @@ class DoubaoSpeechService: ObservableObject {
     private var audioEngine: AVAudioEngine?
     private var webSocketTask: URLSessionWebSocketTask?
     private var sequenceNumber: Int32 = 1  // 从1开始
+    private var audioConverter: AVAudioConverter?  // 复用，避免每帧重建
     
     private let logger = Logger(subsystem: "com.gengdawei.AIInputMethod", category: "Doubao")
     
@@ -122,6 +123,7 @@ class DoubaoSpeechService: ObservableObject {
         audioEngine?.inputNode.removeTap(onBus: 0)
         audioEngine?.stop()
         audioEngine = nil
+        audioConverter = nil  // 清空缓存的转换器
         
         // 发送最后一包
         sendLastAudioPacket()
@@ -141,18 +143,24 @@ class DoubaoSpeechService: ObservableObject {
         }
         
         let requestId = UUID().uuidString
-        
+        // connectId 用于追踪本次连接；X-Tt-Logid 由服务端在 HTTP upgrade response 中返回，
+        // URLSessionWebSocketTask 不暴露 upgrade response headers，无法直接读取。
+        // 使用 x-api-connect-id 标记本次请求，可在服务端日志中与 X-Tt-Logid 关联。
+        let connectId = UUID().uuidString
+
         var request = URLRequest(url: url)
         request.setValue(appId, forHTTPHeaderField: "X-Api-App-Key")
         request.setValue(accessToken, forHTTPHeaderField: "X-Api-Access-Key")
         request.setValue("volc.seedasr.sauc.duration", forHTTPHeaderField: "X-Api-Resource-Id")
         request.setValue(requestId, forHTTPHeaderField: "X-Api-Request-Id")
-        
+        request.setValue(connectId, forHTTPHeaderField: "x-api-connect-id")
+
         logToFile("[Doubao] ========== CONNECTING ==========")
         logToFile("[Doubao] URL: \(urlString)")
         logToFile("[Doubao] AppID: \(appId)")
         logToFile("[Doubao] Token: \(accessToken.prefix(8))...")
         logToFile("[Doubao] RequestID: \(requestId)")
+        logToFile("[Doubao] ConnectID: \(connectId) (X-Tt-Logid 需通过 HTTP upgrade response 获取，URLSessionWebSocketTask 不支持)")
         
         let session = URLSession(configuration: .default)
         webSocketTask = session.webSocketTask(with: request)
@@ -191,7 +199,11 @@ class DoubaoSpeechService: ObservableObject {
             "enable_punc": true,     // 标点
             "enable_ddc": true,      // 语义顺滑
             "show_utterances": true,
-            "enable_nonstream": true // 🔥 开启二遍识别：流式+非流式，提升准确率
+            "enable_nonstream": true, // 🔥 开启二遍识别：流式+非流式，提升准确率
+            "enable_accelerate_text": true,
+            "accelerate_score": 8,
+            "end_window_size": 500
+            // result_type 不设置（默认 "full"）：按住按钮期间累积全文，中间停顿不会丢弃之前的内容
         ]
         
         // 🔥 热词直传：通讯录姓名提高识别准确率
@@ -211,7 +223,7 @@ class DoubaoSpeechService: ObservableObject {
         
         // 优化参数：开启二遍识别模式提升准确率
         let payload: [String: Any] = [
-            "user": ["uid": "ai_input_method"],
+            "user": ["uid": DeviceIdManager.shared.deviceId],
             "audio": [
                 "format": "pcm",
                 "rate": 16000,
@@ -296,12 +308,13 @@ class DoubaoSpeechService: ObservableObject {
             return
         }
         
-        // 创建转换器
+        // 创建转换器并缓存，避免在 tap 回调里每帧重建（性能优化）
         guard let converter = AVAudioConverter(from: recordFormat, to: targetFormat) else {
             logToFile("[Doubao] ❌ Failed to create converter from \(recordFormat.sampleRate)Hz to 16kHz")
             return
         }
-        logToFile("[Doubao] Audio converter created: \(recordFormat.sampleRate)Hz -> 16kHz")
+        self.audioConverter = converter
+        logToFile("[Doubao] Audio converter created and cached: \(recordFormat.sampleRate)Hz -> 16kHz")
         
         var tapCallCount = 0
         
@@ -329,21 +342,27 @@ class DoubaoSpeechService: ObservableObject {
                 return
             }
             
-            // 需要为每个 buffer 创建新的 converter（因为输入格式可能变化）
-            guard let dynamicConverter = AVAudioConverter(from: buffer.format, to: targetFormat) else {
-                if tapCallCount <= 3 {
-                    logToFile("[Doubao] ⚠️ Failed to create dynamic converter")
+            // 复用 audioConverter；仅当输入格式发生变化时才重建（通常不会变化）
+            if self.audioConverter == nil || self.audioConverter?.inputFormat != buffer.format {
+                if let newConverter = AVAudioConverter(from: buffer.format, to: targetFormat) {
+                    self.audioConverter = newConverter
+                    logToFile("[Doubao] Audio converter (re)created for format: \(buffer.format.sampleRate)Hz")
+                } else {
+                    if tapCallCount <= 3 {
+                        logToFile("[Doubao] ⚠️ Failed to create converter for format: \(buffer.format.sampleRate)Hz")
+                    }
+                    return
                 }
-                return
             }
-            
+            guard let activeConverter = self.audioConverter else { return }
+
             var error: NSError?
             let inputBlock: AVAudioConverterInputBlock = { inNumPackets, outStatus in
                 outStatus.pointee = .haveData
                 return buffer
             }
-            
-            dynamicConverter.convert(to: outputBuffer, error: &error, withInputFrom: inputBlock)
+
+            activeConverter.convert(to: outputBuffer, error: &error, withInputFrom: inputBlock)
             
             if let error = error {
                 if tapCallCount <= 3 {
