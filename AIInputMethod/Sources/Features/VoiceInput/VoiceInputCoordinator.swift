@@ -2,6 +2,20 @@ import Foundation
 import AppKit
 import Combine
 
+// MARK: - Recording State Machine
+
+/// 语音录音生命周期状态
+private enum RecordingState {
+    /// 空闲，未录音
+    case idle
+    /// 正在录音（快捷键按住中）
+    case recording(skill: SkillModel?)
+    /// 录音结束，等待 ASR 最终结果
+    case waitingForResult(skill: SkillModel?, timeout: DispatchWorkItem)
+    /// 正在处理 Skill（调用 LLM 中）
+    case processing
+}
+
 // MARK: - Voice Input Coordinator
 
 /// 语音输入协调器
@@ -23,8 +37,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
     var currentSkill: SkillModel? = nil
     var isVoiceInputEnabled: Bool = false
     private var currentRawText: String = ""
-    private var pendingSkill: SkillModel?
-    private var waitingForFinalResult = false
+    private var recordingState: RecordingState = .idle
     private var savedContext: ContextBehavior?  // 按下快捷键时保存的上下文（用户还聚焦在目标输入框）
     private var cancellables = Set<AnyCancellable>()
 
@@ -111,10 +124,10 @@ class VoiceInputCoordinator: ToolOutputHandler {
                 self.awardSpeechXP(characterCount: trimmed.count)
             }
 
-            if self.waitingForFinalResult {
-                let skill = self.pendingSkill
-                self.waitingForFinalResult = false
-                self.pendingSkill = nil
+            // 状态机：仅在等待最终结果时触发处理
+            if case .waitingForResult(let skill, let timeout) = self.recordingState {
+                timeout.cancel()
+                self.recordingState = .processing
                 FileLogger.log("[Speech] Processing final result via PTT path")
                 self.processWithSkill(skill, speechText: text)
             }
@@ -220,8 +233,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
         print("[Hotkey] Starting recording, skill: \(skillName)")
         currentSkill = skill
         currentRawText = ""
-        waitingForFinalResult = false
-        pendingSkill = nil
+        recordingState = .recording(skill: skill)
 
         // 在显示 Overlay 之前保存上下文（此时用户还聚焦在目标输入框）
         // AX 检测移到后台线程，避免阻塞热键响应路径 50-200ms
@@ -249,20 +261,19 @@ class VoiceInputCoordinator: ToolOutputHandler {
 
         if !currentRawText.isEmpty {
             FileLogger.log("[Hotkey] Final result already available, processing now")
+            recordingState = .processing
             processWithSkill(skill, speechText: currentRawText)
         } else {
             FileLogger.log("[Hotkey] Waiting for final result...")
-            waitingForFinalResult = true
-            pendingSkill = skill
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.Overlay.speechTimeoutSeconds) { [weak self] in
-                guard let self = self, self.waitingForFinalResult else { return }
+            let timeout = DispatchWorkItem { [weak self] in
+                guard let self = self,
+                      case .waitingForResult(let pendingSkill, _) = self.recordingState else { return }
                 FileLogger.log("[Hotkey] ⚠️ Timeout waiting for final result")
-                self.waitingForFinalResult = false
-                let pendingSkill = self.pendingSkill
-                self.pendingSkill = nil
+                self.recordingState = .processing
                 self.processWithSkill(pendingSkill, speechText: self.currentRawText)
             }
+            recordingState = .waitingForResult(skill: skill, timeout: timeout)
+            DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.Overlay.speechTimeoutSeconds, execute: timeout)
         }
     }
 
@@ -272,15 +283,16 @@ class VoiceInputCoordinator: ToolOutputHandler {
     func handleEscCancel() {
         FileLogger.log("[VIC] ESC cancel triggered")
 
-        // 停止录音
         speechService.stopRecording()
 
-        // 清除状态
-        currentRawText = ""
-        waitingForFinalResult = false
-        pendingSkill = nil
+        // 取消等待超时
+        if case .waitingForResult(_, let timeout) = recordingState {
+            timeout.cancel()
+        }
 
-        // 隐藏 Overlay
+        currentRawText = ""
+        recordingState = .idle
+
         OverlayStateManager.shared.hide()
         overlayManager.hide()
     }
@@ -292,6 +304,8 @@ class VoiceInputCoordinator: ToolOutputHandler {
 
         guard !text.isEmpty else {
             FileLogger.log("[Process] Empty text, skipping")
+            recordingState = .idle
+            currentRawText = ""
             overlayManager.hide()
             return
         }
@@ -321,6 +335,8 @@ class VoiceInputCoordinator: ToolOutputHandler {
                 },
                 onFloatingCard: { [weak self] result, speechText, skill, debugInfo in
                     guard let self = self else { return }
+                    self.recordingState = .idle
+                    self.currentRawText = ""
                     OverlayStateManager.shared.hide()
                     self.overlayManager.hide()
                     FloatingResultCardController.shared.show(
@@ -334,6 +350,8 @@ class VoiceInputCoordinator: ToolOutputHandler {
                 onError: { [weak self] error, behavior in
                     guard let self = self else { return }
                     FileLogger.log("[Process] Skill error: \(error.localizedDescription)")
+                    self.recordingState = .idle
+                    self.currentRawText = ""
                     OverlayStateManager.shared.setCommitting(type: .textInput)
                     DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.Overlay.commitDismissDelay) {
                         self.overlayManager.hide()
@@ -355,6 +373,8 @@ class VoiceInputCoordinator: ToolOutputHandler {
             skillId: skill.id,
             skillName: skill.localizedName
         )
+        recordingState = .idle
+        currentRawText = ""
         Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
         NotificationCenter.default.post(name: .ghostTwinStatusShouldRefresh, object: nil)
         OverlayStateManager.shared.setCommitting(type: .textInput)
@@ -417,6 +437,8 @@ class VoiceInputCoordinator: ToolOutputHandler {
                 content: text, category: .polish, originalContent: text,
                 skillId: SkillModel.builtinGhostCommandId, skillName: L.Overlay.defaultSkillName
             )
+            recordingState = .idle
+            currentRawText = ""
             Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
             OverlayStateManager.shared.setCommitting(type: .textInput)
             DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.Overlay.commitDismissDelay) {
@@ -456,6 +478,8 @@ class VoiceInputCoordinator: ToolOutputHandler {
                 self.insertTextAtCursor(text)
             }
 
+            self.recordingState = .idle
+            self.currentRawText = ""
             OverlayStateManager.shared.setCommitting(type: .textInput)
             DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.Overlay.commitDismissDelay) {
                 self.overlayManager.hide()
@@ -506,6 +530,8 @@ class VoiceInputCoordinator: ToolOutputHandler {
             skillId: context.skill.id,
             skillName: context.skill.localizedName
         )
+        recordingState = .idle
+        currentRawText = ""
         Task { await QuotaManager.shared.reportAndRefresh(characters: context.text.count) }
         NotificationCenter.default.post(name: .ghostTwinStatusShouldRefresh, object: nil)
         OverlayStateManager.shared.setCommitting(type: .textInput)
@@ -520,6 +546,8 @@ class VoiceInputCoordinator: ToolOutputHandler {
             content: text, category: .memo, originalContent: nil,
             skillId: SkillModel.builtinMemoId, skillName: L.Skill.builtinMemoName
         )
+        recordingState = .idle
+        currentRawText = ""
         Task { await QuotaManager.shared.reportAndRefresh(characters: text.count) }
         NotificationCenter.default.post(name: .ghostTwinStatusShouldRefresh, object: nil)
         OverlayStateManager.shared.setCommitting(type: .memoSaved)
