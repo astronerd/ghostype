@@ -143,6 +143,18 @@ final class WhisperSpeechService: SpeechServiceProtocol {
             return
         }
 
+        // Lazy load: 模型可能在 preload 后才下载完成
+        if whisperKit == nil {
+            await MainActor.run { WhisperModelManager.shared.loadState = .loading(modelId) }
+            do {
+                try await preload()
+                await MainActor.run { WhisperModelManager.shared.loadState = .ready(modelId) }
+            } catch {
+                await MainActor.run { WhisperModelManager.shared.loadState = .failed(error.localizedDescription) }
+                FileLogger.log("[Whisper] ❌ Lazy preload failed: \(error)")
+            }
+        }
+
         guard let whisperKit else {
             FileLogger.log("[Whisper] ⚠️ Model not loaded, returning empty")
             await MainActor.run { onFinalResult?("") }

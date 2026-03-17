@@ -75,9 +75,19 @@ final class AppBootstrapper {
                 language: AppSettings.shared.whisperLanguage,
                 temperature: Float(AppSettings.shared.whisperTemperature)
             )
-            Task { try? await svc.preload() }
+            let modelId = AppSettings.shared.whisperModelId
+            WhisperModelManager.shared.loadState = .loading(modelId)
+            Task.detached {
+                do {
+                    try await svc.preload()
+                    await MainActor.run { WhisperModelManager.shared.loadState = .ready(modelId) }
+                } catch {
+                    await MainActor.run { WhisperModelManager.shared.loadState = .failed(error.localizedDescription) }
+                    FileLogger.log("[Whisper] ❌ Preload failed: \(error)")
+                }
+            }
             delegate.voiceCoordinator.updateSpeechService(svc)
-            FileLogger.log("[App] Using Whisper ASR engine: \(AppSettings.shared.whisperModelId)")
+            FileLogger.log("[App] Using Whisper ASR engine: \(modelId)")
         }
 
         // 语音输入协调器（hotkey、speech、auth、tool registry）
@@ -116,20 +126,61 @@ final class AppBootstrapper {
                 guard let delegate else { return }
                 switch newEngine {
                 case .doubao:
+                    WhisperModelManager.shared.loadState = .idle
                     delegate.voiceCoordinator.updateSpeechService(delegate.speechService)
                     FileLogger.log("[App] Switched to Doubao ASR engine")
                 case .whisper:
+                    let modelId = AppSettings.shared.whisperModelId
                     let svc = WhisperSpeechService(
-                        modelId: AppSettings.shared.whisperModelId,
+                        modelId: modelId,
                         language: AppSettings.shared.whisperLanguage,
                         temperature: Float(AppSettings.shared.whisperTemperature)
                     )
-                    Task { try? await svc.preload() }
+                    WhisperModelManager.shared.loadState = .loading(modelId)
+                    Task.detached {
+                        do {
+                            try await svc.preload()
+                            await MainActor.run { WhisperModelManager.shared.loadState = .ready(modelId) }
+                        } catch {
+                            await MainActor.run { WhisperModelManager.shared.loadState = .failed(error.localizedDescription) }
+                            FileLogger.log("[Whisper] ❌ Preload failed: \(error)")
+                        }
+                    }
                     delegate.voiceCoordinator.updateSpeechService(svc)
-                    FileLogger.log("[App] Switched to Whisper ASR engine: \(AppSettings.shared.whisperModelId)")
+                    FileLogger.log("[App] Switched to Whisper ASR engine: \(modelId)")
                 }
             }
             .store(in: &cancellables)
+
+        // 监听 Whisper 参数变更（语言/模型/温度），debounce 后热重建 service
+        Publishers.CombineLatest3(
+            AppSettings.shared.$whisperModelId,
+            AppSettings.shared.$whisperLanguage,
+            AppSettings.shared.$whisperTemperature
+        )
+        .dropFirst()
+        .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
+        .sink { [weak delegate] modelId, language, temperature in
+            guard let delegate, AppSettings.shared.asrEngine == .whisper else { return }
+            let svc = WhisperSpeechService(
+                modelId: modelId,
+                language: language,
+                temperature: Float(temperature)
+            )
+            WhisperModelManager.shared.loadState = .loading(modelId)
+            Task.detached {
+                do {
+                    try await svc.preload()
+                    await MainActor.run { WhisperModelManager.shared.loadState = .ready(modelId) }
+                } catch {
+                    await MainActor.run { WhisperModelManager.shared.loadState = .failed(error.localizedDescription) }
+                    FileLogger.log("[Whisper] ❌ Preload failed: \(error)")
+                }
+            }
+            delegate.voiceCoordinator.updateSpeechService(svc)
+            FileLogger.log("[App] Whisper params changed — model=\(modelId) lang=\(language) temp=\(temperature)")
+        }
+        .store(in: &cancellables)
 
         // 启动 Hotkey
         print("[App] Starting hotkey manager...")

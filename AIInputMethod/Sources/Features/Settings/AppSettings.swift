@@ -220,7 +220,10 @@ class AppSettings: ObservableObject {
     @Published var whisperTemperature: Double {
         didSet { debouncedSave() }
     }
-
+    /// 模型下载镜像端点（"hf-mirror" / "huggingface"）
+    @Published var whisperMirrorEndpoint: String {
+        didSet { debouncedSave() }
+    }
     // MARK: - 语言设置
 
     /// 应用语言
@@ -267,6 +270,7 @@ class AppSettings: ObservableObject {
         static let whisperModelId = "whisperModelId"
         static let whisperLanguage = "whisperLanguage"
         static let whisperTemperature = "whisperTemperature"
+        static let whisperMirrorEndpoint = "whisperMirrorEndpoint"
     }
     
     // MARK: - Initialization
@@ -425,6 +429,7 @@ class AppSettings: ObservableObject {
         whisperModelId = defaults.string(forKey: Keys.whisperModelId) ?? "openai_whisper-small"
         whisperLanguage = defaults.string(forKey: Keys.whisperLanguage) ?? "auto"
         whisperTemperature = defaults.object(forKey: Keys.whisperTemperature) as? Double ?? 0.0
+        whisperMirrorEndpoint = defaults.string(forKey: Keys.whisperMirrorEndpoint) ?? "huggingface"
     }
     
     // MARK: - Persistence
@@ -486,6 +491,7 @@ class AppSettings: ObservableObject {
         defaults.set(whisperModelId, forKey: Keys.whisperModelId)
         defaults.set(whisperLanguage, forKey: Keys.whisperLanguage)
         defaults.set(whisperTemperature, forKey: Keys.whisperTemperature)
+        defaults.set(whisperMirrorEndpoint, forKey: Keys.whisperMirrorEndpoint)
     }
     
     // MARK: - Reset

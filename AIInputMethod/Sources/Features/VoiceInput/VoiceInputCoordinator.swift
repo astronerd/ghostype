@@ -509,7 +509,7 @@ class VoiceInputCoordinator: ToolOutputHandler {
     static func applyPunctuationMode(_ text: String) -> String {
         let mode = AppSettings.shared.punctuationMode
         switch mode {
-        case "noEnd":
+        case "no_end":
             // 去掉末尾标点（中英文句号、问号、感叹号）
             var result = text
             while let last = result.last,

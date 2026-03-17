@@ -9,11 +9,15 @@ let package = Package(
     products: [
         .executable(name: "AIInputMethod", targets: ["AIInputMethod"])
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/argmaxinc/WhisperKit", from: "0.9.0")
+    ],
     targets: [
         .executableTarget(
             name: "AIInputMethod",
-            dependencies: [],
+            dependencies: [
+                .product(name: "WhisperKit", package: "WhisperKit")
+            ],
             path: "Sources",
             swiftSettings: [
                 .unsafeFlags(["-F", "Frameworks"]),
@@ -25,7 +29,9 @@ let package = Package(
         ),
         .testTarget(
             name: "AIInputMethodTests",
-            dependencies: [],
+            dependencies: [
+                .product(name: "WhisperKit", package: "WhisperKit")
+            ],
             path: "Tests"
         )
     ]

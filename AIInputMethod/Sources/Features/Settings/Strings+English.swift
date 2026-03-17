@@ -611,7 +611,7 @@ private struct EnglishMemoSync: MemoSyncStrings {
 // MARK: - Whisper ASR
 
 private struct EnglishWhisper: WhisperStrings {
-    var whisperSectionTitle: String { "Speech Recognition Engine" }
+    var whisperSectionTitle: String { "Speech Recognition" }
     var whisperEngineLabel: String { "Engine" }
     var whisperEngineDoubao: String { "Doubao Cloud" }
     var whisperEngineLocal: String { "Local Whisper" }
@@ -628,5 +628,14 @@ private struct EnglishWhisper: WhisperStrings {
     var whisperDownloaded: String { "Downloaded" }
     var whisperDownloadError: String { "Download Failed" }
     var whisperNoModelWarning: String { "Please download a Whisper model first" }
-    var whisperAppleSiliconTip: String { "Whisper inference is slower on Intel Macs. Consider using Doubao Cloud engine." }
+    var whisperAppleSiliconTip: String { "Local recognition is slower on Intel Macs. Best used on Apple Silicon." }
+    var whisperBatchModeTip: String { "Local mode does not support streaming — recognition starts after you release the key" }
+    var whisperModelLoading: String { "Loading model…" }
+    var whisperModelReady: String { "Model ready" }
+    var whisperModelLoadFailed: String { "Model load failed, please delete and re-download" }
+    var whisperLocalToggleLabel: String { "Local Speech Recognition" }
+    var whisperLocalToggleSubtitle: String { "Use on-device Whisper model — audio never leaves your Mac" }
+    var whisperMirrorLabel: String { "Download Source" }
+    var whisperMirrorHfMirror: String { "China Mirror" }
+    var whisperMirrorHuggingface: String { "HuggingFace (requires VPN)" }
 }

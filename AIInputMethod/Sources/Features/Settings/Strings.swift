@@ -594,6 +594,15 @@ enum L {
         static var whisperDownloadError: String { current.whisper.whisperDownloadError }
         static var whisperNoModelWarning: String { current.whisper.whisperNoModelWarning }
         static var whisperAppleSiliconTip: String { current.whisper.whisperAppleSiliconTip }
+        static var whisperBatchModeTip: String { current.whisper.whisperBatchModeTip }
+        static var whisperModelLoading: String { current.whisper.whisperModelLoading }
+        static var whisperModelReady: String { current.whisper.whisperModelReady }
+        static var whisperModelLoadFailed: String { current.whisper.whisperModelLoadFailed }
+        static var whisperLocalToggleLabel: String { current.whisper.whisperLocalToggleLabel }
+        static var whisperLocalToggleSubtitle: String { current.whisper.whisperLocalToggleSubtitle }
+        static var whisperMirrorLabel: String { current.whisper.whisperMirrorLabel }
+        static var whisperMirrorHfMirror: String { current.whisper.whisperMirrorHfMirror }
+        static var whisperMirrorHuggingface: String { current.whisper.whisperMirrorHuggingface }
     }
 
     // MARK: - Private Implementation
@@ -1186,4 +1195,13 @@ protocol WhisperStrings {
     var whisperDownloadError: String { get }
     var whisperNoModelWarning: String { get }
     var whisperAppleSiliconTip: String { get }
+    var whisperBatchModeTip: String { get }
+    var whisperModelLoading: String { get }
+    var whisperModelReady: String { get }
+    var whisperModelLoadFailed: String { get }
+    var whisperLocalToggleLabel: String { get }
+    var whisperLocalToggleSubtitle: String { get }
+    var whisperMirrorLabel: String { get }
+    var whisperMirrorHfMirror: String { get }
+    var whisperMirrorHuggingface: String { get }
 }

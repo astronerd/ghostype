@@ -240,14 +240,21 @@ struct PreferencesPage: View {
 
     // MARK: - ASR Settings Section
 
+    private static let whisperLanguages: [(code: String, name: String)] = [
+        ("zh", "中文"), ("en", "English"), ("ja", "日本語"), ("ko", "한국어"),
+        ("fr", "Français"), ("de", "Deutsch"), ("es", "Español"), ("pt", "Português"),
+        ("ru", "Русский"), ("it", "Italiano"), ("ar", "العربية"), ("th", "ไทย"),
+        ("vi", "Tiếng Việt"), ("id", "Bahasa Indonesia"), ("hi", "हिन्दी"),
+    ]
+
     @State private var modelManager = WhisperModelManager.shared
 
     private var asrSettingsSection: some View {
         MinimalSettingsSection(title: L.Whisper.whisperSectionTitle, icon: "waveform.badge.mic") {
             VStack(spacing: 0) {
-                // Engine picker row
+                // Local ASR toggle row
                 HStack(spacing: DS.Spacing.md) {
-                    Image(systemName: "waveform.badge.mic")
+                    Image(systemName: "cpu")
                         .font(.system(size: 14))
                         .foregroundColor(DS.Colors.icon)
                         .frame(width: 28, height: 28)
@@ -255,23 +262,22 @@ struct PreferencesPage: View {
                         .cornerRadius(DS.Layout.cornerRadius)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(L.Whisper.whisperEngineLabel)
+                        Text(L.Whisper.whisperLocalToggleLabel)
                             .font(DS.Typography.body)
                             .foregroundColor(DS.Colors.text1)
+                        Text(L.Whisper.whisperLocalToggleSubtitle)
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text2)
                     }
 
                     Spacer()
 
-                    Picker("", selection: Binding(
-                        get: { viewModel.asrEngine },
-                        set: { viewModel.asrEngine = $0 }
-                    )) {
-                        ForEach(ASREngine.allCases, id: \.self) { engine in
-                            Text(engine.displayName).tag(engine)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .frame(width: 160)
+                    Toggle("", isOn: Binding(
+                        get: { viewModel.asrEngine == .whisper },
+                        set: { viewModel.asrEngine = $0 ? .whisper : .doubao }
+                    ))
+                    .toggleStyle(.switch)
+                    .labelsHidden()
                 }
                 .padding(DS.Spacing.lg)
 
@@ -279,6 +285,44 @@ struct PreferencesPage: View {
                 if viewModel.asrEngine == .whisper {
                     Divider()
                         .padding(.horizontal, DS.Spacing.lg)
+
+                    // Model load state indicator
+                    switch modelManager.loadState {
+                    case .loading(let mid):
+                        HStack(spacing: DS.Spacing.sm) {
+                            ProgressView()
+                                .controlSize(.small)
+                            Text(L.Whisper.whisperModelLoading)
+                                .font(DS.Typography.caption)
+                                .foregroundColor(DS.Colors.text2)
+                        }
+                        .padding(.horizontal, DS.Spacing.lg)
+                        .padding(.vertical, DS.Spacing.sm)
+                    case .ready(let mid):
+                        HStack(spacing: DS.Spacing.sm) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                                .font(.system(size: 13))
+                            Text(L.Whisper.whisperModelReady)
+                                .font(DS.Typography.caption)
+                                .foregroundColor(.green)
+                        }
+                        .padding(.horizontal, DS.Spacing.lg)
+                        .padding(.vertical, DS.Spacing.sm)
+                    case .failed(let msg):
+                        HStack(spacing: DS.Spacing.sm) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.red)
+                                .font(.system(size: 13))
+                            Text(L.Whisper.whisperModelLoadFailed)
+                                .font(DS.Typography.caption)
+                                .foregroundColor(.red)
+                        }
+                        .padding(.horizontal, DS.Spacing.lg)
+                        .padding(.vertical, DS.Spacing.sm)
+                    case .idle:
+                        EmptyView()
+                    }
 
                     // No model warning
                     let hasDownloaded = WhisperModelManager.supportedModels.contains { modelManager.isDownloaded($0.id) }
@@ -335,12 +379,13 @@ struct PreferencesPage: View {
                             set: { viewModel.whisperLanguage = $0 }
                         )) {
                             Text(L.Whisper.whisperLanguageAuto).tag("auto")
-                            Text(L.Whisper.whisperLanguageZh).tag("zh")
-                            Text(L.Whisper.whisperLanguageEn).tag("en")
-                            Text(L.Whisper.whisperLanguageJa).tag("ja")
+                            Divider()
+                            ForEach(Self.whisperLanguages, id: \.code) { lang in
+                                Text(lang.name).tag(lang.code)
+                            }
                         }
                         .pickerStyle(.menu)
-                        .frame(width: 130)
+                        .frame(width: 160)
                     }
                     .padding(DS.Spacing.lg)
 
@@ -380,6 +425,18 @@ struct PreferencesPage: View {
                             .frame(width: 28, alignment: .trailing)
                     }
                     .padding(DS.Spacing.lg)
+
+                    // Batch mode tip (always shown)
+                    HStack(spacing: DS.Spacing.sm) {
+                        Image(systemName: "info.circle")
+                            .foregroundColor(DS.Colors.text2)
+                            .font(.system(size: 12))
+                        Text(L.Whisper.whisperBatchModeTip)
+                            .font(DS.Typography.caption)
+                            .foregroundColor(DS.Colors.text2)
+                    }
+                    .padding(.horizontal, DS.Spacing.lg)
+                    .padding(.bottom, DS.Spacing.md)
 
                     // Intel Mac tip
                     if !isAppleSilicon {

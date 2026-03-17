@@ -310,7 +310,12 @@ class PreferencesViewModel {
         self.enableAutoEnter = AppSettings.shared.enableAutoEnter
         self.appLanguage = AppSettings.shared.appLanguage
         self.hotkeyMode = AppSettings.shared.hotkeyMode
-        
+        self.asrEngine = AppSettings.shared.asrEngine
+        self.whisperModelId = AppSettings.shared.whisperModelId
+        self.whisperLanguage = AppSettings.shared.whisperLanguage
+        self.whisperTemperature = AppSettings.shared.whisperTemperature
+        self.whisperMirrorEndpoint = AppSettings.shared.whisperMirrorEndpoint
+
         // 加载 HID 映射（共用 AppDelegate 的 hidMappingManager）
         if let appDelegate = NSApp.delegate as? AppDelegate {
             self.hidMappingManager = appDelegate.hidMappingManager
@@ -476,20 +481,19 @@ class PreferencesViewModel {
     // MARK: - ASR Engine Settings
 
     var asrEngine: ASREngine {
-        get { AppSettings.shared.asrEngine }
-        set { AppSettings.shared.asrEngine = newValue }
+        didSet { AppSettings.shared.asrEngine = asrEngine }
     }
     var whisperModelId: String {
-        get { AppSettings.shared.whisperModelId }
-        set { AppSettings.shared.whisperModelId = newValue }
+        didSet { AppSettings.shared.whisperModelId = whisperModelId }
     }
     var whisperLanguage: String {
-        get { AppSettings.shared.whisperLanguage }
-        set { AppSettings.shared.whisperLanguage = newValue }
+        didSet { AppSettings.shared.whisperLanguage = whisperLanguage }
     }
     var whisperTemperature: Double {
-        get { AppSettings.shared.whisperTemperature }
-        set { AppSettings.shared.whisperTemperature = newValue }
+        didSet { AppSettings.shared.whisperTemperature = whisperTemperature }
+    }
+    var whisperMirrorEndpoint: String {
+        didSet { AppSettings.shared.whisperMirrorEndpoint = whisperMirrorEndpoint }
     }
 }
 

@@ -611,7 +611,7 @@ private struct ChineseMemoSync: MemoSyncStrings {
 // MARK: - Whisper ASR
 
 private struct ChineseWhisper: WhisperStrings {
-    var whisperSectionTitle: String { "语音识别引擎" }
+    var whisperSectionTitle: String { "语音识别" }
     var whisperEngineLabel: String { "识别引擎" }
     var whisperEngineDoubao: String { "豆包云端" }
     var whisperEngineLocal: String { "本地 Whisper" }
@@ -628,5 +628,14 @@ private struct ChineseWhisper: WhisperStrings {
     var whisperDownloaded: String { "已下载" }
     var whisperDownloadError: String { "下载失败" }
     var whisperNoModelWarning: String { "请先下载一个 Whisper 模型" }
-    var whisperAppleSiliconTip: String { "Intel Mac 上 Whisper 推理速度较慢，建议使用豆包云端引擎" }
+    var whisperAppleSiliconTip: String { "Intel Mac 上本地识别速度较慢，推荐在 Apple Silicon Mac 上使用" }
+    var whisperBatchModeTip: String { "本地模式不支持流式输出，松开按键后才会开始识别" }
+    var whisperModelLoading: String { "模型加载中…" }
+    var whisperModelReady: String { "模型已就绪" }
+    var whisperModelLoadFailed: String { "模型加载失败，请删除后重新下载" }
+    var whisperLocalToggleLabel: String { "纯本地语音识别" }
+    var whisperLocalToggleSubtitle: String { "使用设备端 Whisper 模型，音频不离设备" }
+    var whisperMirrorLabel: String { "下载源" }
+    var whisperMirrorHfMirror: String { "国内镜像" }
+    var whisperMirrorHuggingface: String { "HuggingFace（需梯子）" }
 }
