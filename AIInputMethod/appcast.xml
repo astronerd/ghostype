@@ -6,15 +6,15 @@
         <description>GHOSTYPE automatic updates</description>
         <language>zh-cn</language>
         <item>
-            <title>GHOSTYPE v0.1.03171101</title>
-            <pubDate>Tue, 17 Mar 2026 11:02:33 +0800</pubDate>
-            <sparkle:version>24</sparkle:version>
-            <sparkle:shortVersionString>0.1.03171101</sparkle:shortVersionString>
+            <title>GHOSTYPE v0.1.03181228</title>
+            <pubDate>Wed, 18 Mar 2026 12:29:39 +0800</pubDate>
+            <sparkle:version>25</sparkle:version>
+            <sparkle:shortVersionString>0.1.03181228</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <enclosure
-                url="https://github.com/astronerd/ghostype/releases/download/v0.1.03171101/GHOSTYPE-0.1.03171101.dmg"
-                sparkle:edSignature="1Sxt4FQnRRhx7JVyi1aqNOWhD9ryqwBRwrICYIAnVhL7qUY3md57bXuy9L1rI2DYr957zukZNtE+NLPL+AKDCg=="
-                length="12837907"
+                url="https://github.com/astronerd/ghostype/releases/download/v0.1.03181228/GHOSTYPE-0.1.03181228.dmg"
+                sparkle:edSignature="/goFEwQFY2UzWHHXrbqh9wruDIN3LQpWMb4caMlHf59rgsYbYuQi5S0SpdFStvm0XY1hZDWePZxvGc56Tvo2Bw=="
+                length="12839698"
                 type="application/octet-stream"
             />
         </item>
